@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #1a1a2e;
-  --color-primary-light: #16213e;
-  --color-secondary: #0f3460;
-  --color-accent: #e94560;
-  --color-accent-light: #ff6b6b;
-  --color-surface: #f8f9fa;
-  --color-surface-dark: #e9ecef;
+  --color-primary: #0f172a;
+  --color-primary-light: #1e293b;
+  --color-secondary: #334155;
+  --color-accent: #e11d48;
+  --color-accent-light: #f43f5e;
+  --color-surface: #f8fafc;
+  --color-surface-dark: #e2e8f0;
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
@@ -17,10 +17,16 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   font-family: var(--font-sans);
-  color: #333;
-  background-color: #fff;
+  color: #1e293b;
+  background-color: #ffffff;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -29,4 +35,43 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  width: 100%;
+}
+
+/* Smooth focus rings */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Better image defaults */
+img,
+video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Selection color */
+::selection {
+  background-color: var(--color-accent);
+  color: #ffffff;
 }

@@ -84,7 +84,7 @@ export function CheckoutPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <Link to="/products" className="inline-flex items-center gap-2 text-gray-500 hover:text-accent mb-8">
         <ArrowLeft className="w-4 h-4" /> Continue Shopping
       </Link>
@@ -101,7 +101,7 @@ export function CheckoutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Shipping Form */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white border rounded-xl p-6">
+            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
               <h2 className="font-semibold text-lg mb-4">Shipping Address</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
@@ -192,7 +192,7 @@ export function CheckoutPage() {
               </div>
             </div>
 
-            <div className="bg-white border rounded-xl p-6">
+            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
               <h2 className="font-semibold text-lg mb-4">Additional Notes</h2>
               <textarea
                 {...register('customerNotes')}
@@ -205,7 +205,7 @@ export function CheckoutPage() {
 
           {/* Order Summary */}
           <div>
-            <div className="bg-white border rounded-xl p-6 sticky top-20">
+            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm sticky top-20">
               <h2 className="font-semibold text-lg mb-4">Order Summary</h2>
 
               <ul className="space-y-3 mb-4">
@@ -239,7 +239,7 @@ export function CheckoutPage() {
               <button
                 type="submit"
                 disabled={isProcessing}
-                className="w-full mt-6 bg-accent hover:bg-accent-light text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full mt-6 bg-accent hover:bg-accent-light text-white py-3.5 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 shadow-md shadow-accent/25 hover:shadow-accent/40"
               >
                 {isProcessing ? (
                   <>

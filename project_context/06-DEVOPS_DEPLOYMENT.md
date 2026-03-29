@@ -19,122 +19,146 @@
 │  ├─ Volume: redis_data                              │
 │  └─ Network: app-network                            │
 │                                                     │
-│  Container 3: Backend (NestJS)                     │
-│  ├─ Port: 3000                                      │
+│  Container 3: Backend (Laravel + PHP-FPM + Nginx)  │
+│  ├─ Port: 8000                                      │
 │  ├─ Depends: PostgreSQL, Redis                     │
 │  └─ Network: app-network                            │
 │                                                     │
-│  Container 4: Frontend (React)                     │
+│  Container 4: Frontend (React + Vite)              │
 │  ├─ Port: 5173                                      │
 │  ├─ Depends: Backend                               │
-│  └─ Network: app-network                            │
-│                                                     │
-│  Container 5: Nginx (Proxy)                        │
-│  ├─ Port: 80, 443                                   │
-│  ├─ Depends: Backend, Frontend                     │
 │  └─ Network: app-network                            │
 │                                                     │
 └─────────────────────────────────────────────────────┘
 ```
 
-### Backend Dockerfile
+### Backend Dockerfile (Multi-stage)
 
 ```dockerfile
-# docker/backend/Dockerfile
+# backend/Dockerfile
 
-# Stage 1: Build
-FROM node:20-alpine AS builder
-
+# Stage 1: Composer dependencies
+FROM composer:2 AS vendor
 WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
-COPY package*.json ./
-RUN npm ci
+# Stage 2: Production image
+FROM php:8.4-fpm-alpine
 
+# Install system deps
+RUN apk add --no-cache \
+    nginx supervisor \
+    postgresql-dev libpq \
+    redis icu-dev \
+    && docker-php-ext-install pdo pdo_pgsql opcache intl bcmath \
+    && pecl install redis && docker-php-ext-enable redis
+
+# Copy configs
+COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
+COPY docker/supervisord.conf /etc/supervisord.conf
+
+# App setup
+WORKDIR /var/www/html
+COPY --from=vendor /app/vendor ./vendor
 COPY . .
-RUN npm run build
+RUN composer dump-autoload --optimize \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
-# Stage 2: Runtime
-FROM node:20-alpine
+EXPOSE 8000
 
-WORKDIR /app
-
-ENV NODE_ENV=production
-
-COPY package*.json ./
-RUN npm ci --only=production
-
-COPY --from=builder /app/dist ./dist
-
-EXPOSE 3000
-
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
-
-CMD ["node", "dist/main.js"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 ```
 
-### Frontend Dockerfile
+### Docker Support Files
 
-```dockerfile
-# docker/frontend/Dockerfile
+#### Nginx Config (docker/nginx.conf)
+```nginx
+server {
+    listen 8000;
+    server_name _;
+    root /var/www/html/public;
+    index index.php;
 
-# Stage 1: Build
-FROM node:20-alpine AS builder
+    client_max_body_size 20M;
 
-WORKDIR /app
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
 
-COPY package*.json ./
-RUN npm ci
-
-COPY . .
-RUN npm run build
-
-# Stage 2: Runtime
-FROM nginx:alpine
-
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+    location ~ \.php$ {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
 ```
 
-### Docker Compose
+#### PHP Config (docker/php.ini)
+```ini
+[PHP]
+upload_max_filesize = 20M
+post_max_size = 25M
+memory_limit = 256M
+max_execution_time = 30
+
+[opcache]
+opcache.enable=1
+opcache.memory_consumption=128
+opcache.interned_strings_buffer=8
+opcache.max_accelerated_files=10000
+opcache.validate_timestamps=0
+```
+
+#### Supervisor Config (docker/supervisord.conf)
+```ini
+[supervisord]
+nodaemon=true
+user=root
+
+[program:php-fpm]
+command=php-fpm -F
+autostart=true
+autorestart=true
+
+[program:nginx]
+command=nginx -g 'daemon off;'
+autostart=true
+autorestart=true
+```
+
+---
+
+## 🐙 Docker Compose
 
 ```yaml
 # docker-compose.yml
-version: '3.9'
-
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: tshirts_lab_postgres
     environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      POSTGRES_DB: ${DB_NAME:-tshirts_lab}
+      POSTGRES_DB: tshirtslab_db
+      POSTGRES_USER: tshirtslab
+      POSTGRES_PASSWORD: tshirtslab_secret
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      test: ["CMD-SHELL", "pg_isready -U tshirtslab"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: tshirts_lab_redis
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis}
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
@@ -145,71 +169,50 @@ services:
       timeout: 5s
       retries: 5
 
-  # Backend API
   backend:
     build:
       context: ./backend
-      dockerfile: ../docker/backend/Dockerfile
-    container_name: tshirts_lab_backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
     environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_USER: ${DB_USER:-postgres}
-      DATABASE_PASSWORD: ${DB_PASSWORD:-postgres}
-      DATABASE_NAME: ${DB_NAME:-tshirts_lab}
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_KEY: ${APP_KEY}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: tshirtslab_db
+      DB_USERNAME: tshirtslab
+      DB_PASSWORD: tshirtslab_secret
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}
+      REDIS_CLIENT: predis
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
       JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-3600}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
-      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
-    ports:
-      - "${BACKEND_PORT:-3000}:3000"
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      FRONTEND_URL: http://localhost:5173
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ./backend/src:/app/src
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
-  # Frontend
   frontend:
     build:
       context: ./frontend
-      dockerfile: ../docker/frontend/Dockerfile
-    container_name: tshirts_lab_frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
     environment:
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://backend:3000}
-    ports:
-      - "${FRONTEND_PORT:-5173}:80"
+      VITE_API_BASE_URL: http://localhost:8000
     depends_on:
       - backend
-    networks:
-      - app-network
-
-  # Nginx Reverse Proxy
-  nginx:
-    image: nginx:alpine
-    container_name: tshirts_lab_nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
-    depends_on:
-      - backend
-      - frontend
     networks:
       - app-network
 
@@ -222,445 +225,318 @@ networks:
     driver: bridge
 ```
 
-## 🚀 CI/CD Pipeline (GitHub Actions)
+---
 
-### Backend Testing & Build
+## 🔄 CI/CD Pipeline
+
+### GitHub Actions Workflow
 
 ```yaml
-# .github/workflows/backend.yml
-name: Backend CI/CD
+# .github/workflows/ci.yml
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [main, develop]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/backend.yml'
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 
 jobs:
-  test:
+  # Backend Tests
+  backend-test:
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
-        image: postgres:15-alpine
+        image: postgres:15
         env:
-          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        ports: ["5432:5432"]
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        ports:
-          - 5432:5432
 
       redis:
-        image: redis:7-alpine
+        image: redis:7
+        ports: ["6379:6379"]
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        ports:
-          - 6379:6379
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v3
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'backend/package-lock.json'
+          php-version: "8.4"
+          extensions: pdo_pgsql, redis, bcmath, intl
+          coverage: xdebug
 
-      - name: Install dependencies
-        run: npm ci
-        working-directory: backend
+      - name: Install Composer Dependencies
+        working-directory: ./backend
+        run: composer install --no-interaction --prefer-dist
 
-      - name: Lint
-        run: npm run lint
-        working-directory: backend
-
-      - name: Format Check
-        run: npm run format:check
-        working-directory: backend
-
-      - name: Build
-        run: npm run build
-        working-directory: backend
-
-      - name: Unit Tests
-        run: npm run test
-        working-directory: backend
-
-      - name: E2E Tests
-        run: npm run test:e2e
-        working-directory: backend
+      - name: Setup Environment
+        working-directory: ./backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan jwt:secret
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-          REDIS_URL: redis://localhost:6379
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: test_db
+          DB_USERNAME: test_user
+          DB_PASSWORD: test_pass
+          REDIS_HOST: 127.0.0.1
 
-      - name: Upload Coverage
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./backend/coverage/lcov.info
-          flags: backend
-          fail_ci_if_error: false
+      - name: Run Migrations
+        working-directory: ./backend
+        run: php artisan migrate --force
 
-  build-image:
-    needs: test
+      - name: Run Tests
+        working-directory: ./backend
+        run: php artisan test --coverage
+
+  # Frontend Tests
+  frontend-test:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to Docker Registry
-        uses: docker/login-action@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
 
-      - name: Build and Push
-        uses: docker/build-push-action@v4
-        with:
-          context: ./backend
-          file: ./docker/backend/Dockerfile
-          push: true
-          tags: ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
-          cache-from: type=registry
-          cache-to: type=inline
-```
-
-### Frontend Testing & Build
-
-```yaml
-# .github/workflows/frontend.yml
-name: Frontend CI/CD
-
-on:
-  push:
-    branches: [main, develop]
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend.yml'
-  pull_request:
-    branches: [main, develop]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'frontend/package-lock.json'
-
-      - name: Install dependencies
+      - name: Install Dependencies
+        working-directory: ./frontend
         run: npm ci
-        working-directory: frontend
-
-      - name: Lint
-        run: npm run lint
-        working-directory: frontend
-
-      - name: Format Check
-        run: npm run format:check
-        working-directory: frontend
 
       - name: Type Check
-        run: npm run type-check
-        working-directory: frontend
+        working-directory: ./frontend
+        run: npx tsc --noEmit
+
+      - name: Lint
+        working-directory: ./frontend
+        run: npm run lint
 
       - name: Build
+        working-directory: ./frontend
         run: npm run build
-        working-directory: frontend
 
-      - name: Unit Tests
-        run: npm run test
-        working-directory: frontend
-
-      - name: Upload Coverage
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./frontend/coverage/lcov.info
-          flags: frontend
-          fail_ci_if_error: false
-
-  e2e-tests:
+  # Docker Build
+  docker-build:
     runs-on: ubuntu-latest
-    needs: test
-
+    needs: [backend-test, frontend-test]
+    if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '20'
+      - name: Build Backend Image
+        run: docker build -t tshirtslab-backend ./backend
 
-      - name: Install dependencies
-        run: npm ci
-        working-directory: frontend
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-        working-directory: frontend
-
-      - name: Run E2E tests
-        run: npm run test:e2e
-        working-directory: frontend
-
-      - uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: playwright-report
-          path: frontend/playwright-report/
-
-  build-image:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to Docker Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and Push
-        uses: docker/build-push-action@v4
-        with:
-          context: ./frontend
-          file: ./docker/frontend/Dockerfile
-          push: true
-          tags: ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
-          cache-from: type=registry
-          cache-to: type=inline
+      - name: Build Frontend Image
+        run: docker build -t tshirtslab-frontend ./frontend
 ```
 
-## 📦 Kubernetes Deployment (Future)
+---
 
-### Backend Deployment
+## 🌐 Production Deployment
 
-```yaml
-# k8s/backend-deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: tshirts-lab-backend
-  namespace: production
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: backend
-  template:
-    metadata:
-      labels:
-        app: backend
-    spec:
-      containers:
-      - name: backend
-        image: ghcr.io/b4knamy/tshirts-lab/backend:latest
-        ports:
-        - containerPort: 3000
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: DATABASE_HOST
-          valueFrom:
-            configMapKeyRef:
-              name: app-config
-              key: db-host
-        - name: DATABASE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: app-secrets
-              key: db-password
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 3000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 3000
-          initialDelaySeconds: 5
-          periodSeconds: 5
+### Environment Variables (Production)
+
+```env
+# Backend Production
+APP_ENV=production
+APP_DEBUG=false
+APP_KEY=base64:...
+APP_URL=https://api.tshirtslab.com
+
+DB_CONNECTION=pgsql
+DB_HOST=prod-db-host
+DB_PORT=5432
+DB_DATABASE=tshirtslab_prod
+DB_USERNAME=prod_user
+DB_PASSWORD=<strong-password>
+
+REDIS_HOST=prod-redis-host
+REDIS_PORT=6379
+REDIS_PASSWORD=<redis-password>
+REDIS_CLIENT=predis
+
+CACHE_STORE=redis
+SESSION_DRIVER=redis
+QUEUE_CONNECTION=redis
+
+JWT_SECRET=<production-jwt-secret>
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_live_...
+
+FRONTEND_URL=https://tshirtslab.com
 ```
 
-### Frontend Service
+### Production Optimization (Laravel)
+```bash
+# Cache config, routes, views
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan optimize
 
-```yaml
-# k8s/frontend-service.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: tshirts-lab-frontend
-  namespace: production
-spec:
-  type: LoadBalancer
-  ports:
-  - port: 80
-    targetPort: 80
-    protocol: TCP
-  selector:
-    app: frontend
+# Composer autoload optimization
+composer install --no-dev --optimize-autoloader
 ```
 
-## 🌐 Nginx Configuration
-
+### Nginx Reverse Proxy (Production)
 ```nginx
-# docker/nginx/nginx.conf
-upstream backend {
-    server backend:3000;
-}
-
-upstream frontend {
-    server frontend:80;
-}
-
+# Production Nginx config
 server {
-    listen 80;
-    server_name localhost;
+    listen 443 ssl http2;
+    server_name api.tshirtslab.com;
 
-    # Backend API
-    location /api/ {
-        proxy_pass http://backend;
+    ssl_certificate /etc/ssl/certs/tshirtslab.crt;
+    ssl_certificate_key /etc/ssl/private/tshirtslab.key;
+
+    client_max_body_size 20M;
+
+    location / {
+        proxy_pass http://backend:8000\;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        
-        # WebSocket support
-        proxy_http_version 1.1;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name tshirtslab.com;
+
+    ssl_certificate /etc/ssl/certs/tshirtslab.crt;
+    ssl_certificate_key /etc/ssl/private/tshirtslab.key;
+
+    location / {
+        proxy_pass http://frontend:5173\;
+        proxy_set_header Host $host;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
-        
-        # Timeouts
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-    }
-
-    # Frontend
-    location / {
-        proxy_pass http://frontend;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    # Health check endpoint
-    location /health {
-        access_log off;
-        return 200 "healthy\n";
-        add_header Content-Type text/plain;
     }
 }
 ```
 
-## 📊 Monitoring & Logging (Future)
+---
 
-### Prometheus Configuration
+## 📊 Monitoring & Logging
 
-```yaml
-# monitoring/prometheus.yml
-global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
-
-scrape_configs:
-  - job_name: 'backend'
-    static_configs:
-      - targets: ['backend:3000']
-    metrics_path: '/metrics'
+### Laravel Logging
+```php
+// config/logging.php
+'channels' => [
+    'stack' => [
+        'driver' => 'stack',
+        'channels' => ['daily', 'stderr'],
+    ],
+    'daily' => [
+        'driver' => 'daily',
+        'path' => storage_path('logs/laravel.log'),
+        'days' => 14,
+    ],
+],
 ```
 
-### ELK Stack Setup (Future)
+### Health Check Endpoint
+```
+GET /api/v1/health
 
-```yaml
-# docker-compose.elk.yml
-services:
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0
-    environment:
-      - discovery.type=single-node
-    ports:
-      - "9200:9200"
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.0.0
-    ports:
-      - "5601:5601"
-
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.0.0
-    volumes:
-      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+Response:
+{
+  "success": true,
+  "data": {
+    "status": "healthy",
+    "timestamp": "2026-03-15T10:00:00Z",
+    "services": {
+      "database": "connected",
+      "redis": "connected",
+      "stripe": "configured"
+    }
+  }
+}
 ```
 
-## 🚀 Deployment Checklist
+### Docker Logging
+```bash
+# Ver logs
+docker-compose logs -f backend
+docker-compose logs -f --tail=100 backend
 
-### Pre-Deployment
-- [ ] Code review aprovado
-- [ ] Todos os testes passando
-- [ ] Coverage >= 80%
-- [ ] Build sem warnings
-- [ ] Security scanning completo
-- [ ] Performance tests validados
-
-### Deployment
-- [ ] Database migrations rodadas
-- [ ] Environment variables configuradas
-- [ ] SSL certificates válidos
-- [ ] Backups feitos
-- [ ] Load balancing testado
-
-### Post-Deployment
-- [ ] Health checks passando
-- [ ] Monitoring alertas funcionando
-- [ ] Logs sendo coletados
-- [ ] Performance dentro dos SLAs
-- [ ] Rollback plan pronto
-
-## 🔒 Security Best Practices
-
-- ✅ Senhas em environment variables (nunca em código)
-- ✅ SSL/TLS para toda comunicação
-- ✅ Rate limiting em endpoints públicos
-- ✅ CORS configurado corretamente
-- ✅ Security headers (CSP, X-Frame-Options, etc.)
-- ✅ Regular security updates
-- ✅ Vulnerability scanning no CI/CD
+# Log files dentro do container
+docker-compose exec backend tail -f storage/logs/laravel.log
+```
 
 ---
 
-**Última atualização**: Março 2026
+## 🔒 Security Hardening
+
+### Production Checklist
+- [ ] `APP_DEBUG=false`
+- [ ] `APP_ENV=production`
+- [ ] HTTPS obrigatório
+- [ ] Strong `APP_KEY` e `JWT_SECRET`
+- [ ] Database password forte
+- [ ] Redis password configurado
+- [ ] CORS restrito a domínios de produção
+- [ ] Rate limiting ativo
+- [ ] Logs monitorados
+- [ ] Backups de database configurados
+- [ ] Stripe webhook secret de produção
+- [ ] Headers de segurança (X-Frame-Options, CSP, etc.)
+
+### Laravel Security Headers (Middleware)
+```php
+// Adicionar em bootstrap/app.php ou middleware personalizado
+$response->headers->set('X-Content-Type-Options', 'nosniff');
+$response->headers->set('X-Frame-Options', 'DENY');
+$response->headers->set('X-XSS-Protection', '1; mode=block');
+$response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+```
+
+---
+
+## 📁 Infrastructure Files
+
+```
+tshirtslab/
+├── docker-compose.yml            # Dev environment
+├── .github/
+│   └── workflows/
+│       └── ci.yml                # CI/CD pipeline
+│
+├── backend/
+│   ├── Dockerfile                # Multi-stage PHP build
+│   └── docker/
+│       ├── nginx.conf            # Nginx config (port 8000)
+│       ├── php.ini               # PHP optimization
+│       └── supervisord.conf      # Process manager
+│
+└── frontend/
+    └── Dockerfile                # React build
+```
+
+---
+
+**Runtime**: PHP 8.4-FPM Alpine + Nginx + Supervisor
+**Containers**: Docker Compose (4 services)
+**CI/CD**: GitHub Actions
+
+**Versão**: 2.0.0 (Laravel) | **Atualizado**: Março 2026

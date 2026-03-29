@@ -1,473 +1,319 @@
-# Arquitetura Backend - NestJS
+# Arquitetura Backend - Laravel 13
 
-## 🏗️ Estrutura do Projeto Backend
+## 🏗️ Stack Backend
+
+| Tecnologia | Versão | Propósito |
+|-----------|--------|-----------|
+| Laravel | 13 | Framework PHP |
+| PHP | 8.4 | Runtime |
+| Eloquent ORM | - | ORM / Database |
+| JWT Auth | 2.9 | Autenticação stateless |
+| Stripe PHP SDK | 20 | Pagamentos |
+| Predis | 3.4 | Redis client |
+| PostgreSQL | 15 | Banco de dados |
+| Redis | 7 | Cache & Sessions |
+
+---
+
+## 📂 Estrutura do Projeto Backend
 
 ```
 backend/
-├── src/
-│   ├── common/
-│   │   ├── decorators/          # Decoradores customizados
-│   │   ├── filters/             # Exception filters
-│   │   ├── guards/              # Auth guards, Role guards
-│   │   ├── interceptors/        # Logging, response formatting
-│   │   ├── pipes/               # Validation pipes
-│   │   ├── middleware/          # Custom middleware
-│   │   └── constants/           # Constantes globais
-│   │
-│   ├── config/
-│   │   ├── database.config.ts   # TypeORM/Prisma config
-│   │   ├── cache.config.ts      # Redis config
-│   │   ├── stripe.config.ts     # Stripe config
-│   │   ├── jwt.config.ts        # JWT secrets
-│   │   └── validation.ts        # Env validation
-│   │
-│   ├── modules/
-│   │   ├── auth/
-│   │   │   ├── auth.controller.ts
-│   │   │   ├── auth.service.ts
-│   │   │   ├── auth.module.ts
-│   │   │   ├── dto/
-│   │   │   ├── strategies/      # JWT, Local strategies
-│   │   │   └── interfaces/
-│   │   │
-│   │   ├── users/
-│   │   │   ├── users.controller.ts
-│   │   │   ├── users.service.ts
-│   │   │   ├── users.module.ts
-│   │   │   ├── entities/
-│   │   │   ├── dto/
-│   │   │   └── repositories/
-│   │   │
-│   │   ├── products/
-│   │   │   ├── products.controller.ts
-│   │   │   ├── products.service.ts
-│   │   │   ├── products.module.ts
-│   │   │   ├── entities/
-│   │   │   │   ├── product.entity.ts
-│   │   │   │   ├── category.entity.ts
-│   │   │   │   └── design.entity.ts
-│   │   │   ├── dto/
-│   │   │   └── repositories/
-│   │   │
-│   │   ├── orders/
-│   │   │   ├── orders.controller.ts
-│   │   │   ├── orders.service.ts
-│   │   │   ├── orders.module.ts
-│   │   │   ├── entities/
-│   │   │   │   ├── order.entity.ts
-│   │   │   │   └── order-item.entity.ts
-│   │   │   ├── dto/
-│   │   │   └── repositories/
-│   │   │
-│   │   ├── cart/
-│   │   │   ├── cart.controller.ts
-│   │   │   ├── cart.service.ts
-│   │   │   ├── cart.module.ts
-│   │   │   ├── dto/
-│   │   │   └── interfaces/
-│   │   │
-│   │   ├── payments/
-│   │   │   ├── payments.controller.ts
-│   │   │   ├── payments.service.ts
-│   │   │   ├── payments.module.ts
-│   │   │   ├── providers/
-│   │   │   │   └── stripe.provider.ts
-│   │   │   ├── dto/
-│   │   │   └── entities/
-│   │   │
-│   │   ├── admin/
-│   │   │   ├── admin.controller.ts
-│   │   │   ├── admin.service.ts
-│   │   │   ├── admin.module.ts
-│   │   │   ├── dto/
-│   │   │   └── guards/
-│   │   │
-│   │   ├── notifications/
-│   │   │   ├── notifications.service.ts
-│   │   │   ├── notifications.module.ts
-│   │   │   └── providers/
-│   │   │       └── email.provider.ts
-│   │   │
-│   │   └── health/
-│   │       ├── health.controller.ts
-│   │       └── health.module.ts
-│   │
-│   ├── database/
-│   │   ├── migrations/          # Migration files
-│   │   ├── seeders/             # Database seeders
-│   │   └── factories/           # Entity factories para testes
-│   │
-│   ├── shared/
-│   │   ├── services/
-│   │   │   ├── cache.service.ts
-│   │   │   ├── logger.service.ts
-│   │   │   └── file-upload.service.ts
-│   │   ├── utils/
-│   │   ├── types/
-│   │   └── exceptions/
-│   │
-│   ├── app.module.ts           # Root module
-│   └── main.ts                 # Entry point
-│
-├── test/
-│   ├── unit/                   # Unit tests
-│   ├── integration/            # Integration tests
-│   └── e2e/                    # E2E tests
-│
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   └── Api/V1/
+│   │   │       ├── AuthController.php
+│   │   │       ├── UserController.php
+│   │   │       ├── ProductController.php
+│   │   │       ├── OrderController.php
+│   │   │       ├── PaymentController.php
+│   │   │       ├── WebhookController.php
+│   │   │       └── HealthController.php
+│   │   └── Middleware/
+│   │       ├── JwtAuthenticate.php
+│   │       └── AdminMiddleware.php
+│   ├── Models/
+│   │   ├── User.php
+│   │   ├── Category.php
+│   │   ├── Product.php
+│   │   ├── ProductImage.php
+│   │   ├── Design.php
+│   │   ├── Order.php
+│   │   ├── OrderItem.php
+│   │   ├── Payment.php
+│   │   └── UserAddress.php
+│   └── Traits/
+│       └── ApiResponse.php
+├── bootstrap/
+│   └── app.php
+├── config/
+│   ├── auth.php
+│   ├── cors.php
+│   ├── jwt.php
+│   └── services.php
+├── database/
+│   ├── migrations/
+│   │   ├── 2026_01_01_000001_create_users_table.php
+│   │   ├── 2026_01_01_000002_create_categories_table.php
+│   │   ├── 2026_01_01_000003_create_products_table.php
+│   │   ├── 2026_01_01_000004_create_product_images_table.php
+│   │   ├── 2026_01_01_000005_create_designs_table.php
+│   │   ├── 2026_01_01_000006_create_user_addresses_table.php
+│   │   ├── 2026_01_01_000007_create_orders_table.php
+│   │   ├── 2026_01_01_000008_create_order_items_table.php
+│   │   ├── 2026_01_01_000009_create_payments_table.php
+│   │   └── 2026_01_01_000010_create_cache_table.php
+│   └── seeders/
+│       └── DatabaseSeeder.php
 ├── docker/
-│   ├── Dockerfile
-│   └── docker-compose.yml
-│
+│   ├── nginx.conf
+│   ├── php.ini
+│   └── supervisord.conf
+├── routes/
+│   └── api.php
+├── .env
 ├── .env.example
-├── package.json
-├── tsconfig.json
-├── jest.config.js
-├── .eslintrc.js
-├── .prettierrc
-└── README.md
+├── composer.json
+└── Dockerfile
 ```
 
-## 🔄 Padrões de Design & Princípios
-
-### SOLID Principles
-- **S**ingle Responsibility: Um serviço = uma responsabilidade
-- **O**pen/Closed: Aberto para extensão, fechado para modificação
-- **L**iskov Substitution: Interfaces bem definidas
-- **I**nterface Segregation: Interfaces específicas, não genéricas
-- **D**ependency Inversion: Injeção de dependências
-
-### Design Patterns Utilizados
-
-```typescript
-// 1. Repository Pattern
-@Injectable()
-export class UserRepository {
-  async findById(id: string): Promise<User> { }
-  async save(user: User): Promise<User> { }
-}
-
-// 2. Dependency Injection (Built-in NestJS)
-@Injectable()
-export class AuthService {
-  constructor(
-    private readonly userRepository: UserRepository,
-    private readonly jwtService: JwtService,
-  ) {}
-}
-
-// 3. Observer Pattern (Events)
-@Injectable()
-export class OrderCreatedListener {
-  @OnEvent('order.created')
-  handleOrderCreated(payload: OrderCreatedEvent) { }
-}
-
-// 4. Strategy Pattern (Payment providers)
-interface PaymentStrategy {
-  processPayment(amount: number): Promise<void>;
-}
-```
+---
 
 ## 📡 API Design
 
 ### Versionamento
+Todas as rotas seguem o prefixo `/api/v1/`:
 ```
 GET /api/v1/products
-GET /api/v2/products  # Futuro
+POST /api/v1/auth/login
+POST /api/v1/orders
 ```
 
-### Response Format
-```typescript
-// Success
+### Response Format Padrão
+```json
 {
   "success": true,
-  "data": { /* payload */ },
+  "data": { ... },
+  "message": "Success",
   "meta": {
-    "timestamp": "2026-03-28T10:00:00Z",
-    "version": "1.0.0"
+    "total": 100,
+    "page": 1,
+    "limit": 20,
+    "totalPages": 5
   }
 }
+```
 
-// Error
+### Error Response
+```json
 {
   "success": false,
-  "error": {
-    "code": "PRODUCT_NOT_FOUND",
-    "message": "Product with ID 123 not found",
-    "statusCode": 404
-  },
-  "meta": {
-    "timestamp": "2026-03-28T10:00:00Z"
-  }
+  "message": "Validation error",
+  "errors": { ... }
 }
 ```
 
-### Rate Limiting
-```typescript
-// Global rate limiting
-@UseGuards(ThrottlerGuard)
-@Throttle(100, 60) // 100 requests por 60 segundos
+### ApiResponse Trait
+```php
+trait ApiResponse {
+    protected function success($data, string $message, int $statusCode): JsonResponse;
+    protected function error(string $message, int $statusCode, $errors): JsonResponse;
+    protected function paginated($data, int $total, int $page, int $limit): JsonResponse;
+}
 ```
 
-## 🔐 Authentication & Authorization
+---
+
+## 🔐 Autenticação & Autorização
 
 ### JWT Strategy
-- Access Token: 15 minutos
-- Refresh Token: 7 dias
-- Armazenado em HttpOnly cookies no frontend
+- **Package**: php-open-source-saver/jwt-auth
+- **Access Token TTL**: 15 minutos
+- **Refresh Token TTL**: 7 dias (10080 minutos)
+- **Auth Guard**: `api` driver `jwt`
+- **Token Storage**: Bearer token via Authorization header
 
-```typescript
-@Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private configService: ConfigService) {
-    super({
-      jwtFromRequest: extractJwtFromCookie,
-      ignoreExpiration: false,
-      secretOrKey: configService.get('JWT_SECRET'),
-    });
-  }
+### Middleware
+- `jwt.auth` - Verifica JWT válido e usuário ativo
+- `admin` - Verifica role ADMIN ou SUPER_ADMIN
 
-  validate(payload: any) {
-    return { userId: payload.sub, email: payload.email };
-  }
+### RBAC (Roles)
+```
+CUSTOMER     - Comprar, ver pedidos
+VENDOR       - Gerenciar produtos próprios
+ADMIN        - CRUD completo
+SUPER_ADMIN  - Acesso total
+```
+
+### Fluxo de Auth
+```
+1. POST /api/v1/auth/register → { user, accessToken, refreshToken }
+2. POST /api/v1/auth/login → { user, accessToken, refreshToken }
+3. Requests autenticados: Authorization: Bearer <accessToken>
+4. Token expirado → POST /api/v1/auth/refresh { refreshToken }
+```
+
+---
+
+## 📡 Endpoints Completos
+
+### Auth (Público)
+| Method | Endpoint | Descrição |
+|--------|----------|-----------|
+| POST | /api/v1/auth/register | Registrar novo usuário |
+| POST | /api/v1/auth/login | Login |
+| POST | /api/v1/auth/refresh | Renovar tokens |
+| POST | /api/v1/auth/logout | Logout (auth) |
+
+### Users (Autenticado)
+| Method | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | /api/v1/users/me | Perfil do usuário logado |
+| PATCH | /api/v1/users/me | Atualizar perfil |
+
+### Products (Público para leitura)
+| Method | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | /api/v1/products | Listar com filtros/paginação |
+| GET | /api/v1/products/featured | Produtos destaque |
+| GET | /api/v1/products/categories | Listar categorias |
+| GET | /api/v1/products/slug/{slug} | Buscar por slug |
+| GET | /api/v1/products/{id} | Detalhe por ID |
+| POST | /api/v1/products | Criar (Admin) |
+| PATCH | /api/v1/products/{id} | Atualizar (Admin) |
+| DELETE | /api/v1/products/{id} | Deletar (Admin) |
+
+### Orders (Autenticado)
+| Method | Endpoint | Descrição |
+|--------|----------|-----------|
+| POST | /api/v1/orders | Criar pedido |
+| GET | /api/v1/orders/my-orders | Meus pedidos |
+| GET | /api/v1/orders/{id} | Detalhe do pedido |
+| GET | /api/v1/orders | Listar todos (Admin) |
+| PATCH | /api/v1/orders/{id}/status | Atualizar status (Admin) |
+
+### Payments (Autenticado)
+| Method | Endpoint | Descrição |
+|--------|----------|-----------|
+| POST | /api/v1/payments/create-intent | Criar Payment Intent |
+| POST | /api/v1/payments/confirm | Confirmar pagamento |
+| GET | /api/v1/payments/{id} | Status do pagamento |
+| POST | /api/v1/payments/refund | Reembolso (Admin) |
+
+### Webhooks
+| Method | Endpoint | Descrição |
+|--------|----------|-----------|
+| POST | /api/webhooks/stripe | Stripe webhook handler |
+
+### Health
+| Method | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | /api/v1/health | Health check |
+
+---
+
+## 💾 Models (Eloquent)
+
+### User
+```php
+class User extends Authenticatable implements JWTSubject
+{
+    // Fields: email, password_hash, first_name, last_name, phone, role, is_active
+    // Relations: orders(), addresses()
+    // JWT: getJWTIdentifier(), getJWTCustomClaims()
 }
 ```
 
-### Role-Based Access Control (RBAC)
-```typescript
-enum UserRole {
-  ADMIN = 'admin',
-  CUSTOMER = 'customer',
-  VENDOR = 'vendor',
-}
-
-@UseGuards(AuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
-@Post('/admin/products')
-createProduct() { }
-```
-
-## 💾 Database Design
-
-### Entidades Principais
-
-```typescript
-// User
-@Entity()
-export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-  
-  @Column({ unique: true })
-  email: string;
-  
-  @Column()
-  password: string; // bcryptjs
-  
-  @Column()
-  firstName: string;
-  
-  @Column()
-  lastName: string;
-  
-  @Column({ type: 'enum', enum: UserRole })
-  role: UserRole;
-  
-  @OneToMany(() => Order, order => order.user)
-  orders: Order[];
-  
-  @CreateDateColumn()
-  createdAt: Date;
-  
-  @UpdateDateColumn()
-  updatedAt: Date;
-}
-
-// Product
-@Entity()
-export class Product {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-  
-  @Column()
-  name: string;
-  
-  @Column('decimal', { precision: 10, scale: 2 })
-  price: number;
-  
-  @Column('text')
-  description: string;
-  
-  @Column()
-  sku: string;
-  
-  @Column()
-  stock: number;
-  
-  @ManyToOne(() => Category)
-  category: Category;
-  
-  @OneToMany(() => Design, design => design.product)
-  designs: Design[];
-  
-  @CreateDateColumn()
-  createdAt: Date;
-}
-
-// Order
-@Entity()
-export class Order {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-  
-  @ManyToOne(() => User, user => user.orders)
-  user: User;
-  
-  @OneToMany(() => OrderItem, item => item.order)
-  items: OrderItem[];
-  
-  @Column('decimal', { precision: 10, scale: 2 })
-  total: number;
-  
-  @Column({ type: 'enum', enum: OrderStatus })
-  status: OrderStatus;
-  
-  @CreateDateColumn()
-  createdAt: Date;
-}
-
-// Payment
-@Entity()
-export class Payment {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-  
-  @OneToOne(() => Order)
-  order: Order;
-  
-  @Column()
-  stripePaymentIntentId: string;
-  
-  @Column({ type: 'enum', enum: PaymentStatus })
-  status: PaymentStatus;
-  
-  @CreateDateColumn()
-  createdAt: Date;
+### Product
+```php
+class Product extends Model
+{
+    // Fields: sku, name, slug, description, price, stock_quantity, status, is_featured
+    // Relations: category(), images(), designs(), orderItems()
 }
 ```
 
-## ⚙️ Configuração TypeORM
-
-```typescript
-// database.config.ts
-export default () => ({
-  type: 'postgres',
-  host: process.env.DATABASE_HOST,
-  port: process.env.DATABASE_PORT,
-  username: process.env.DATABASE_USER,
-  password: process.env.DATABASE_PASSWORD,
-  database: process.env.DATABASE_NAME,
-  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  migrations: [__dirname + '/migrations/*{.ts,.js}'],
-  synchronize: false, // Use migrations!
-  logging: false,
-  ssl: process.env.NODE_ENV === 'production',
-});
-```
-
-## 🚀 Performance & Caching
-
-### Redis Caching Strategy
-```typescript
-@Injectable()
-export class CacheService {
-  constructor(private cacheManager: Cache) {}
-
-  async get<T>(key: string): Promise<T | undefined> {
-    return this.cacheManager.get(key);
-  }
-
-  async set<T>(key: string, value: T, ttl: number): Promise<void> {
-    await this.cacheManager.set(key, value, ttl * 1000);
-  }
-}
-
-// Usage em serviços
-@Injectable()
-export class ProductService {
-  async getProduct(id: string): Promise<Product> {
-    const cacheKey = `product:${id}`;
-    const cached = await this.cacheService.get<Product>(cacheKey);
-    
-    if (cached) return cached;
-    
-    const product = await this.productRepository.findById(id);
-    await this.cacheService.set(cacheKey, product, 3600); // 1 hora
-    
-    return product;
-  }
+### Order
+```php
+class Order extends Model
+{
+    // Fields: order_number, user_id, subtotal, total, status, payment_status
+    // Relations: user(), items(), payment(), shippingAddress(), billingAddress()
 }
 ```
 
-## 🧪 Testing Strategy
+### Payment
+```php
+class Payment extends Model
+{
+    // Fields: order_id, stripe_payment_intent_id, amount, currency, status
+    // Relations: order()
+}
+```
 
-### Unit Tests
+---
+
+## ⚙️ Configuração
+
+### Database (config/database.php)
+- Driver: `pgsql` (PostgreSQL)
+- Eloquent ORM com UUIDs
+- Migrations versionadas
+
+### Cache (config/cache.php)
+- Driver: Redis via Predis
+- Prefix: `tshirtslab_`
+- TTL estratégico por tipo
+
+### Auth (config/auth.php)
+- Default guard: `api`
+- Driver: `jwt` (php-open-source-saver/jwt-auth)
+- Provider: Eloquent Users
+
+### CORS (config/cors.php)
+- Origin: Frontend URL (env FRONTEND_URL)
+- Credentials: true
+- Headers: Content-Type, Authorization
+
+---
+
+## �� Comandos de Desenvolvimento
+
 ```bash
-npm run test:unit
+# Instalar dependências
+composer install
+
+# Rodar migrations
+php artisan migrate
+
+# Rodar seeders
+php artisan db:seed
+
+# Reset completo (migrate + seed)
+php artisan migrate:fresh --seed
+
+# Listar rotas
+php artisan route:list
+
+# Limpar caches
+php artisan cache:clear && php artisan config:clear && php artisan route:clear
+
+# Servidor de desenvolvimento
+php artisan serve --port=8000
+
+# Testes
+php artisan test
 ```
 
-### Integration Tests
+---
+
+## 🧪 Testing
+
 ```bash
-npm run test:integration
-```
-
-### E2E Tests
-```bash
-npm run test:e2e
-```
-
-## 📊 Logging & Monitoring
-
-```typescript
-@Injectable()
-export class LoggerService {
-  private logger = new Logger();
-
-  log(message: string) {
-    this.logger.log(message);
-  }
-
-  error(message: string, trace?: string) {
-    this.logger.error(message, trace);
-  }
-
-  debug(message: string) {
-    this.logger.debug(message);
-  }
-}
-```
-
-## 🔄 CI/CD Pipeline
-
-```yaml
-# .github/workflows/backend.yml
-name: Backend Tests
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-      redis:
-        image: redis:7
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - run: npm install
-      - run: npm run lint
-      - run: npm run test:unit
-      - run: npm run test:e2e
+php artisan test                    # Todos os testes
+php artisan test --filter=AuthTest  # Testes específicos
+php artisan test --coverage         # Com coverage
 ```
 
 ---

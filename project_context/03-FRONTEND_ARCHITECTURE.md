@@ -48,330 +48,645 @@ frontend/
 │   │   │   └── OrderSummary/
 │   │   │
 │   │   ├── user/
-│   │   │   ├── ProfileCard/
+│   │   │   ├── ProfileForm/
 │   │   │   ├── OrderHistory/
-│   │   │   ├── AddressManager/
-│   │   │   └── PreferencesPanel/
+│   │   │   └── AddressBook/
 │   │   │
 │   │   └── admin/
-│   │       ├── ProductManager/
-│   │       ├── OrderManager/
-│   │       ├── UserManager/
-│   │       └── Dashboard/
+│   │       ├── Dashboard/
+│   │       ├── ProductManagement/
+│   │       ├── OrderManagement/
+│   │       └── UserManagement/
 │   │
 │   ├── pages/
-│   │   ├── Home.tsx
-│   │   ├── Products.tsx
-│   │   ├── ProductDetail.tsx
-│   │   ├── Cart.tsx
-│   │   ├── Checkout.tsx
-│   │   ├── OrderConfirmation.tsx
-│   │   ├── Profile.tsx
-│   │   ├── Login.tsx
-│   │   ├── Register.tsx
-│   │   ├── NotFound.tsx
-│   │   ├── admin/
-│   │   │   ├── Dashboard.tsx
-│   │   │   ├── Products.tsx
-│   │   │   ├── Orders.tsx
-│   │   │   └── Users.tsx
-│   │   └── 500.tsx
+│   │   ├── HomePage.tsx
+│   │   ├── ProductsPage.tsx
+│   │   ├── ProductDetailPage.tsx
+│   │   ├── CartPage.tsx
+│   │   ├── CheckoutPage.tsx
+│   │   ├── LoginPage.tsx
+│   │   ├── RegisterPage.tsx
+│   │   ├── ProfilePage.tsx
+│   │   ├── OrdersPage.tsx
+│   │   ├── NotFoundPage.tsx
+│   │   └── admin/
+│   │       ├── AdminDashboard.tsx
+│   │       ├── AdminProducts.tsx
+│   │       └── AdminOrders.tsx
+│   │
+│   ├── store/
+│   │   ├── store.ts
+│   │   ├── hooks.ts
+│   │   └── slices/
+│   │       ├── authSlice.ts
+│   │       ├── cartSlice.ts
+│   │       ├── productSlice.ts
+│   │       └── orderSlice.ts
+│   │
+│   ├── services/
+│   │   └── api/
+│   │       ├── client.ts          # Axios instance
+│   │       ├── auth.ts            # Auth endpoints
+│   │       ├── products.ts        # Product endpoints
+│   │       ├── orders.ts          # Order endpoints
+│   │       └── payments.ts        # Payment endpoints
 │   │
 │   ├── hooks/
 │   │   ├── useAuth.ts
 │   │   ├── useCart.ts
-│   │   ├── useFetch.ts
-│   │   ├── useLocalStorage.ts
-│   │   ├── usePagination.ts
-│   │   ├── useDebounce.ts
-│   │   ├── useAsync.ts
-│   │   └── useApi.ts
-│   │
-│   ├── services/
-│   │   ├── api/
-│   │   │   ├── client.ts           # Axios instance
-│   │   │   ├── auth.ts
-│   │   │   ├── products.ts
-│   │   │   ├── orders.ts
-│   │   │   ├── cart.ts
-│   │   │   ├── payments.ts
-│   │   │   ├── users.ts
-│   │   │   └── admin.ts
-│   │   │
-│   │   ├── storage/
-│   │   │   ├── localStorage.ts
-│   │   │   ├── sessionStorage.ts
-│   │   │   └── cookies.ts
-│   │   │
-│   │   └── tracking/
-│   │       └── analytics.ts
-│   │
-│   ├── store/
-│   │   ├── slices/
-│   │   │   ├── authSlice.ts
-│   │   │   ├── cartSlice.ts
-│   │   │   ├── productSlice.ts
-│   │   │   ├── filterSlice.ts
-│   │   │   └── uiSlice.ts
-│   │   │
-│   │   └── store.ts               # Redux store configuration
+│   │   ├── useProducts.ts
+│   │   └── useDebounce.ts
 │   │
 │   ├── types/
-│   │   ├── api.ts                 # API response types
-│   │   ├── entities.ts            # Business entities
-│   │   ├── forms.ts               # Form types
-│   │   └── ui.ts                  # UI-related types
+│   │   ├── auth.types.ts
+│   │   ├── product.types.ts
+│   │   ├── order.types.ts
+│   │   └── common.types.ts
 │   │
 │   ├── utils/
-│   │   ├── api.ts                 # API utilities
-│   │   ├── format.ts              # Formatadores (currency, date)
-│   │   ├── validation.ts          # Form validation schemas (Zod)
-│   │   ├── constants.ts           # Constantes globais
-│   │   └── helpers.ts
+│   │   ├── formatters.ts
+│   │   ├── validators.ts
+│   │   └── constants.ts
 │   │
 │   ├── styles/
-│   │   ├── globals.css            # Global styles
-│   │   ├── variables.css          # CSS variables
-│   │   ├── responsive.css         # Media queries
-│   │   └── animations.css
+│   │   └── globals.css
 │   │
-│   ├── i18n/                      # Internacionalização (futuro)
-│   │   ├── en.json
-│   │   ├── pt-BR.json
-│   │   └── config.ts
-│   │
-│   ├── App.tsx                    # Root component
-│   ├── App.css
-│   ├── main.tsx                   # Entry point
+│   ├── App.tsx
+│   ├── main.tsx
 │   └── vite-env.d.ts
 │
 ├── public/
-│   ├── images/
-│   ├── icons/
-│   └── favicon.ico
+│   └── assets/
 │
-├── tests/
-│   ├── unit/
-│   ├── integration/
-│   └── e2e/
-│
-├── .env.example
-├── package.json
-├── tsconfig.json
+├── index.html
 ├── vite.config.ts
-├── vitest.config.ts
-├── .eslintrc.cjs
-├── .prettierrc
 ├── tailwind.config.ts
-└── README.md
+├── tsconfig.json
+├── package.json
+├── .env
+└── .env.example
 ```
 
-## 🎨 Component Architecture
+---
 
-### Component Types
+## 🧩 Tipos de Componentes
 
-#### 1. Presentational Components
-```typescript
-// ProductCard.tsx
+### 1. Presentational Components (UI puro)
+```tsx
+// Apenas renderização, sem lógica de negócio
 interface ProductCardProps {
   product: Product;
-  onAddToCart: (id: string) => void;
+  onAddToCart: (product: Product) => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({
-  product,
-  onAddToCart,
-}) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
   return (
-    <div className="product-card">
-      <img src={product.image} alt={product.name} />
-      <h3>{product.name}</h3>
-      <p>${product.price}</p>
-      <button onClick={() => onAddToCart(product.id)}>
-        Add to Cart
-      </button>
+    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <img src={product.images[0]?.imageUrl} alt={product.name} />
+      <div className="p-4">
+        <h3 className="text-lg font-semibold">{product.name}</h3>
+        <p className="text-gray-600">R$ {product.price.toFixed(2)}</p>
+        <button onClick={() => onAddToCart(product)}>
+          Adicionar ao Carrinho
+        </button>
+      </div>
     </div>
   );
 };
 ```
 
-#### 2. Container Components
-```typescript
-// ProductsContainer.tsx
-export const ProductsContainer: React.FC = () => {
-  const { products, loading } = useCart();
-  const dispatch = useDispatch();
+### 2. Container Components (Lógica + Data)
+```tsx
+// Conecta ao Redux e gerencia dados
+const ProductsContainer: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const { products, loading, error } = useAppSelector(state => state.products);
 
-  return (
-    <ProductGrid
-      products={products}
-      loading={loading}
-      onAddToCart={(id) => dispatch(addToCart(id))}
-    />
-  );
+  useEffect(() => {
+    dispatch(fetchProducts());
+  }, [dispatch]);
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage message={error} />;
+
+  return <ProductGrid products={products} />;
 };
 ```
 
-#### 3. Hook Components
-```typescript
-// useAuth.ts
-export const useAuth = () => {
-  const user = useSelector(selectUser);
-  const dispatch = useDispatch();
+### 3. Custom Hooks (Lógica reutilizável)
+```tsx
+const useAuth = () => {
+  const dispatch = useAppDispatch();
+  const { user, token, loading } = useAppSelector(state => state.auth);
 
-  const login = useCallback(
-    async (email: string, password: string) => {
-      const data = await authService.login(email, password);
-      dispatch(setUser(data));
-    },
-    [dispatch],
-  );
+  const login = async (credentials: LoginCredentials) => {
+    return dispatch(loginUser(credentials)).unwrap();
+  };
 
-  return { user, login };
+  const logout = () => {
+    dispatch(logoutUser());
+  };
+
+  return { user, token, loading, login, logout, isAuthenticated: cat > /home/b4knamy/Projects/tshirtslab/project_context/GETTING_STARTED.md << 'MDEOF'
+# Getting Started - T-Shirts Lab
+
+## 📋 Pré-requisitos
+
+### Para Desenvolvimento com Docker (Recomendado)
+- Docker 24+
+- Docker Compose 2.x
+- Git
+
+### Para Desenvolvimento Local
+- PHP 8.4+
+- Composer 2.x
+- Node.js 20+ e npm 10+
+- PostgreSQL 15+
+- Redis 7+
+- Git
+
+---
+
+## 🚀 Quick Start com Docker
+
+### 1. Clone o Repositório
+```bash
+git clone https://github.com/b4knamy/tshirts-lab.git
+cd tshirts-lab
+```
+
+### 2. Configure as Variáveis de Ambiente
+```bash
+# Backend
+cp backend/.env.example backend/.env
+
+# Frontend
+cp frontend/.env.example frontend/.env
+```
+
+### 3. Inicie os Containers
+```bash
+docker-compose up -d
+```
+
+Isso irá iniciar:
+- **Backend (Laravel)**: http://localhost:8000
+- **Frontend (React)**: http://localhost:5173
+- **PostgreSQL**: localhost:5432
+- **Redis**: localhost:6379
+
+### 4. Execute as Migrations e Seeds
+```bash
+docker-compose exec backend php artisan migrate --seed
+```
+
+### 5. Acesse a Aplicação
+- **Frontend**: http://localhost:5173
+- **API**: http://localhost:8000/api/v1/health
+
+### Login Admin
+- Email: `admin@tshirtslab.com`
+- Senha: `Admin@123`
+
+---
+
+## 🛠️ Desenvolvimento Local (sem Docker)
+
+### 1. PostgreSQL e Redis
+
+Instale e configure PostgreSQL e Redis localmente:
+
+```bash
+# Ubuntu/Debian
+sudo apt install postgresql redis-server
+
+# macOS
+brew install postgresql redis
+
+# Inicie os serviços
+sudo systemctl start postgresql redis
+# ou macOS: brew services start postgresql redis
+```
+
+Crie o banco de dados:
+```sql
+CREATE DATABASE tshirtslab_db;
+CREATE USER tshirtslab WITH PASSWORD 'tshirtslab_secret';
+GRANT ALL PRIVILEGES ON DATABASE tshirtslab_db TO tshirtslab;
+```
+
+### 2. Backend (Laravel)
+
+```bash
+cd backend
+
+# Instale dependências
+composer install
+
+# Configure ambiente
+cp .env.example .env
+php artisan key:generate
+php artisan jwt:secret
+
+# Edite .env com suas configurações de banco
+# DB_HOST=127.0.0.1
+# DB_PORT=5432
+# DB_DATABASE=tshirtslab_db
+# DB_USERNAME=tshirtslab
+# DB_PASSWORD=tshirtslab_secret
+
+# Execute migrations e seeds
+php artisan migrate --seed
+
+# Inicie o servidor
+php artisan serve --port=8000
+```
+
+O backend estará disponível em http://localhost:8000.
+
+### 3. Frontend (React)
+
+```bash
+cd frontend
+
+# Instale dependências
+npm install
+
+# Configure ambiente
+cp .env.example .env
+# Verifique que VITE_API_BASE_URL=http://localhost:8000
+
+# Inicie o dev server
+npm run dev
+```
+
+O frontend estará disponível em http://localhost:5173.
+
+---
+
+## ⚙️ Configuração do Backend (.env)
+
+### Variáveis Essenciais
+
+```env
+# Aplicação
+APP_NAME=TShirtsLab
+APP_ENV=local
+APP_KEY=                    # Gerada por php artisan key:generate
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+# Database
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=tshirtslab_db
+DB_USERNAME=tshirtslab
+DB_PASSWORD=tshirtslab_secret
+
+# Redis
+REDIS_CLIENT=predis
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+
+# Cache & Session
+CACHE_STORE=redis
+SESSION_DRIVER=redis
+QUEUE_CONNECTION=redis
+
+# JWT
+JWT_SECRET=                 # Gerada por php artisan jwt:secret
+JWT_TTL=15                  # Minutos (access token)
+JWT_REFRESH_TTL=10080       # Minutos (7 dias, refresh token)
+
+# Stripe
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# CORS
+FRONTEND_URL=http://localhost:5173
+```
+
+### Variáveis do Frontend (.env)
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+---
+
+## 🧪 Verificação da Instalação
+
+### 1. Health Check
+```bash
+curl http://localhost:8000/api/v1/health
+```
+
+Resposta esperada:
+```json
+{
+  "success": true,
+  "data": {
+    "status": "healthy",
+    "services": {
+      "database": "connected",
+      "redis": "connected",
+      "stripe": "configured"
+    }
+  }
+}
+```
+
+### 2. Login de Teste
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@tshirtslab.com","password":"Admin@123"}'
+```
+
+### 3. Listar Produtos
+```bash
+curl http://localhost:8000/api/v1/products
+```
+
+### 4. Frontend
+Abra http://localhost:5173 no navegador e verifique:
+- A página carrega sem erros
+- Produtos são exibidos
+- Login funciona com as credenciais de teste
+
+---
+
+## 📝 Comandos Úteis
+
+### Backend (Laravel)
+```bash
+# Artisan
+php artisan migrate              # Executar migrations
+php artisan migrate:fresh --seed # Resetar DB e popular
+php artisan route:list           # Listar todas as rotas
+php artisan tinker               # Console interativo
+php artisan cache:clear          # Limpar cache
+php artisan config:clear         # Limpar cache de config
+php artisan queue:work           # Processar fila
+
+# Testes
+php artisan test                 # Executar todos os testes
+php artisan test --filter=Auth   # Filtrar testes
+
+# Composer
+composer install                 # Instalar dependências
+composer update                  # Atualizar dependências
+composer dump-autoload           # Regenerar autoload
+```
+
+### Frontend (React)
+```bash
+npm run dev          # Servidor de desenvolvimento
+npm run build        # Build de produção
+npm run preview      # Preview do build
+npm run lint         # Executar linter
+```
+
+### Docker
+```bash
+docker-compose up -d              # Iniciar todos os serviços
+docker-compose down               # Parar todos os serviços
+docker-compose logs -f backend    # Ver logs do backend
+docker-compose logs -f frontend   # Ver logs do frontend
+docker-compose exec backend bash  # Shell no container backend
+docker-compose build --no-cache   # Rebuild sem cache
+```
+
+---
+
+## �� Stripe (Ambiente de Teste)
+
+### 1. Criar Conta Stripe
+Acesse https://dashboard.stripe.com e crie uma conta de teste.
+
+### 2. Obter API Keys
+No Dashboard do Stripe → Developers → API Keys:
+- **Secret key**: `sk_test_...`
+
+### 3. Configurar Webhook (Local)
+```bash
+# Instale o Stripe CLI
+brew install stripe/stripe-cli/stripe  # macOS
+# ou baixe de https://stripe.com/docs/stripe-cli
+
+# Login
+stripe login
+
+# Forward webhooks para o backend local
+stripe listen --forward-to localhost:8000/api/webhooks/stripe
+```
+
+O CLI exibirá o `whsec_...` - adicione ao `.env` como `STRIPE_WEBHOOK_SECRET`.
+
+### 4. Cartões de Teste
+| Número | Resultado |
+|--------|-----------|
+| 4242 4242 4242 4242 | Sucesso |
+| 4000 0000 0000 0002 | Recusado |
+| 4000 0000 0000 3220 | 3D Secure |
+
+---
+
+## ❓ Troubleshooting
+
+### Erro: "Could not find driver" (pdo_pgsql)
+```bash
+# PHP precisa da extensão pgsql
+sudo apt install php8.4-pgsql  # Ubuntu
+brew install php@8.4            # macOS (inclui pgsql)
+```
+
+### Erro: "Connection refused" no PostgreSQL
+```bash
+# Verifique se o PostgreSQL está rodando
+sudo systemctl status postgresql
+# Verifique as configurações no .env
+```
+
+### Erro: "Token not found" ou 401
+```bash
+# Regenere o JWT secret
+php artisan jwt:secret --force
+# Limpe o cache
+php artisan config:clear
+php artisan cache:clear
+```
+
+### Erro: CORS no Frontend
+```bash
+# Verifique FRONTEND_URL no .env do backend
+# Deve ser exatamente: http://localhost:5173
+php artisan config:clear
+```
+
+### Frontend não conecta ao Backend
+```bash
+# Verifique se o backend está rodando na porta 8000
+curl http://localhost:8000/api/v1/health
+# Verifique VITE_API_BASE_URL no .env do frontend
+```
+
+### Redis não conecta
+```bash
+# Verifique se o Redis está rodando
+redis-cli ping  # Deve retornar PONG
+# Verifique REDIS_HOST e REDIS_PORT no .env
+```
+
+---
+
+**Versão**: 2.0.0 (Laravel) | **Atualizado**: Março 2026
+MDEOFtoken };
 };
 ```
 
-## 🔄 State Management (Redux Toolkit)
+---
 
-### Store Structure
+## 📦 State Management (Redux Toolkit)
+
+### Store Configuration
 ```typescript
-// store.ts
+// src/store/store.ts
 import { configureStore } from '@reduxjs/toolkit';
+import authReducer from './slices/authSlice';
+import cartReducer from './slices/cartSlice';
+import productReducer from './slices/productSlice';
+import orderReducer from './slices/orderSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     cart: cartReducer,
     products: productReducer,
-    filters: filterReducer,
-    ui: uiReducer,
+    orders: orderReducer,
   },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: ['auth/setUser'],
-      },
-    }).concat(logger),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 ```
 
-### Slice Example
+### Auth Slice
 ```typescript
-// cartSlice.ts
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+// src/store/slices/authSlice.ts
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { authApi } from '../../services/api/auth';
 
+export const loginUser = createAsyncThunk(
+  'auth/login',
+  async (credentials: LoginCredentials) => {
+    const response = await authApi.login(credentials);
+    return response.data; // { user, accessToken, refreshToken }
+  }
+);
+
+const authSlice = createSlice({
+  name: 'auth',
+  initialState: {
+    user: null,
+    token: localStorage.getItem('accessToken'),
+    refreshToken: localStorage.getItem('refreshToken'),
+    loading: false,
+    error: null,
+  },
+  reducers: {
+    logoutUser: (state) => {
+      state.user = null;
+      state.token = null;
+      state.refreshToken = null;
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+    },
+    setTokens: (state, action) => {
+      state.token = action.payload.accessToken;
+      state.refreshToken = action.payload.refreshToken;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(loginUser.pending, (state) => { state.loading = true; })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.token = action.payload.accessToken;
+        state.refreshToken = action.payload.refreshToken;
+        localStorage.setItem('accessToken', action.payload.accessToken);
+        localStorage.setItem('refreshToken', action.payload.refreshToken);
+      })
+      .addCase(loginUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      });
+  },
+});
+```
+
+### Cart Slice
+```typescript
+// src/store/slices/cartSlice.ts
 interface CartItem {
-  productId: string;
+  product: Product;
+  design?: Design;
   quantity: number;
-  price: number;
+  customizationData?: Record<string, any>;
 }
 
-interface CartState {
-  items: CartItem[];
-  total: number;
-  loading: boolean;
-}
-
-const initialState: CartState = {
-  items: [],
-  total: 0,
-  loading: false,
-};
-
-export const cartSlice = createSlice({
+const cartSlice = createSlice({
   name: 'cart',
-  initialState,
+  initialState: {
+    items: [] as CartItem[],
+    total: 0,
+  },
   reducers: {
     addToCart: (state, action: PayloadAction<CartItem>) => {
       const existing = state.items.find(
-        (item) => item.productId === action.payload.productId,
+        item => item.product.id === action.payload.product.id
+          && item.design?.id === action.payload.design?.id
       );
       if (existing) {
         existing.quantity += action.payload.quantity;
       } else {
         state.items.push(action.payload);
       }
-      state.total += action.payload.price * action.payload.quantity;
-    },
-    removeFromCart: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter(
-        (item) => item.productId !== action.payload,
+      state.total = state.items.reduce(
+        (sum, item) => sum + item.product.price * item.quantity, 0
       );
     },
+    removeFromCart: (state, action: PayloadAction<string>) => {
+      state.items = state.items.filter(item => item.product.id !== action.payload);
+      state.total = state.items.reduce(
+        (sum, item) => sum + item.product.price * item.quantity, 0
+      );
+    },
+    clearCart: (state) => {
+      state.items = [];
+      state.total = 0;
+    },
   },
 });
-
-export const { addToCart, removeFromCart } = cartSlice.actions;
-export default cartSlice.reducer;
 ```
 
-## 🎯 Routing Architecture
+---
 
+## 🌐 API Integration
+
+### Axios Client
 ```typescript
-// App.tsx
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ProtectedRoute } from './components/auth/ProtectedRoute';
-
-export const App: React.FC = () => {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Home />} />
-          <Route path="products" element={<Products />} />
-          <Route path="products/:id" element={<ProductDetail />} />
-          <Route path="cart" element={<Cart />} />
-
-          {/* Protected Routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="checkout" element={<Checkout />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="orders" element={<OrderHistory />} />
-          </Route>
-
-          {/* Admin Routes */}
-          <Route element={<ProtectedRoute requiredRole="admin" />}>
-            <Route path="admin" element={<AdminLayout />}>
-              <Route index element={<AdminDashboard />} />
-              <Route path="products" element={<ProductManager />} />
-              <Route path="orders" element={<OrderManager />} />
-            </Route>
-          </Route>
-        </Route>
-
-        <Route path="/auth" element={<AuthLayout />}>
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
-        </Route>
-
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
-  );
-};
-```
-
-## 📡 API Integration
-
-### Axios Client Setup
-```typescript
-// services/api/client.ts
+// src/services/api/client.ts
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Request Interceptor
+// Request interceptor - adiciona JWT token
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
   if (token) {
@@ -380,230 +695,398 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Response Interceptor
+// Response interceptor - token refresh automático
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Handle token refresh or logout
-      localStorage.removeItem('accessToken');
-      window.location.href = '/auth/login';
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/refresh`,
+          {},
+          { headers: { Authorization: `Bearer ${refreshToken}` } }
+        );
+
+        const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', newRefreshToken);
+
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        window.location.href = '/login';
+      }
     }
+
     return Promise.reject(error);
-  },
+  }
+);
+
+export default apiClient;
+```
+
+### API Service Examples
+```typescript
+// src/services/api/products.ts
+import apiClient from './client';
+
+export const productsApi = {
+  getAll: (params?: { page?: number; limit?: number; category?: string }) =>
+    apiClient.get('/api/v1/products', { params }),
+
+  getById: (id: string) =>
+    apiClient.get(`/api/v1/products/${id}`),
+
+  getBySlug: (slug: string) =>
+    apiClient.get(`/api/v1/products/slug/${slug}`),
+
+  getFeatured: () =>
+    apiClient.get('/api/v1/products/featured'),
+
+  getCategories: () =>
+    apiClient.get('/api/v1/products/categories'),
+};
+
+// src/services/api/orders.ts
+export const ordersApi = {
+  create: (data: CreateOrderDTO) =>
+    apiClient.post('/api/v1/orders', data),
+
+  getMyOrders: () =>
+    apiClient.get('/api/v1/orders/my-orders'),
+
+  getById: (id: string) =>
+    apiClient.get(`/api/v1/orders/${id}`),
+};
+
+// src/services/api/payments.ts
+export const paymentsApi = {
+  createIntent: (data: { orderId: string; amount: number }) =>
+    apiClient.post('/api/v1/payments/create-intent', data),
+
+  confirm: (data: { paymentIntentId: string }) =>
+    apiClient.post('/api/v1/payments/confirm', data),
+
+  getStatus: (paymentIntentId: string) =>
+    apiClient.get(`/api/v1/payments/${paymentIntentId}`),
+};
+```
+
+### Formato de Resposta da API (Laravel Backend)
+
+O backend Laravel retorna respostas padronizadas via `ApiResponse` trait:
+
+```json
+// Sucesso
+{
+  "success": true,
+  "data": { ... },
+  "message": "Operação realizada com sucesso"
+}
+
+// Sucesso com paginação
+{
+  "success": true,
+  "data": [ ... ],
+  "meta": {
+    "currentPage": 1,
+    "perPage": 15,
+    "total": 100,
+    "lastPage": 7
+  }
+}
+
+// Erro
+{
+  "success": false,
+  "message": "Mensagem de erro",
+  "errors": { ... }
+}
+```
+
+---
+
+## 🛣️ Routing Architecture
+
+```typescript
+// src/App.tsx
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+const App = () => (
+  <BrowserRouter>
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<MainLayout />}>
+        <Route index element={<HomePage />} />
+        <Route path="products" element={<ProductsPage />} />
+        <Route path="products/:slug" element={<ProductDetailPage />} />
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
+      </Route>
+
+      {/* Protected Routes */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/" element={<MainLayout />}>
+          <Route path="cart" element={<CartPage />} />
+          <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="orders" element={<OrdersPage />} />
+        </Route>
+      </Route>
+
+      {/* Admin Routes */}
+      <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="orders" element={<AdminOrders />} />
+        </Route>
+      </Route>
+
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  </BrowserRouter>
 );
 ```
 
-### Service Layer
-```typescript
-// services/api/products.ts
-import { apiClient } from './client';
+### Protected Route Component
+```tsx
+const ProtectedRoute: React.FC<{ requiredRole?: string }> = ({ requiredRole }) => {
+  const { isAuthenticated, user } = useAuth();
 
-export const productService = {
-  async getAll(
-    page: number = 1,
-    limit: number = 20,
-    filters?: ProductFilters,
-  ) {
-    const { data } = await apiClient.get('/v1/products', {
-      params: { page, limit, ...filters },
-    });
-    return data;
-  },
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
-  async getById(id: string) {
-    const { data } = await apiClient.get(`/v1/products/${id}`);
-    return data;
-  },
+  if (requiredRole && user?.role !== requiredRole && user?.role !== 'SUPER_ADMIN') {
+    return <Navigate to="/" replace />;
+  }
 
-  async create(product: CreateProductDTO) {
-    const { data } = await apiClient.post('/v1/products', product);
-    return data;
-  },
-
-  async update(id: string, product: UpdateProductDTO) {
-    const { data } = await apiClient.patch(`/v1/products/${id}`, product);
-    return data;
-  },
-
-  async delete(id: string) {
-    await apiClient.delete(`/v1/products/${id}`);
-  },
+  return <Outlet />;
 };
 ```
+
+---
 
 ## 🎨 Styling Strategy
 
-### TailwindCSS + CSS Modules
+### TailwindCSS v4 + CSS Modules
 
 ```tsx
-// ProductCard.module.css
-.card {
-  @apply rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow;
-}
+// TailwindCSS para layout e utilitários
+<div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4">
+  <ProductCard product={product} />
+</div>
 
-.image {
-  @apply w-full h-48 object-cover rounded-md mb-4;
-}
+// CSS Modules para componentes complexos
+import styles from './Header.module.css';
 
-.title {
-  @apply text-lg font-semibold text-gray-800 mb-2;
-}
-
-.price {
-  @apply text-2xl font-bold text-blue-600 mb-4;
-}
-
-.button {
-  @apply w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors;
-}
-```
-
-```tsx
-// ProductCard.tsx
-import styles from './ProductCard.module.css';
-
-export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  return (
-    <div className={styles.card}>
-      <img src={product.image} alt={product.name} className={styles.image} />
-      <h3 className={styles.title}>{product.name}</h3>
-      <p className={styles.price}>${product.price}</p>
-      <button className={styles.button}>Add to Cart</button>
-    </div>
-  );
-};
-```
-
-## 🧪 Testing Strategy
-
-### Unit Tests (Vitest + React Testing Library)
-```tsx
-// ProductCard.test.tsx
-import { render, screen } from '@testing-library/react';
-import { ProductCard } from './ProductCard';
-
-describe('ProductCard', () => {
-  it('should render product name', () => {
-    const product = { id: '1', name: 'T-Shirt', price: 29.99 };
-    render(<ProductCard product={product} onAddToCart={() => {}} />);
-    expect(screen.getByText('T-Shirt')).toBeInTheDocument();
-  });
-
-  it('should call onAddToCart when button is clicked', () => {
-    const onAddToCart = vi.fn();
-    render(<ProductCard product={product} onAddToCart={onAddToCart} />);
-    screen.getByText('Add to Cart').click();
-    expect(onAddToCart).toHaveBeenCalled();
-  });
-});
-```
-
-### E2E Tests (Playwright)
-```typescript
-// tests/e2e/checkout.spec.ts
-import { test, expect } from '@playwright/test';
-
-test('complete checkout flow', async ({ page }) => {
-  await page.goto('http://localhost:5173');
-  await page.click('[data-testid="product-card"]');
-  await page.click('[data-testid="add-to-cart"]');
-  await page.click('[data-testid="cart-link"]');
-  await page.click('[data-testid="checkout-button"]');
-  
-  expect(page.url()).toContain('/checkout');
-});
-```
-
-## 🚀 Performance Optimization
-
-### Code Splitting
-```typescript
-// Lazy loading de páginas
-const ProductDetail = lazy(() => import('./pages/ProductDetail'));
-const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
-
-export const App = () => (
-  <Suspense fallback={<LoadingSpinner />}>
-    <Routes>
-      <Route path="products/:id" element={<ProductDetail />} />
-      <Route path="admin" element={<AdminDashboard />} />
-    </Routes>
-  </Suspense>
+const Header = () => (
+  <header className={styles.header}>
+    <nav className={styles.nav}>...</nav>
+  </header>
 );
 ```
 
-### Image Optimization
-```tsx
-<img
-  src={product.image}
-  alt={product.name}
-  loading="lazy"
-  decoding="async"
-  srcSet={`
-    ${product.image}?w=400 400w,
-    ${product.image}?w=800 800w,
-    ${product.image}?w=1200 1200w
-  `}
-/>
-```
-
-### React Query for Data Fetching
+### Design Tokens (Tailwind config)
 ```typescript
-import { useQuery } from '@tanstack/react-query';
-
-export const useProducts = () => {
-  return useQuery({
-    queryKey: ['products'],
-    queryFn: () => productService.getAll(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
-  });
-};
-```
-
-## 🔐 Security Best Practices
-
-- ✅ HTTPS-only communication
-- ✅ Content Security Policy (CSP)
-- ✅ XSS Prevention (React escapes by default)
-- ✅ CSRF Protection
-- ✅ Secure token storage (HttpOnly cookies)
-- ✅ Input validation (Zod schemas)
-- ✅ Sanitization of user inputs
-
-## 🚀 Vite Configuration
-
-```typescript
-// vite.config.ts
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import path from 'path';
-
-export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
-  server: {
-    port: 5173,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
+// tailwind.config.ts
+export default {
+  theme: {
+    extend: {
+      colors: {
+        primary: { 50: '#eff6ff', 500: '#3b82f6', 700: '#1d4ed8' },
+        secondary: { 50: '#f0fdf4', 500: '#22c55e', 700: '#15803d' },
+      },
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        display: ['Poppins', 'sans-serif'],
       },
     },
   },
-  build: {
-    outDir: 'dist',
-    sourcemap: false,
-    minify: 'terser',
-  },
+};
+```
+
+---
+
+## 🧪 Testing Strategy
+
+### Ferramentas
+- **Vitest**: Test runner (compatível com Vite)
+- **React Testing Library**: Testes de componentes
+- **MSW**: Mock de API
+
+### Exemplo de Teste
+```tsx
+// ProductCard.test.tsx
+import { render, screen, fireEvent } from '@testing-library/react';
+import { ProductCard } from './ProductCard';
+
+const mockProduct = {
+  id: '1',
+  name: 'Camiseta Anime',
+  slug: 'camiseta-anime',
+  price: 79.90,
+  images: [{ imageUrl: '/test.jpg', altText: 'Test' }],
+};
+
+describe('ProductCard', () => {
+  it('renders product info', () => {
+    render(<ProductCard product={mockProduct} onAddToCart={vi.fn()} />);
+    expect(screen.getByText('Camiseta Anime')).toBeInTheDocument();
+    expect(screen.getByText('R$ 79.90')).toBeInTheDocument();
+  });
+
+  it('calls onAddToCart when button clicked', () => {
+    const onAddToCart = vi.fn();
+    render(<ProductCard product={mockProduct} onAddToCart={onAddToCart} />);
+    fireEvent.click(screen.getByText(/adicionar/i));
+    expect(onAddToCart).toHaveBeenCalledWith(mockProduct);
+  });
 });
 ```
 
 ---
 
-**Última atualização**: Março 2026
+## ⚡ Performance Optimization
+
+### 1. Code Splitting & Lazy Loading
+```tsx
+const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'));
+const CheckoutPage = React.lazy(() => import('./pages/CheckoutPage'));
+
+// No router
+<Suspense fallback={<LoadingSpinner />}>
+  <Route path="/admin" element={<AdminDashboard />} />
+</Suspense>
+```
+
+### 2. Memoization
+```tsx
+const ProductGrid = React.memo<ProductGridProps>(({ products }) => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {products.map(product => (
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </div>
+  );
+});
+```
+
+### 3. Image Optimization
+```tsx
+// Lazy loading de imagens
+<img
+  src={product.images[0]?.imageUrl}
+  alt={product.name}
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+---
+
+## 🔒 Frontend Security
+
+### 1. XSS Prevention
+- React escapa automaticamente todas as expressões JSX
+- Nunca usar `dangerouslySetInnerHTML` com dados do usuário
+- Sanitizar inputs com Zod antes de enviar ao backend
+
+### 2. CSRF Protection
+- JWT em `localStorage` (não cookies) - não vulnerável a CSRF
+- Token enviado explicitamente no header `Authorization`
+
+### 3. Sensitive Data
+- Nenhuma chave secreta no frontend
+- Stripe usa `publishable key` (segura para client-side)
+- Variáveis de ambiente via `VITE_*` prefix
+
+### 4. Form Validation (Zod)
+```typescript
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'Mínimo 6 caracteres'),
+});
+
+const registerSchema = z.object({
+  firstName: z.string().min(2).max(100),
+  lastName: z.string().min(2).max(100),
+  email: z.string().email(),
+  password: z.string().min(8).regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+    'Deve conter maiúscula, minúscula e número'
+  ),
+  confirmPassword: z.string(),
+}).refine(data => data.password === data.confirmPassword, {
+  message: 'Senhas não coincidem',
+  path: ['confirmPassword'],
+});
+```
+
+---
+
+## 🔗 Integração com Backend Laravel
+
+### Base URL
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+### Proxy (Development)
+```typescript
+// vite.config.ts
+export default defineConfig({
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
+  },
+});
+```
+
+### Autenticação
+O frontend se comunica com o backend Laravel via JWT:
+1. **Login**: `POST /api/v1/auth/login` → recebe `{ accessToken, refreshToken }`
+2. **Requests**: Header `Authorization: Bearer <accessToken>`
+3. **Refresh**: Automático via interceptor quando recebe 401
+4. **Logout**: `POST /api/v1/auth/logout` + limpa localStorage
+
+### Formato de Dados
+- **Backend (Laravel)**: Eloquent models usam `snake_case` internamente
+- **API Response**: Controllers retornam `camelCase` para o frontend
+- **Frontend (React)**: TypeScript interfaces usam `camelCase`
+
+---
+
+## 📝 Convenções de Código
+
+| Aspecto | Convenção |
+|---------|-----------|
+| Componentes | PascalCase (`ProductCard.tsx`) |
+| Hooks | camelCase com `use` prefix (`useAuth.ts`) |
+| Tipos | PascalCase com suffix (`Product.types.ts`) |
+| Constantes | UPPER_SNAKE_CASE (`API_BASE_URL`) |
+| CSS Modules | camelCase (`styles.headerContainer`) |
+| Arquivos | PascalCase para componentes, camelCase para utils |
+
+---
+
+**Stack Frontend**: React 18 + TypeScript 5.7 + Vite 8 + Redux Toolkit + TailwindCSS v4
+**Backend**: Laravel 13 (PHP 8.4) em http://localhost:8000
+
+**Versão**: 2.0.0 (Laravel) | **Atualizado**: Março 2026

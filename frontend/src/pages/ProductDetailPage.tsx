@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ShoppingCart, Minus, Plus, ArrowLeft, Check } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../store';
-import { fetchProductById, clearCurrentProduct } from '../store/slices/productSlice';
+import { clearCurrentProduct, fetchProductBySlug } from '../store/slices/productSlice';
 import { useCart } from '../hooks/useCart';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 
@@ -18,7 +18,7 @@ export function ProductDetailPage() {
   useEffect(() => {
     if (slug) {
       // We fetch by slug using the id field; the backend resolves by slug endpoint
-      dispatch(fetchProductById(slug));
+      dispatch(fetchProductBySlug(slug));
     }
     return () => {
       dispatch(clearCurrentProduct());
@@ -37,7 +37,7 @@ export function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
         <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
         <Link to="/products" className="text-accent hover:underline">
           Back to Products
@@ -51,7 +51,7 @@ export function ProductDetailPage() {
   const images = product.images?.length ? product.images : [];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-gray-500 mb-8">
         <Link to="/" className="hover:text-accent">Home</Link>
@@ -61,10 +61,10 @@ export function ProductDetailPage() {
         <span className="text-gray-800">{product.name}</span>
       </nav>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
         {/* Images */}
         <div>
-          <div className="aspect-square bg-surface rounded-xl overflow-hidden">
+          <div className="aspect-square bg-surface rounded-2xl overflow-hidden shadow-sm">
             {images.length > 0 ? (
               <img
                 src={images[selectedImage]?.imageUrl}
@@ -153,8 +153,8 @@ export function ProductDetailPage() {
 
               <button
                 onClick={handleAddToCart}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-white transition-colors ${
-                  addedToCart ? 'bg-green-500' : 'bg-accent hover:bg-accent-light'
+                className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-white transition-all duration-200 shadow-md ${
+                  addedToCart ? 'bg-green-500 shadow-green-500/25' : 'bg-accent hover:bg-accent-light shadow-accent/25 hover:shadow-accent/40'
                 }`}
               >
                 {addedToCart ? (

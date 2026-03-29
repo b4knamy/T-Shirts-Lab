@@ -2,621 +2,2123 @@
 
 ## 🏗️ Padrões de Arquitetura & Design
 
-### 1. Clean Architecture
+### 1. MVC Pattern (Laravel)
 
 ```
-Camadas (de fora para dentro):
+Camadas do Laravel:
 ┌─────────────────────────────────────────────────┐
-│         Controllers / Presenters                │ (Frameworks)
+│         Routes (api.php)                        │ (Entry Point)
 ├─────────────────────────────────────────────────┤
-│         Use Cases / Application Services        │ (Business Rules)
+│         Middleware (Auth, Admin)                 │ (Guards)
 ├─────────────────────────────────────────────────┤
-│         Entities / Domain Models                │ (Domain)
+│         Controllers (Api/V1/*)                  │ (Request Handling)
 ├─────────────────────────────────────────────────┤
-│         Interfaces / Repositories               │ (Frameworks)
+│         Models (Eloquent)                       │ (Business Logic + Data)
+├─────────────────────────────────────────────────┤
+│         Database (PostgreSQL)                   │ (Persistence)
 └─────────────────────────────────────────────────┘
-
-Inversão de Dependências:
-- Controllers dependem de Use Cases
-- Use Cases dependem de Interfaces
-- Implementations dependem de Interfaces
 ```
 
 ### 2. SOLID Principles
 
 #### Single Responsibility Principle
-```typescript
+```php
 // ❌ Ruim - Múltiplas responsabilidades
-class UserService {
-  async createUser(data) { }
-  async sendEmail(email) { }
-  async logActivity(action) { }
-  async generateReport() { }
+class ProductController {
+    public function store(Request $request) {
+        // Validação, criação, cache, email, log...
+    }
 }
 
-// ✅ Bom - Uma responsabilidade por classe
-class CreateUserUseCase {
-  constructor(
-    private userRepository: UserRepository,
-    private emailService: EmailService,
-    private eventBus: EventBus,
-  ) {}
-
-  async execute(data: CreateUserDTO) {
-    const user = await this.userRepository.create(data);
-    this.eventBus.emit('user.created', user);
-    return user;
-  }
+// ✅ Bom - Separação de responsabilidades
+class ProductController {
+    public function store(Request $request) {
+        $request->validate([...]);           // Validação
+        $product = Product::create([...]);   // Eloquent cuida da persistência
+        Cache::forget('products:featured');   // Cache invalidation
+        return $this->success($product);     // Resposta padronizada
+    }
 }
 ```
 
 #### Open/Closed Principle
-```typescript
-// ✅ Aberto para extensão, fechado para modificação
-interface PaymentProvider {
-  processPayment(amount: number): Promise<PaymentResult>;
-}
+```php
+// Trait reutilizável para respostas - aberto para extensão
+trait ApiResponse
+{
+    protected function success($data, string $message = 'Success', int $code = 200)
+    {
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'message' => $message,
+        ], $code);
+    }
 
-class StripePaymentProvider implements PaymentProvider {
-  async processPayment(amount: number): Promise<PaymentResult> { }
-}
-
-class PayPalPaymentProvider implements PaymentProvider {
-  async processPayment(amount: number): Promise<PaymentResult> { }
-}
-
-// Adicionar novo provider sem modificar código existente
-class ApplePaymentProvider implements PaymentProvider {
-  async processPayment(amount: number): Promise<PaymentResult> { }
-}
-```
-
-#### Liskov Substitution Principle
-```typescript
-// ✅ Subclasses são intercambiáveis
-abstract class Order {
-  abstract calculateTotal(): number;
-  abstract applyDiscount(percent: number): void;
-}
-
-class RegularOrder extends Order {
-  calculateTotal(): number { }
-  applyDiscount(percent: number): void { }
-}
-
-class VIPOrder extends Order {
-  calculateTotal(): number { }
-  applyDiscount(percent: number): void { }
-}
-
-// Ambas podem ser usadas da mesma forma
-function processOrder(order: Order) {
-  const total = order.calculateTotal();
-  order.applyDiscount(10);
+    protected function error(string $message, int $code = 400, $errors = null)
+    {
+        return response()->json([
+            'success' => false,
+            'message' => $message,
+            'errors' => $errors,
+        ], $code);
+    }
 }
 ```
 
-#### Interface Segregation Principle
-```typescript
-// ❌ Ruim - Interface genérica demais
-interface IUser {
-  login(): void;
-  logout(): void;
-  updateProfile(): void;
-  deleteAccount(): void;
-  // ... mais 20 métodos
+#### Dependency Injection
+```php
+// Laravel resolve dependências automaticamente via Service Container
+class PaymentController extends Controller
+{
+    // Stripe é configurado no construtor
+    public function __construct()
+    {
+        Stripe::setApiKey(config('services.stripe.secret'));
+    }
 }
 
-// ✅ Bom - Interfaces específicas
-interface IAuthenticable {
-  login(): Promise<void>;
-  logout(): Promise<void>;
-}
-
-interface IProfileManageable {
-  updateProfile(data: UpdateProfileDTO): Promise<void>;
-}
-
-interface IDeletable {
-  deleteAccount(): Promise<void>;
-}
-
-class User implements IAuthenticable, IProfileManageable, IDeletable { }
-```
-
-#### Dependency Inversion Principle
-```typescript
-// ❌ Ruim - Dependência direta em implementação
-class OrderService {
-  private database = new PostgresDatabase();
-  
-  async getOrder(id: string) {
-    return this.database.query(...);
-  }
-}
-
-// ✅ Bom - Depende de abstração
-interface IDatabase {
-  query(sql: string): Promise<any>;
-}
-
-class OrderService {
-  constructor(private database: IDatabase) {}
-  
-  async getOrder(id: string) {
-    return this.database.query(...);
-  }
+// Ou usando injection no método (Route Model Binding)
+public function show(Order $order)
+{
+    return $this->success($order->load('items.product'));
 }
 ```
 
 ### 3. Design Patterns Utilizados
 
-#### Adapter Pattern (Stripe Integration)
-```typescript
-interface PaymentGateway {
-  charge(amount: number, cardToken: string): Promise<string>;
-}
+| Padrão | Onde | Exemplo |
+|--------|------|---------|
+| **MVC** | Laravel | Controllers → Models → Views (JSON) |
+| **Active Record** | Eloquent Models | `Product::create()`, `$product->save()` |
+| **Middleware** | HTTP Pipeline | JwtAuthenticate, AdminMiddleware |
+| **Trait** | Code Reuse | ApiResponse, HasUuids, SoftDeletes |
+| **Observer** | Model Events | Boot method no User model (password hashing) |
+| **Builder** | Query Building | `Product::with('images')->where()->paginate()` |
+| **Factory** | Database Seeding | `User::factory()->create()` |
+| **Singleton** | Service Container | `app('cache')`, `auth()` |
+| **Strategy** | Auth Guards | JWT guard vs Session guard |
+| **Facade** | Static Proxy | `Cache::remember()`, `Auth::user()` |
 
-class StripeAdapter implements PaymentGateway {
-  constructor(private stripe: Stripe) {}
-  
-  async charge(amount: number, cardToken: string): Promise<string> {
-    const result = await this.stripe.charges.create({
-      amount: Math.round(amount * 100),
-      source: cardToken,
-      currency: 'usd',
-    });
-    return result.id;
-  }
-}
+---
+
+## 🔒 Segurança
+
+### 1. Autenticação (JWT)
+
+```php
+// Middleware JwtAuthenticate
+class JwtAuthenticate
+{
+    public function handle(Request $request, Closure $next)
+    {
+        try {
+            $user = auth('api')->userOrFail();
+
+            if (# DevOps, Deployment & Infrastructure
+
+## 🐳 Docker & Containerization
+
+### Docker Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│              DOCKER COMPOSE SETUP                   │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Container 1: PostgreSQL 15                        │
+│  ├─ Port: 5432                                      │
+│  ├─ Volume: postgres_data                           │
+│  └─ Network: app-network                            │
+│                                                     │
+│  Container 2: Redis 7                              │
+│  ├─ Port: 6379                                      │
+│  ├─ Volume: redis_data                              │
+│  └─ Network: app-network                            │
+│                                                     │
+│  Container 3: Backend (Laravel + PHP-FPM + Nginx)  │
+│  ├─ Port: 8000                                      │
+│  ├─ Depends: PostgreSQL, Redis                     │
+│  └─ Network: app-network                            │
+│                                                     │
+│  Container 4: Frontend (React + Vite)              │
+│  ├─ Port: 5173                                      │
+│  ├─ Depends: Backend                               │
+│  └─ Network: app-network                            │
+│                                                     │
+└─────────────────────────────────────────────────────┘
 ```
 
-#### Factory Pattern (Entity Creation)
-```typescript
-class ProductFactory {
-  static create(data: CreateProductDTO): Product {
-    const product = new Product();
-    product.name = data.name;
-    product.price = data.price;
-    product.createdAt = new Date();
-    return product;
-  }
-}
+### Backend Dockerfile (Multi-stage)
 
-// Uso
-const product = ProductFactory.create(productData);
+```dockerfile
+# backend/Dockerfile
+
+# Stage 1: Composer dependencies
+FROM composer:2 AS vendor
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+
+# Stage 2: Production image
+FROM php:8.4-fpm-alpine
+
+# Install system deps
+RUN apk add --no-cache \
+    nginx supervisor \
+    postgresql-dev libpq \
+    redis icu-dev \
+    && docker-php-ext-install pdo pdo_pgsql opcache intl bcmath \
+    && pecl install redis && docker-php-ext-enable redis
+
+# Copy configs
+COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
+COPY docker/supervisord.conf /etc/supervisord.conf
+
+# App setup
+WORKDIR /var/www/html
+COPY --from=vendor /app/vendor ./vendor
+COPY . .
+RUN composer dump-autoload --optimize \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+EXPOSE 8000
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 ```
 
-#### Observer Pattern (Event System)
-```typescript
-class EventBus {
-  private listeners: Map<string, Function[]> = new Map();
-  
-  on(event: string, handler: Function) {
-    if (!this.listeners.has(event)) {
-      this.listeners.set(event, []);
+### Docker Support Files
+
+#### Nginx Config (docker/nginx.conf)
+```nginx
+server {
+    listen 8000;
+    server_name _;
+    root /var/www/html/public;
+    index index.php;
+
+    client_max_body_size 20M;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
     }
-    this.listeners.get(event)!.push(handler);
-  }
-  
-  emit(event: string, data: any) {
-    const handlers = this.listeners.get(event) || [];
-    handlers.forEach(handler => handler(data));
-  }
-}
 
-// Uso
-eventBus.on('order.created', (order) => {
-  emailService.sendConfirmation(order);
-  inventoryService.reserve(order.items);
-});
-
-eventBus.emit('order.created', newOrder);
-```
-
-#### Strategy Pattern (Shipping)
-```typescript
-interface ShippingStrategy {
-  calculate(weight: number, distance: number): number;
-}
-
-class StandardShipping implements ShippingStrategy {
-  calculate(weight: number, distance: number): number {
-    return weight * 0.5 + distance * 0.01;
-  }
-}
-
-class ExpressShipping implements ShippingStrategy {
-  calculate(weight: number, distance: number): number {
-    return weight * 1.5 + distance * 0.05;
-  }
-}
-
-class ShippingCalculator {
-  constructor(private strategy: ShippingStrategy) {}
-  
-  calculateCost(weight: number, distance: number): number {
-    return this.strategy.calculate(weight, distance);
-  }
+    location ~ \.php$ {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
 }
 ```
 
-## 🔐 Segurança em Profundidade
+#### PHP Config (docker/php.ini)
+```ini
+[PHP]
+upload_max_filesize = 20M
+post_max_size = 25M
+memory_limit = 256M
+max_execution_time = 30
 
-### 1. Autenticação & Autorização
+[opcache]
+opcache.enable=1
+opcache.memory_consumption=128
+opcache.interned_strings_buffer=8
+opcache.max_accelerated_files=10000
+opcache.validate_timestamps=0
+```
 
-```typescript
-// JWT com refresh tokens
-@Injectable()
-export class AuthService {
-  async login(email: string, password: string) {
-    const user = await this.userRepository.findByEmail(email);
-    if (!user) throw new UnauthorizedException();
-    
-    const isValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isValid) throw new UnauthorizedException();
-    
-    const accessToken = this.jwtService.sign(
-      { sub: user.id, email: user.email },
-      { expiresIn: '15m' }
-    );
-    
-    const refreshToken = this.jwtService.sign(
-      { sub: user.id },
-      { expiresIn: '7d' }
-    );
-    
-    return { accessToken, refreshToken };
-  }
+#### Supervisor Config (docker/supervisord.conf)
+```ini
+[supervisord]
+nodaemon=true
+user=root
+
+[program:php-fpm]
+command=php-fpm -F
+autostart=true
+autorestart=true
+
+[program:nginx]
+command=nginx -g 'daemon off;'
+autostart=true
+autorestart=true
+```
+
+---
+
+## 🐙 Docker Compose
+
+```yaml
+# docker-compose.yml
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: tshirtslab_db
+      POSTGRES_USER: tshirtslab
+      POSTGRES_PASSWORD: tshirtslab_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tshirtslab"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_KEY: ${APP_KEY}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: tshirtslab_db
+      DB_USERNAME: tshirtslab
+      DB_PASSWORD: tshirtslab_secret
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_CLIENT: predis
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      JWT_SECRET: ${JWT_SECRET}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      FRONTEND_URL: http://localhost:5173
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge
+```
+
+---
+
+## 🔄 CI/CD Pipeline
+
+### GitHub Actions Workflow
+
+```yaml
+# .github/workflows/ci.yml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Backend Tests
+  backend-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, redis, bcmath, intl
+          coverage: xdebug
+
+      - name: Install Composer Dependencies
+        working-directory: ./backend
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Setup Environment
+        working-directory: ./backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan jwt:secret
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: test_db
+          DB_USERNAME: test_user
+          DB_PASSWORD: test_pass
+          REDIS_HOST: 127.0.0.1
+
+      - name: Run Migrations
+        working-directory: ./backend
+        run: php artisan migrate --force
+
+      - name: Run Tests
+        working-directory: ./backend
+        run: php artisan test --coverage
+
+  # Frontend Tests
+  frontend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Type Check
+        working-directory: ./frontend
+        run: npx tsc --noEmit
+
+      - name: Lint
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Build
+        working-directory: ./frontend
+        run: npm run build
+
+  # Docker Build
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-test]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Backend Image
+        run: docker build -t tshirtslab-backend ./backend
+
+      - name: Build Frontend Image
+        run: docker build -t tshirtslab-frontend ./frontend
+```
+
+---
+
+## 🌐 Production Deployment
+
+### Environment Variables (Production)
+
+```env
+# Backend Production
+APP_ENV=production
+APP_DEBUG=false
+APP_KEY=base64:...
+APP_URL=https://api.tshirtslab.com
+
+DB_CONNECTION=pgsql
+DB_HOST=prod-db-host
+DB_PORT=5432
+DB_DATABASE=tshirtslab_prod
+DB_USERNAME=prod_user
+DB_PASSWORD=<strong-password>
+
+REDIS_HOST=prod-redis-host
+REDIS_PORT=6379
+REDIS_PASSWORD=<redis-password>
+REDIS_CLIENT=predis
+
+CACHE_STORE=redis
+SESSION_DRIVER=redis
+QUEUE_CONNECTION=redis
+
+JWT_SECRET=<production-jwt-secret>
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_live_...
+
+FRONTEND_URL=https://tshirtslab.com
+```
+
+### Production Optimization (Laravel)
+```bash
+# Cache config, routes, views
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan optimize
+
+# Composer autoload optimization
+composer install --no-dev --optimize-autoloader
+```
+
+### Nginx Reverse Proxy (Production)
+```nginx
+# Production Nginx config
+server {
+    listen 443 ssl http2;
+    server_name api.tshirtslab.com;
+
+    ssl_certificate /etc/ssl/certs/tshirtslab.crt;
+    ssl_certificate_key /etc/ssl/private/tshirtslab.key;
+
+    client_max_body_size 20M;
+
+    location / {
+        proxy_pass http://backend:8000\;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 }
 
-// Role-based access control
-@UseGuards(AuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
-@Delete('/admin/users/:id')
-deleteUser(@Param('id') userId: string) {
-  return this.userService.delete(userId);
-}
-```
+server {
+    listen 443 ssl http2;
+    server_name tshirtslab.com;
 
-### 2. Input Validation & Sanitization
+    ssl_certificate /etc/ssl/certs/tshirtslab.crt;
+    ssl_certificate_key /etc/ssl/private/tshirtslab.key;
 
-```typescript
-// Frontend validation
-import { z } from 'zod';
-
-const createProductSchema = z.object({
-  name: z.string().min(3).max(255),
-  price: z.number().positive(),
-  description: z.string().max(2000).optional(),
-  sku: z.string().regex(/^[A-Z0-9-]+$/),
-});
-
-// Backend validation
-@Post('/products')
-async createProduct(@Body() dto: CreateProductDTO) {
-  // Validate with Zod
-  const validated = await createProductSchema.parseAsync(dto);
-  
-  // Sanitize inputs
-  const sanitized = {
-    ...validated,
-    name: sanitizeString(validated.name),
-    description: sanitizeHtml(validated.description),
-  };
-  
-  return this.productService.create(sanitized);
-}
-```
-
-### 3. SQL Injection Prevention
-
-```typescript
-// ❌ Ruim - Vulnerável a SQL injection
-const query = `SELECT * FROM users WHERE email = '${email}'`;
-database.execute(query);
-
-// ✅ Bom - Query parametrizada
-const query = 'SELECT * FROM users WHERE email = $1';
-database.execute(query, [email]);
-
-// ✅ Com ORM - Proteção automática
-const user = await userRepository.findOne({ email });
-```
-
-### 4. CORS Configuration
-
-```typescript
-// main.ts
-const app = await NestFactory.create(AppModule);
-
-app.enableCors({
-  origin: process.env.FRONTEND_URL,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  maxAge: 3600,
-});
-
-app.listen(3000);
-```
-
-### 5. Rate Limiting
-
-```typescript
-@Controller('api/v1')
-export class AppController {
-  @UseGuards(ThrottlerGuard)
-  @Throttle(100, 60) // 100 requests per 60 seconds
-  @Post('/login')
-  async login(@Body() credentials: LoginDTO) {
-    // ...
-  }
-
-  @UseGuards(ThrottlerGuard)
-  @Throttle(1000, 60) // Higher limit for API
-  @Get('/products')
-  async getProducts() {
-    // ...
-  }
-}
-```
-
-### 6. Security Headers
-
-```typescript
-// middleware/security.middleware.ts
-export class SecurityHeadersMiddleware implements NestMiddleware {
-  use(req: Request, res: Response, next: NextFunction) {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'DENY');
-    res.setHeader('X-XSS-Protection', '1; mode=block');
-    res.setHeader(
-      'Strict-Transport-Security',
-      'max-age=31536000; includeSubDomains'
-    );
-    res.setHeader(
-      'Content-Security-Policy',
-      "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com"
-    );
-    next();
-  }
-}
-
-// app.module.ts
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(SecurityHeadersMiddleware).forRoutes('*');
-  }
-}
-```
-
-## 🧪 Testing Strategy
-
-### Unit Tests
-```typescript
-describe('ProductService', () => {
-  let service: ProductService;
-  let repository: ProductRepository;
-
-  beforeEach(async () => {
-    const module = await Test.createTestingModule({
-      providers: [
-        ProductService,
-        {
-          provide: ProductRepository,
-          useValue: {
-            findById: jest.fn(),
-            create: jest.fn(),
-          },
-        },
-      ],
-    }).compile();
-
-    service = module.get(ProductService);
-    repository = module.get(ProductRepository);
-  });
-
-  it('should return product by id', async () => {
-    const product = { id: '1', name: 'T-Shirt' };
-    jest.spyOn(repository, 'findById').mockResolvedValue(product);
-
-    const result = await service.getProduct('1');
-
-    expect(result).toEqual(product);
-    expect(repository.findById).toHaveBeenCalledWith('1');
-  });
-
-  it('should throw if product not found', async () => {
-    jest.spyOn(repository, 'findById').mockResolvedValue(null);
-
-    await expect(service.getProduct('invalid')).rejects.toThrow(
-      NotFoundException,
-    );
-  });
-});
-```
-
-### Integration Tests
-```typescript
-describe('Products E2E', () => {
-  let app: INestApplication;
-
-  beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
-  });
-
-  it('should create and retrieve product', async () => {
-    const createDto = { name: 'T-Shirt', price: 29.99 };
-
-    const createRes = await request(app.getHttpServer())
-      .post('/api/v1/products')
-      .send(createDto)
-      .expect(201);
-
-    const productId = createRes.body.id;
-
-    await request(app.getHttpServer())
-      .get(`/api/v1/products/${productId}`)
-      .expect(200)
-      .expect((res) => {
-        expect(res.body.name).toEqual(createDto.name);
-      });
-  });
-});
-```
-
-## 📊 Performance Optimization
-
-### Backend Performance
-```typescript
-// 1. Query optimization com pagination
-@Get('/products')
-async getProducts(
-  @Query('page', ParseIntPipe) page: number = 1,
-  @Query('limit', ParseIntPipe) limit: number = 20,
-) {
-  const skip = (page - 1) * limit;
-  return this.productRepository.find({
-    skip,
-    take: limit,
-    relations: ['category', 'images'],
-  });
-}
-
-// 2. Caching estratégico
-@Get('/products/:id')
-@CacheTTL(3600)
-@CacheKey('product_#id')
-async getProduct(@Param('id') id: string) {
-  return this.productRepository.findOne(id);
-}
-
-// 3. Lazy loading de relações
-const product = await this.productRepository.findOne(id, {
-  relations: ['category'],
-  relationLoadStrategy: 'query',
-});
-```
-
-### Frontend Performance
-```typescript
-// 1. Code splitting
-const ProductDetail = lazy(() => import('./pages/ProductDetail'));
-
-// 2. Image optimization
-<img
-  src={product.image}
-  alt={product.name}
-  loading="lazy"
-  srcSet={`
-    ${product.image}?w=400 400w,
-    ${product.image}?w=800 800w
-  `}
-/>
-
-// 3. React Query com stale while revalidate
-const { data } = useQuery({
-  queryKey: ['products'],
-  queryFn: fetchProducts,
-  staleTime: 5 * 60 * 1000,
-  cacheTime: 10 * 60 * 1000,
-});
-```
-
-## 📋 Git Workflow & Versionamento
-
-### Conventional Commits
-```
-<type>[optional scope]: <description>
-
-feat: add payment integration
-fix: correct product pricing calculation
-docs: update deployment guide
-style: format code
-refactor: reorganize cart module
-test: add order service tests
-chore: update dependencies
-
-BREAKING CHANGE: refactor auth module
-```
-
-### Semantic Versioning
-```
-MAJOR.MINOR.PATCH
-
-1.2.3
-↓ ↓ ↓
-│ │ └─ Patch: Bug fixes (1.2.3 → 1.2.4)
-│ └───── Minor: New features (1.2.0 → 1.3.0)
-└─────── Major: Breaking changes (1.0.0 → 2.0.0)
-```
-
-### Git Branch Strategy (Git Flow)
-```
-main (production)
-  ↓
-release/v1.2.0
-  ↓
-develop (staging)
-  ↓
-feature/payment-integration
-feature/product-filters
-bugfix/cart-calculation
-hotfix/critical-bug
-```
-
-## 📚 Documentation Standards
-
-### Code Comments
-```typescript
-/**
- * Calcula o preço final de um produto considerando descontos
- * @param basePrice - Preço base do produto em cents
- * @param discountPercent - Percentual de desconto (0-100)
- * @param taxRate - Taxa de imposto a aplicar (0-1)
- * @returns Preço final em cents
- * @example
- * const price = calculateFinalPrice(2999, 10, 0.08); // $27.31
- */
-export function calculateFinalPrice(
-  basePrice: number,
-  discountPercent: number,
-  taxRate: number,
-): number {
-  const discounted = basePrice * (1 - discountPercent / 100);
-  return Math.round(discounted * (1 + taxRate));
-}
-```
-
-### API Documentation (Swagger)
-```typescript
-@Controller('api/v1/products')
-@ApiTags('Products')
-export class ProductController {
-  @Get()
-  @ApiOperation({ summary: 'List all products' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiResponse({
-    status: 200,
-    description: 'Products list',
-    type: [ProductDto],
-  })
-  async getProducts(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-  ) {
-    // ...
-  }
+    location / {
+        proxy_pass http://frontend:5173\;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
 }
 ```
 
 ---
 
-**Última atualização**: Março 2026
+## 📊 Monitoring & Logging
+
+### Laravel Logging
+```php
+// config/logging.php
+'channels' => [
+    'stack' => [
+        'driver' => 'stack',
+        'channels' => ['daily', 'stderr'],
+    ],
+    'daily' => [
+        'driver' => 'daily',
+        'path' => storage_path('logs/laravel.log'),
+        'days' => 14,
+    ],
+],
+```
+
+### Health Check Endpoint
+```
+GET /api/v1/health
+
+Response:
+{
+  "success": true,
+  "data": {
+    "status": "healthy",
+    "timestamp": "2026-03-15T10:00:00Z",
+    "services": {
+      "database": "connected",
+      "redis": "connected",
+      "stripe": "configured"
+    }
+  }
+}
+```
+
+### Docker Logging
+```bash
+# Ver logs
+docker-compose logs -f backend
+docker-compose logs -f --tail=100 backend
+
+# Log files dentro do container
+docker-compose exec backend tail -f storage/logs/laravel.log
+```
+
+---
+
+## 🔒 Security Hardening
+
+### Production Checklist
+- [ ] `APP_DEBUG=false`
+- [ ] `APP_ENV=production`
+- [ ] HTTPS obrigatório
+- [ ] Strong `APP_KEY` e `JWT_SECRET`
+- [ ] Database password forte
+- [ ] Redis password configurado
+- [ ] CORS restrito a domínios de produção
+- [ ] Rate limiting ativo
+- [ ] Logs monitorados
+- [ ] Backups de database configurados
+- [ ] Stripe webhook secret de produção
+- [ ] Headers de segurança (X-Frame-Options, CSP, etc.)
+
+### Laravel Security Headers (Middleware)
+```php
+// Adicionar em bootstrap/app.php ou middleware personalizado
+$response->headers->set('X-Content-Type-Options', 'nosniff');
+$response->headers->set('X-Frame-Options', 'DENY');
+$response->headers->set('X-XSS-Protection', '1; mode=block');
+$response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+```
+
+---
+
+## 📁 Infrastructure Files
+
+```
+tshirtslab/
+├── docker-compose.yml            # Dev environment
+├── .github/
+│   └── workflows/
+│       └── ci.yml                # CI/CD pipeline
+│
+├── backend/
+│   ├── Dockerfile                # Multi-stage PHP build
+│   └── docker/
+│       ├── nginx.conf            # Nginx config (port 8000)
+│       ├── php.ini               # PHP optimization
+│       └── supervisord.conf      # Process manager
+│
+└── frontend/
+    └── Dockerfile                # React build
+```
+
+---
+
+**Runtime**: PHP 8.4-FPM Alpine + Nginx + Supervisor
+**Containers**: Docker Compose (4 services)
+**CI/CD**: GitHub Actions
+
+**Versão**: 2.0.0 (Laravel) | **Atualizado**: Março 2026
+MDEOFuser->is_active) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Account is deactivated',
+                ], 403);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token not provided or invalid',
+            ], 401);
+        }
+
+        return $next($request);
+    }
+}
+```
+
+### 2. Autorização (RBAC)
+
+```php
+// AdminMiddleware
+class AdminMiddleware
+{
+    public function handle(Request $request, Closure $next)
+    {
+        $user = auth('api')->user();
+
+        if (# DevOps, Deployment & Infrastructure
+
+## 🐳 Docker & Containerization
+
+### Docker Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│              DOCKER COMPOSE SETUP                   │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Container 1: PostgreSQL 15                        │
+│  ├─ Port: 5432                                      │
+│  ├─ Volume: postgres_data                           │
+│  └─ Network: app-network                            │
+│                                                     │
+│  Container 2: Redis 7                              │
+│  ├─ Port: 6379                                      │
+│  ├─ Volume: redis_data                              │
+│  └─ Network: app-network                            │
+│                                                     │
+│  Container 3: Backend (Laravel + PHP-FPM + Nginx)  │
+│  ├─ Port: 8000                                      │
+│  ├─ Depends: PostgreSQL, Redis                     │
+│  └─ Network: app-network                            │
+│                                                     │
+│  Container 4: Frontend (React + Vite)              │
+│  ├─ Port: 5173                                      │
+│  ├─ Depends: Backend                               │
+│  └─ Network: app-network                            │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+### Backend Dockerfile (Multi-stage)
+
+```dockerfile
+# backend/Dockerfile
+
+# Stage 1: Composer dependencies
+FROM composer:2 AS vendor
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+
+# Stage 2: Production image
+FROM php:8.4-fpm-alpine
+
+# Install system deps
+RUN apk add --no-cache \
+    nginx supervisor \
+    postgresql-dev libpq \
+    redis icu-dev \
+    && docker-php-ext-install pdo pdo_pgsql opcache intl bcmath \
+    && pecl install redis && docker-php-ext-enable redis
+
+# Copy configs
+COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
+COPY docker/supervisord.conf /etc/supervisord.conf
+
+# App setup
+WORKDIR /var/www/html
+COPY --from=vendor /app/vendor ./vendor
+COPY . .
+RUN composer dump-autoload --optimize \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+EXPOSE 8000
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+```
+
+### Docker Support Files
+
+#### Nginx Config (docker/nginx.conf)
+```nginx
+server {
+    listen 8000;
+    server_name _;
+    root /var/www/html/public;
+    index index.php;
+
+    client_max_body_size 20M;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+```
+
+#### PHP Config (docker/php.ini)
+```ini
+[PHP]
+upload_max_filesize = 20M
+post_max_size = 25M
+memory_limit = 256M
+max_execution_time = 30
+
+[opcache]
+opcache.enable=1
+opcache.memory_consumption=128
+opcache.interned_strings_buffer=8
+opcache.max_accelerated_files=10000
+opcache.validate_timestamps=0
+```
+
+#### Supervisor Config (docker/supervisord.conf)
+```ini
+[supervisord]
+nodaemon=true
+user=root
+
+[program:php-fpm]
+command=php-fpm -F
+autostart=true
+autorestart=true
+
+[program:nginx]
+command=nginx -g 'daemon off;'
+autostart=true
+autorestart=true
+```
+
+---
+
+## 🐙 Docker Compose
+
+```yaml
+# docker-compose.yml
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: tshirtslab_db
+      POSTGRES_USER: tshirtslab
+      POSTGRES_PASSWORD: tshirtslab_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tshirtslab"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_KEY: ${APP_KEY}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: tshirtslab_db
+      DB_USERNAME: tshirtslab
+      DB_PASSWORD: tshirtslab_secret
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_CLIENT: predis
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      JWT_SECRET: ${JWT_SECRET}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      FRONTEND_URL: http://localhost:5173
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge
+```
+
+---
+
+## 🔄 CI/CD Pipeline
+
+### GitHub Actions Workflow
+
+```yaml
+# .github/workflows/ci.yml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Backend Tests
+  backend-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, redis, bcmath, intl
+          coverage: xdebug
+
+      - name: Install Composer Dependencies
+        working-directory: ./backend
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Setup Environment
+        working-directory: ./backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan jwt:secret
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: test_db
+          DB_USERNAME: test_user
+          DB_PASSWORD: test_pass
+          REDIS_HOST: 127.0.0.1
+
+      - name: Run Migrations
+        working-directory: ./backend
+        run: php artisan migrate --force
+
+      - name: Run Tests
+        working-directory: ./backend
+        run: php artisan test --coverage
+
+  # Frontend Tests
+  frontend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Type Check
+        working-directory: ./frontend
+        run: npx tsc --noEmit
+
+      - name: Lint
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Build
+        working-directory: ./frontend
+        run: npm run build
+
+  # Docker Build
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-test]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Backend Image
+        run: docker build -t tshirtslab-backend ./backend
+
+      - name: Build Frontend Image
+        run: docker build -t tshirtslab-frontend ./frontend
+```
+
+---
+
+## 🌐 Production Deployment
+
+### Environment Variables (Production)
+
+```env
+# Backend Production
+APP_ENV=production
+APP_DEBUG=false
+APP_KEY=base64:...
+APP_URL=https://api.tshirtslab.com
+
+DB_CONNECTION=pgsql
+DB_HOST=prod-db-host
+DB_PORT=5432
+DB_DATABASE=tshirtslab_prod
+DB_USERNAME=prod_user
+DB_PASSWORD=<strong-password>
+
+REDIS_HOST=prod-redis-host
+REDIS_PORT=6379
+REDIS_PASSWORD=<redis-password>
+REDIS_CLIENT=predis
+
+CACHE_STORE=redis
+SESSION_DRIVER=redis
+QUEUE_CONNECTION=redis
+
+JWT_SECRET=<production-jwt-secret>
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_live_...
+
+FRONTEND_URL=https://tshirtslab.com
+```
+
+### Production Optimization (Laravel)
+```bash
+# Cache config, routes, views
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan optimize
+
+# Composer autoload optimization
+composer install --no-dev --optimize-autoloader
+```
+
+### Nginx Reverse Proxy (Production)
+```nginx
+# Production Nginx config
+server {
+    listen 443 ssl http2;
+    server_name api.tshirtslab.com;
+
+    ssl_certificate /etc/ssl/certs/tshirtslab.crt;
+    ssl_certificate_key /etc/ssl/private/tshirtslab.key;
+
+    client_max_body_size 20M;
+
+    location / {
+        proxy_pass http://backend:8000\;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name tshirtslab.com;
+
+    ssl_certificate /etc/ssl/certs/tshirtslab.crt;
+    ssl_certificate_key /etc/ssl/private/tshirtslab.key;
+
+    location / {
+        proxy_pass http://frontend:5173\;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```
+
+---
+
+## 📊 Monitoring & Logging
+
+### Laravel Logging
+```php
+// config/logging.php
+'channels' => [
+    'stack' => [
+        'driver' => 'stack',
+        'channels' => ['daily', 'stderr'],
+    ],
+    'daily' => [
+        'driver' => 'daily',
+        'path' => storage_path('logs/laravel.log'),
+        'days' => 14,
+    ],
+],
+```
+
+### Health Check Endpoint
+```
+GET /api/v1/health
+
+Response:
+{
+  "success": true,
+  "data": {
+    "status": "healthy",
+    "timestamp": "2026-03-15T10:00:00Z",
+    "services": {
+      "database": "connected",
+      "redis": "connected",
+      "stripe": "configured"
+    }
+  }
+}
+```
+
+### Docker Logging
+```bash
+# Ver logs
+docker-compose logs -f backend
+docker-compose logs -f --tail=100 backend
+
+# Log files dentro do container
+docker-compose exec backend tail -f storage/logs/laravel.log
+```
+
+---
+
+## 🔒 Security Hardening
+
+### Production Checklist
+- [ ] `APP_DEBUG=false`
+- [ ] `APP_ENV=production`
+- [ ] HTTPS obrigatório
+- [ ] Strong `APP_KEY` e `JWT_SECRET`
+- [ ] Database password forte
+- [ ] Redis password configurado
+- [ ] CORS restrito a domínios de produção
+- [ ] Rate limiting ativo
+- [ ] Logs monitorados
+- [ ] Backups de database configurados
+- [ ] Stripe webhook secret de produção
+- [ ] Headers de segurança (X-Frame-Options, CSP, etc.)
+
+### Laravel Security Headers (Middleware)
+```php
+// Adicionar em bootstrap/app.php ou middleware personalizado
+$response->headers->set('X-Content-Type-Options', 'nosniff');
+$response->headers->set('X-Frame-Options', 'DENY');
+$response->headers->set('X-XSS-Protection', '1; mode=block');
+$response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+```
+
+---
+
+## 📁 Infrastructure Files
+
+```
+tshirtslab/
+├── docker-compose.yml            # Dev environment
+├── .github/
+│   └── workflows/
+│       └── ci.yml                # CI/CD pipeline
+│
+├── backend/
+│   ├── Dockerfile                # Multi-stage PHP build
+│   └── docker/
+│       ├── nginx.conf            # Nginx config (port 8000)
+│       ├── php.ini               # PHP optimization
+│       └── supervisord.conf      # Process manager
+│
+└── frontend/
+    └── Dockerfile                # React build
+```
+
+---
+
+**Runtime**: PHP 8.4-FPM Alpine + Nginx + Supervisor
+**Containers**: Docker Compose (4 services)
+**CI/CD**: GitHub Actions
+
+**Versão**: 2.0.0 (Laravel) | **Atualizado**: Março 2026
+MDEOFuser || !in_array($user->role, ['ADMIN', 'SUPER_ADMIN'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Admin access required',
+            ], 403);
+        }
+
+        return $next($request);
+    }
+}
+
+// Uso nas rotas
+Route::middleware(['jwt.auth', 'admin'])->group(function () {
+    Route::post('/products', [ProductController::class, 'store']);
+    Route::patch('/products/{id}', [ProductController::class, 'update']);
+    Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+});
+```
+
+### 3. Validação de Dados
+
+```php
+// Validação inline no controller
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'items' => 'required|array|min:1',
+        'items.*.productId' => 'required|uuid|exists:products,id',
+        'items.*.quantity' => 'required|integer|min:1|max:100',
+        'items.*.designId' => 'nullable|uuid|exists:designs,id',
+        'items.*.size' => 'nullable|string',
+        'items.*.color' => 'nullable|string',
+        'shippingAddress' => 'nullable|array',
+    ]);
+
+    // Dados já validados e sanitizados
+}
+
+// Form Request (alternativa para validação complexa)
+class StoreProductRequest extends FormRequest
+{
+    public function rules(): array
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'sku' => 'required|string|unique:products,sku',
+            'price' => 'required|numeric|min:0.01',
+            'categoryId' => 'required|uuid|exists:categories,id',
+        ];
+    }
+}
+```
+
+### 4. Proteção contra SQL Injection
+
+```php
+// ✅ Eloquent usa prepared statements automaticamente
+$products = Product::where('name', 'ilike', '%' . $search . '%')->get();
+
+// ✅ Query builder também é seguro
+DB::table('products')->where('status', $status)->get();
+
+// ❌ NUNCA fazer isso
+DB::select("SELECT * FROM products WHERE name = '$search'"); // SQL Injection!
+```
+
+### 5. CORS Configuration
+
+```php
+// config/cors.php
+return [
+    'paths' => ['api/*'],
+    'allowed_methods' => ['*'],
+    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:5173')],
+    'allowed_origins_patterns' => [],
+    'allowed_headers' => ['*'],
+    'exposed_headers' => [],
+    'max_age' => 0,
+    'supports_credentials' => true,
+];
+```
+
+### 6. Rate Limiting
+
+```php
+// bootstrap/app.php
+RateLimiter::for('api', function (Request $request) {
+    return Limit::perMinute(60)->by(
+        $request->user()?->id ?: $request->ip()
+    );
+});
+
+// Rate limit mais restrito para auth
+RateLimiter::for('auth', function (Request $request) {
+    return Limit::perMinute(10)->by($request->ip());
+});
+```
+
+### 7. Mass Assignment Protection
+
+```php
+// Eloquent protege contra mass assignment por padrão
+// Apenas campos em $fillable podem ser atribuídos em massa
+
+class Product extends Model
+{
+    // Apenas estes campos podem ser definidos via create/update
+    protected $fillable = [
+        'sku', 'name', 'slug', 'description', 'price',
+        'stock_quantity', 'category_id', 'status',
+    ];
+
+    // Campos nunca retornados em JSON
+    protected $hidden = [];
+}
+
+class User extends Model
+{
+    protected $fillable = [
+        'first_name', 'last_name', 'email', 'password', 'phone',
+    ];
+
+    // Password nunca é exposta em respostas
+    protected $hidden = ['password'];
+}
+```
+
+### 8. Password Security
+
+```php
+// Hashing automático no model User
+class User extends Authenticatable
+{
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($user) {
+            if ($user->isDirty('password')) {
+                $user->password = Hash::make($user->password);
+            }
+        });
+    }
+}
+
+// Verificação de senha no login
+if (# DevOps, Deployment & Infrastructure
+
+## 🐳 Docker & Containerization
+
+### Docker Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│              DOCKER COMPOSE SETUP                   │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Container 1: PostgreSQL 15                        │
+│  ├─ Port: 5432                                      │
+│  ├─ Volume: postgres_data                           │
+│  └─ Network: app-network                            │
+│                                                     │
+│  Container 2: Redis 7                              │
+│  ├─ Port: 6379                                      │
+│  ├─ Volume: redis_data                              │
+│  └─ Network: app-network                            │
+│                                                     │
+│  Container 3: Backend (Laravel + PHP-FPM + Nginx)  │
+│  ├─ Port: 8000                                      │
+│  ├─ Depends: PostgreSQL, Redis                     │
+│  └─ Network: app-network                            │
+│                                                     │
+│  Container 4: Frontend (React + Vite)              │
+│  ├─ Port: 5173                                      │
+│  ├─ Depends: Backend                               │
+│  └─ Network: app-network                            │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+### Backend Dockerfile (Multi-stage)
+
+```dockerfile
+# backend/Dockerfile
+
+# Stage 1: Composer dependencies
+FROM composer:2 AS vendor
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+
+# Stage 2: Production image
+FROM php:8.4-fpm-alpine
+
+# Install system deps
+RUN apk add --no-cache \
+    nginx supervisor \
+    postgresql-dev libpq \
+    redis icu-dev \
+    && docker-php-ext-install pdo pdo_pgsql opcache intl bcmath \
+    && pecl install redis && docker-php-ext-enable redis
+
+# Copy configs
+COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
+COPY docker/supervisord.conf /etc/supervisord.conf
+
+# App setup
+WORKDIR /var/www/html
+COPY --from=vendor /app/vendor ./vendor
+COPY . .
+RUN composer dump-autoload --optimize \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+EXPOSE 8000
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+```
+
+### Docker Support Files
+
+#### Nginx Config (docker/nginx.conf)
+```nginx
+server {
+    listen 8000;
+    server_name _;
+    root /var/www/html/public;
+    index index.php;
+
+    client_max_body_size 20M;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+```
+
+#### PHP Config (docker/php.ini)
+```ini
+[PHP]
+upload_max_filesize = 20M
+post_max_size = 25M
+memory_limit = 256M
+max_execution_time = 30
+
+[opcache]
+opcache.enable=1
+opcache.memory_consumption=128
+opcache.interned_strings_buffer=8
+opcache.max_accelerated_files=10000
+opcache.validate_timestamps=0
+```
+
+#### Supervisor Config (docker/supervisord.conf)
+```ini
+[supervisord]
+nodaemon=true
+user=root
+
+[program:php-fpm]
+command=php-fpm -F
+autostart=true
+autorestart=true
+
+[program:nginx]
+command=nginx -g 'daemon off;'
+autostart=true
+autorestart=true
+```
+
+---
+
+## 🐙 Docker Compose
+
+```yaml
+# docker-compose.yml
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: tshirtslab_db
+      POSTGRES_USER: tshirtslab
+      POSTGRES_PASSWORD: tshirtslab_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tshirtslab"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_KEY: ${APP_KEY}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: tshirtslab_db
+      DB_USERNAME: tshirtslab
+      DB_PASSWORD: tshirtslab_secret
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_CLIENT: predis
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      JWT_SECRET: ${JWT_SECRET}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      FRONTEND_URL: http://localhost:5173
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge
+```
+
+---
+
+## 🔄 CI/CD Pipeline
+
+### GitHub Actions Workflow
+
+```yaml
+# .github/workflows/ci.yml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Backend Tests
+  backend-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, redis, bcmath, intl
+          coverage: xdebug
+
+      - name: Install Composer Dependencies
+        working-directory: ./backend
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Setup Environment
+        working-directory: ./backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan jwt:secret
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: test_db
+          DB_USERNAME: test_user
+          DB_PASSWORD: test_pass
+          REDIS_HOST: 127.0.0.1
+
+      - name: Run Migrations
+        working-directory: ./backend
+        run: php artisan migrate --force
+
+      - name: Run Tests
+        working-directory: ./backend
+        run: php artisan test --coverage
+
+  # Frontend Tests
+  frontend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Type Check
+        working-directory: ./frontend
+        run: npx tsc --noEmit
+
+      - name: Lint
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Build
+        working-directory: ./frontend
+        run: npm run build
+
+  # Docker Build
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-test]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Backend Image
+        run: docker build -t tshirtslab-backend ./backend
+
+      - name: Build Frontend Image
+        run: docker build -t tshirtslab-frontend ./frontend
+```
+
+---
+
+## 🌐 Production Deployment
+
+### Environment Variables (Production)
+
+```env
+# Backend Production
+APP_ENV=production
+APP_DEBUG=false
+APP_KEY=base64:...
+APP_URL=https://api.tshirtslab.com
+
+DB_CONNECTION=pgsql
+DB_HOST=prod-db-host
+DB_PORT=5432
+DB_DATABASE=tshirtslab_prod
+DB_USERNAME=prod_user
+DB_PASSWORD=<strong-password>
+
+REDIS_HOST=prod-redis-host
+REDIS_PORT=6379
+REDIS_PASSWORD=<redis-password>
+REDIS_CLIENT=predis
+
+CACHE_STORE=redis
+SESSION_DRIVER=redis
+QUEUE_CONNECTION=redis
+
+JWT_SECRET=<production-jwt-secret>
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_live_...
+
+FRONTEND_URL=https://tshirtslab.com
+```
+
+### Production Optimization (Laravel)
+```bash
+# Cache config, routes, views
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan optimize
+
+# Composer autoload optimization
+composer install --no-dev --optimize-autoloader
+```
+
+### Nginx Reverse Proxy (Production)
+```nginx
+# Production Nginx config
+server {
+    listen 443 ssl http2;
+    server_name api.tshirtslab.com;
+
+    ssl_certificate /etc/ssl/certs/tshirtslab.crt;
+    ssl_certificate_key /etc/ssl/private/tshirtslab.key;
+
+    client_max_body_size 20M;
+
+    location / {
+        proxy_pass http://backend:8000\;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name tshirtslab.com;
+
+    ssl_certificate /etc/ssl/certs/tshirtslab.crt;
+    ssl_certificate_key /etc/ssl/private/tshirtslab.key;
+
+    location / {
+        proxy_pass http://frontend:5173\;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```
+
+---
+
+## 📊 Monitoring & Logging
+
+### Laravel Logging
+```php
+// config/logging.php
+'channels' => [
+    'stack' => [
+        'driver' => 'stack',
+        'channels' => ['daily', 'stderr'],
+    ],
+    'daily' => [
+        'driver' => 'daily',
+        'path' => storage_path('logs/laravel.log'),
+        'days' => 14,
+    ],
+],
+```
+
+### Health Check Endpoint
+```
+GET /api/v1/health
+
+Response:
+{
+  "success": true,
+  "data": {
+    "status": "healthy",
+    "timestamp": "2026-03-15T10:00:00Z",
+    "services": {
+      "database": "connected",
+      "redis": "connected",
+      "stripe": "configured"
+    }
+  }
+}
+```
+
+### Docker Logging
+```bash
+# Ver logs
+docker-compose logs -f backend
+docker-compose logs -f --tail=100 backend
+
+# Log files dentro do container
+docker-compose exec backend tail -f storage/logs/laravel.log
+```
+
+---
+
+## 🔒 Security Hardening
+
+### Production Checklist
+- [ ] `APP_DEBUG=false`
+- [ ] `APP_ENV=production`
+- [ ] HTTPS obrigatório
+- [ ] Strong `APP_KEY` e `JWT_SECRET`
+- [ ] Database password forte
+- [ ] Redis password configurado
+- [ ] CORS restrito a domínios de produção
+- [ ] Rate limiting ativo
+- [ ] Logs monitorados
+- [ ] Backups de database configurados
+- [ ] Stripe webhook secret de produção
+- [ ] Headers de segurança (X-Frame-Options, CSP, etc.)
+
+### Laravel Security Headers (Middleware)
+```php
+// Adicionar em bootstrap/app.php ou middleware personalizado
+$response->headers->set('X-Content-Type-Options', 'nosniff');
+$response->headers->set('X-Frame-Options', 'DENY');
+$response->headers->set('X-XSS-Protection', '1; mode=block');
+$response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+```
+
+---
+
+## 📁 Infrastructure Files
+
+```
+tshirtslab/
+├── docker-compose.yml            # Dev environment
+├── .github/
+│   └── workflows/
+│       └── ci.yml                # CI/CD pipeline
+│
+├── backend/
+│   ├── Dockerfile                # Multi-stage PHP build
+│   └── docker/
+│       ├── nginx.conf            # Nginx config (port 8000)
+│       ├── php.ini               # PHP optimization
+│       └── supervisord.conf      # Process manager
+│
+└── frontend/
+    └── Dockerfile                # React build
+```
+
+---
+
+**Runtime**: PHP 8.4-FPM Alpine + Nginx + Supervisor
+**Containers**: Docker Compose (4 services)
+**CI/CD**: GitHub Actions
+
+**Versão**: 2.0.0 (Laravel) | **Atualizado**: Março 2026
+MDEOFtoken = auth('api')->attempt($credentials)) {
+    return $this->error('Invalid credentials', 401);
+}
+```
+
+---
+
+## 📐 Convenções de Código
+
+### PHP (Laravel/Backend)
+
+| Aspecto | Convenção | Exemplo |
+|---------|-----------|---------|
+| Classes | PascalCase | `ProductController`, `OrderItem` |
+| Métodos | camelCase | `createIntent()`, `getMyOrders()` |
+| Variáveis | camelCase | `$paymentIntent`, `$orderNumber` |
+| Constantes | UPPER_SNAKE | `STRIPE_SECRET_KEY` |
+| DB Columns | snake_case | `first_name`, `order_number` |
+| DB Tables | snake_case plural | `products`, `order_items` |
+| Routes | kebab-case | `/my-orders`, `/create-intent` |
+| Config keys | snake_case | `services.stripe.secret` |
+| Migrations | snake_case + timestamp | `2026_01_01_000001_create_users_table` |
+
+### TypeScript (React/Frontend)
+
+| Aspecto | Convenção | Exemplo |
+|---------|-----------|---------|
+| Componentes | PascalCase | `ProductCard.tsx` |
+| Hooks | camelCase + use | `useAuth.ts` |
+| Variáveis | camelCase | `cartItems`, `isLoading` |
+| Tipos/Interfaces | PascalCase | `Product`, `LoginCredentials` |
+| Constantes | UPPER_SNAKE | `API_BASE_URL` |
+| Arquivos | PascalCase (comp) / camelCase (utils) | `Header.tsx` / `formatters.ts` |
+
+### API Response Convention
+
+```json
+// Campos da API em camelCase (para o frontend)
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "firstName": "João",
+    "lastName": "Silva",
+    "orderNumber": "ORD-2026-001",
+    "paymentStatus": "PAID",
+    "shippingAddress": { ... },
+    "createdAt": "2026-03-15T10:00:00Z"
+  }
+}
+
+// Campos no banco em snake_case (Eloquent)
+// first_name, last_name, order_number, payment_status, shipping_address
+```
+
+---
+
+## 🧪 Testing Strategy
+
+### Backend (Laravel PHPUnit)
+
+```php
+// tests/Feature/AuthTest.php
+class AuthTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_user_can_register()
+    {
+        $response = $this->postJson('/api/v1/auth/register', [
+            'firstName' => 'João',
+            'lastName' => 'Silva',
+            'email' => 'joao@test.com',
+            'password' => 'Password@123',
+            'confirmPassword' => 'Password@123',
+        ]);
+
+        $response->assertStatus(201)
+            ->assertJsonStructure([
+                'success',
+                'data' => ['user', 'accessToken', 'refreshToken'],
+            ]);
+    }
+
+    public function test_user_can_login()
+    {
+        $user = User::factory()->create([
+            'email' => 'test@test.com',
+            'password' => Hash::make('Password@123'),
+        ]);
+
+        $response = $this->postJson('/api/v1/auth/login', [
+            'email' => 'test@test.com',
+            'password' => 'Password@123',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true);
+    }
+}
+```
+
+### Frontend (Vitest + React Testing Library)
+
+```tsx
+// src/components/products/ProductCard.test.tsx
+describe('ProductCard', () => {
+  it('renders product info correctly', () => {
+    render(<ProductCard product={mockProduct} onAddToCart={vi.fn()} />);
+    expect(screen.getByText('Camiseta Anime')).toBeInTheDocument();
+  });
+});
+```
+
+### Running Tests
+
+```bash
+# Backend
+php artisan test
+php artisan test --filter=AuthTest
+php artisan test --coverage
+
+# Frontend
+npm run test
+npm run test -- --coverage
+```
+
+---
+
+## 📝 Error Handling
+
+### Backend (Laravel)
+
+```php
+// Handler global em bootstrap/app.php
+->withExceptions(function (Exceptions $exceptions) {
+    $exceptions->render(function (ModelNotFoundException $e, Request $request) {
+        if ($request->is('api/*')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Resource not found',
+            ], 404);
+        }
+    });
+
+    $exceptions->render(function (ValidationException $e, Request $request) {
+        if ($request->is('api/*')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+    });
+});
+```
+
+### Frontend (Axios Interceptor)
+
+```typescript
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      // Auto refresh token
+    }
+    if (error.response?.status === 403) {
+      // Redirect to home
+    }
+    if (error.response?.status === 422) {
+      // Show validation errors
+    }
+    return Promise.reject(error);
+  }
+);
+```
+
+---
+
+## 🔑 Security Checklist
+
+### Backend
+- [x] JWT com expiração curta (15min access, 7d refresh)
+- [x] Password hashing com bcrypt
+- [x] Validação de input em todos os endpoints
+- [x] Eloquent parameterized queries (anti SQL injection)
+- [x] CORS restrito a frontend origin
+- [x] Rate limiting (60 req/min)
+- [x] Mass assignment protection ($fillable)
+- [x] Hidden fields ($hidden) para dados sensíveis
+- [x] UUID como primary key (anti enumeration)
+- [x] Stripe webhook signature validation
+- [x] HTTPS obrigatório em produção
+- [x] APP_DEBUG=false em produção
+
+### Frontend
+- [x] XSS prevention (React auto-escape)
+- [x] Form validation (Zod)
+- [x] Token storage em localStorage
+- [x] Auto-refresh de token expirado
+- [x] Sem secrets no frontend (apenas VITE_* env vars)
+- [x] Stripe Publishable Key (segura para client-side)
+
+---
+
+**Backend**: Laravel 13 (PHP 8.4) | **Frontend**: React 18 (TypeScript 5.7)
+
+**Versão**: 2.0.0 (Laravel) | **Atualizado**: Março 2026

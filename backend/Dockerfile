@@ -1,29 +1,41 @@
-# Stage 1: Build
-FROM node:20-alpine AS builder
-
+# Stage 1: Dependencies
+FROM composer:2 AS vendor
 WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
-COPY package*.json ./
-RUN npm ci
+# Stage 2: Application
+FROM php:8.4-fpm-alpine AS app
 
+RUN apk add --no-cache \
+    postgresql-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    nginx \
+    supervisor
+
+RUN docker-php-ext-install pdo_pgsql bcmath zip opcache
+
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del .build-deps
+
+COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
+COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY docker/supervisord.conf /etc/supervisord.conf
+
+WORKDIR /var/www/html
+
+COPY --from=vendor /app/vendor ./vendor
 COPY . .
-RUN npm run build
 
-# Stage 2: Runtime
-FROM node:20-alpine
+RUN composer dump-autoload --optimize --no-dev
 
-WORKDIR /app
+RUN chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
-ENV NODE_ENV=production
+EXPOSE 8000
 
-COPY package*.json ./
-RUN npm ci --only=production
-
-COPY --from=builder /app/dist ./dist
-
-EXPOSE 3000
-
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
-
-CMD ["node", "dist/main.js"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

@@ -38,7 +38,7 @@ export function OrdersPage() {
   if (isLoading) return <LoadingSpinner message="Loading orders..." />;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <h1 className="text-3xl font-bold mb-8">My Orders</h1>
 
       {orders.length === 0 ? (
@@ -59,7 +59,7 @@ export function OrdersPage() {
             <Link
               key={order.id}
               to={`/orders/${order.id}`}
-              className="block bg-white border rounded-xl p-6 hover:shadow-md transition-shadow"
+              className="block bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"
             >
               <div className="flex items-center justify-between mb-4">
                 <div>

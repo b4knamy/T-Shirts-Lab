@@ -18,7 +18,7 @@ export function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <h1 className="text-3xl font-bold mb-8">My Account</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -37,7 +37,7 @@ export function ProfilePage() {
 
         {/* Profile Info */}
         <div className="md:col-span-2">
-          <div className="bg-white border rounded-xl p-6">
+          <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
             <h2 className="font-semibold text-lg mb-6">Personal Information</h2>
 
             <div className="space-y-4">

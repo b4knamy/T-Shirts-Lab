@@ -7,524 +7,411 @@
 │                        CLIENTE (Browser)                         │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│         React.js 18 (Vite) - Port 5173                         │
+│         React.js 18 (Vite 8) - Port 5173                      │
 │         ├─ State Management (Redux Toolkit)                    │
 │         ├─ HTTP Client (Axios)                                 │
 │         ├─ Form Validation (Zod + React Hook Form)            │
-│         └─ UI Components (Radix UI + TailwindCSS)             │
+│         └─ UI Components (TailwindCSS v4)                     │
 │                                                                 │
 ├─────────────────────────────────────────────────────────────────┤
 │                      INTERNET / HTTPS                           │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-├─ API Gateway / Reverse Proxy (Nginx)                          │
-│  ├─ Rate Limiting                                              │
-│  ├─ Load Balancing                                             │
-│  ├─ SSL/TLS Termination                                        │
-│  └─ CORS Handling                                              │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                    BACKEND (NestJS) - Port 3000                 │
+│         BACKEND (Laravel 13 + PHP 8.4) - Port 8000            │
 │                                                                 │
 │    ┌─────────────────────────────────────────────────────┐    │
-│    │              API Layer (Controllers)                │    │
+│    │              Routes (api.php)                        │    │
+│    └─────────────────────────────────────────────────────┘    │
+│                        ↓                                        │
+│    ┌─────────────────────────────────────────────────────┐    │
+│    │         Middleware Layer                             │    │
+│    │  ├─ JwtAuthenticate (JWT validation)              │    │
+│    │  ├─ AdminMiddleware (RBAC)                        │    │
+│    │  └─ RateLimiter (60 req/min)                      │    │
+│    └─────────────────────────────────────────────────────┘    │
+│                        ↓                                        │
+│    ┌─────────────────────────────────────────────────────┐    │
+│    │         Controllers (Api/V1/*)                      │    │
 │    │  ├─ AuthController                                 │    │
+│    │  ├─ UserController                                │    │
 │    │  ├─ ProductController                             │    │
 │    │  ├─ OrderController                               │    │
 │    │  ├─ PaymentController                             │    │
-│    │  └─ AdminController                               │    │
+│    │  ├─ WebhookController                             │    │
+│    │  └─ HealthController                              │    │
 │    └─────────────────────────────────────────────────────┘    │
 │                        ↓                                        │
 │    ┌─────────────────────────────────────────────────────┐    │
-│    │         Application Layer (Services)                │    │
-│    │  ├─ AuthService (JWT, Passport)                   │    │
-│    │  ├─ ProductService (CRUD, Search)                 │    │
-│    │  ├─ OrderService (Order logic)                    │    │
-│    │  ├─ PaymentService (Payment processing)           │    │
-│    │  └─ CacheService (Redis operations)               │    │
+│    │         Eloquent Models (Active Record)             │    │
+│    │  ├─ User, Category, Product                       │    │
+│    │  ├─ ProductImage, Design                          │    │
+│    │  ├─ Order, OrderItem                              │    │
+│    │  ├─ Payment, UserAddress                          │    │
+│    │  └─ Traits: ApiResponse, HasUuids, SoftDeletes   │    │
 │    └─────────────────────────────────────────────────────┘    │
 │                        ↓                                        │
-│    ┌─────────────────────────────────────────────────────┐    │
-│    │       Business Logic Layer (Use Cases)              │    │
-│    │  ├─ CreateOrder                                    │    │
-│    │  ├─ ProcessPayment                                │    │
-│    │  ├─ ConfirmOrder                                  │    │
-│    │  └─ GenerateInvoice                               │    │
-│    └─────────────────────────────────────────────────────┘    │
-│                        ↓                                        │
-│    ┌─────────────────────────────────────────────────────┐    │
-│    │         Data Access Layer (Repositories)            │    │
-│    │  ├─ UserRepository                                 │    │
-│    │  ├─ ProductRepository                             │    │
-│    │  ├─ OrderRepository                               │    │
-│    │  └─ PaymentRepository                             │    │
-│    └─────────────────────────────────────────────────────┘    │
-│                        ↓                                        │
-│             ┌──────────┴──────────┬──────────────┐             │
-│             ↓                     ↓              ↓              │
-│    ┌─────────────────┐  ┌──────────────────┐  ┌──────────┐  │
-│    │  PostgreSQL 15  │  │   Redis 7        │  │ Stripe   │  │
-│    │  (Primary DB)   │  │  (Cache/Sessions)│  │ (Payment)│  │
-│    │  Port 5432      │  │  Port 6379       │  │  API     │  │
-│    └─────────────────┘  └──────────────────┘  └──────────┘  │
-│                                                                │
+│    ┌──────────────────┐  ┌──────────────────┐                 │
+│    │   PostgreSQL 15  │  │     Redis 7      │                 │
+│    │   (Database)     │  │  (Cache/Session) │                 │
+│    │   Port: 5432     │  │  Port: 6379      │                 │
+│    └──────────────────┘  └──────────────────┘                 │
+│                                                                 │
+├─────────────────────────────────────────────────────────────────┤
+│                     EXTERNAL SERVICES                           │
+│    ┌──────────────────┐                                        │
+│    │   Stripe API     │  (Payment Processing)                  │
+│    │   + Webhooks     │                                        │
+│    └──────────────────┘                                        │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🔄 Fluxo de Autenticação
+## 🔐 Authentication Flow
 
 ```
-    ┌─────────────┐
-    │   User      │
-    │  (Browser)  │
-    └──────┬──────┘
-           │ 1. POST /auth/login
-           │    {email, password}
-           ↓
-    ┌─────────────────────────────────┐
-    │  AuthController                 │
-    │  - Validate input (pipes)       │
-    │  - Hash password check          │
-    └──────┬──────────────────────────┘
-           │ 2. Call AuthService
-           ↓
-    ┌─────────────────────────────────┐
-    │  AuthService                    │
-    │  - Find user                    │
-    │  - Compare password (bcrypt)    │
-    │  - Generate JWT tokens          │
-    └──────┬──────────────────────────┘
-           │ 3. Save refresh token
-           ↓
-    ┌─────────────────────────────────┐
-    │  PostgreSQL                     │
-    │  - user                         │
-    │  - refresh_token                │
-    └─────────────────────────────────┘
-           │ 4. Return tokens
-           ↓
-    ┌─────────────────────────────────┐
-    │  User receives:                 │
-    │  - accessToken (15 min)         │
-    │  - refreshToken (7 dias)        │
-    │    in HttpOnly cookie           │
-    └─────────────────────────────────┘
-           │ 5. Store & use accessToken
-           ↓
-    ┌─────────────────────────────────┐
-    │  Subsequent requests:           │
-    │  Authorization: Bearer TOKEN    │
-    │  JwtStrategy validates          │
-    │  RolesGuard checks roles        │
-    └─────────────────────────────────┘
+┌──────────┐         ┌──────────┐         ┌──────────┐
+│  Client  │         │  Laravel │         │ Database │
+└────┬─────┘         └────┬─────┘         └────┬─────┘
+     │                    │                    │
+     │ POST /auth/login   │                    │
+     │ {email, password}  │                    │
+     │──────────────────→│                    │
+     │                    │ Find user by email │
+     │                    │──────────────────→│
+     │                    │←──────────────────│
+     │                    │                    │
+     │                    │ Verify password    │
+     │                    │ (bcrypt)           │
+     │                    │                    │
+     │                    │ Generate JWT       │
+     │                    │ (access + refresh) │
+     │                    │                    │
+     │ {accessToken,      │                    │
+     │  refreshToken,     │                    │
+     │  user}             │                    │
+     │←──────────────────│                    │
+     │                    │                    │
+     │ GET /products      │                    │
+     │ Auth: Bearer xxx   │                    │
+     │──────────────────→│                    │
+     │                    │ JwtAuthenticate    │
+     │                    │ middleware         │
+     │                    │ validates token    │
+     │                    │                    │
+     │ {products: [...]}  │                    │
+     │←──────────────────│                    │
+     │                    │                    │
+     │ Token expired!     │                    │
+     │ POST /auth/refresh │                    │
+     │ Auth: Bearer rfx   │                    │
+     │──────────────────→│                    │
+     │                    │ Validate refresh   │
+     │                    │ Generate new pair  │
+     │ {newAccessToken,   │                    │
+     │  newRefreshToken}  │                    │
+     │←──────────────────│                    │
 ```
 
 ---
 
-## 🛒 Fluxo de Compra (Order)
+## 💳 Payment Flow
 
 ```
-    ┌──────────────────┐
-    │  Frontend        │
-    │  (Add to cart)   │
-    └────────┬─────────┘
-             │
-             ↓
-    ┌──────────────────────────────┐
-    │ Redux (Cart Store)           │
-    │ {product_id, qty, design_id} │
-    └────────┬─────────────────────┘
-             │
-             ↓ User clicks "Checkout"
-    ┌────────────────────────────────────────┐
-    │  POST /api/v1/orders                   │
-    │  {items: [{productId, qty, designId}]} │
-    └────────┬───────────────────────────────┘
-             │
-             ↓
-    ┌────────────────────────────────┐
-    │  OrderController               │
-    │  - Validate order items        │
-    │  - Check stock availability    │
-    └────────┬───────────────────────┘
-             │
-             ↓
-    ┌────────────────────────────────┐
-    │  OrderService                  │
-    │  - Calculate total             │
-    │  - Apply discounts             │
-    │  - Calculate tax               │
-    │  - Reserve inventory           │
-    └────────┬───────────────────────┘
-             │
-             ├─→ Update PostgreSQL (Order + OrderItems)
-             │
-             ├─→ Reserve stock in Redis
-             │
-             ↓ Return order with total
-    ┌────────────────────────────────┐
-    │  Frontend                      │
-    │  - Show checkout form          │
-    │  - Enter shipping address      │
-    │  - Display payment form        │
-    └────────┬───────────────────────┘
-             │
-             ↓ User submits payment
-    ┌────────────────────────────────────┐
-    │  POST /api/v1/payments/confirm     │
-    │  {orderId, paymentMethodId}        │
-    └────────┬───────────────────────────┘
-             │
-             ↓
-    ┌────────────────────────────────┐
-    │  PaymentController             │
-    │  - Validate order exists       │
-    │  - Validate amount             │
-    └────────┬───────────────────────┘
-             │
-             ↓
-    ┌────────────────────────────────┐
-    │  StripeService                 │
-    │  - Create Payment Intent       │
-    │  - Return client secret        │
-    └────────┬───────────────────────┘
-             │
-             ├─→ Save in PostgreSQL (payments table)
-             │
-             ↓ Return client secret
-    ┌────────────────────────────────┐
-    │  Frontend                      │
-    │  - Load Stripe.js              │
-    │  - Display card form           │
-    │  - User enters card details    │
-    └────────┬───────────────────────┘
-             │
-             ↓ User submits card
-    ┌────────────────────────────────┐
-    │  Stripe (Secure)               │
-    │  - Process payment             │
-    │  - Return status               │
-    └────────┬───────────────────────┘
-             │
-             ├─ Success? ✅
-             │   │
-             │   ↓ Webhook: payment_intent.succeeded
-             │   ┌────────────────────────────────┐
-             │   │  Webhook Handler               │
-             │   │  - Verify signature            │
-             │   │  - Update payment status       │
-             │   │  - Update order status         │
-             │   │  - Release reserved stock      │
-             │   └────────┬───────────────────────┘
-             │            │
-             │            ├─→ Update PostgreSQL
-             │            │
-             │            ├─→ Update Redis (cache)
-             │            │
-             │            ↓
-             │   ┌────────────────────────────────┐
-             │   │  SendGrid / Email              │
-             │   │  - Send order confirmation     │
-             │   │  - Send invoice                │
-             │   └────────────────────────────────┘
-             │
-             └─ Failed? ❌
-                 │
-                 ↓
-                ┌──────────────────────────┐
-                │  Release reserved stock  │
-                │  Send error notification │
-                └──────────────────────────┘
+┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│  Client  │    │  Laravel │    │  Stripe  │    │ Database │
+└────┬─────┘    └────┬─────┘    └────┬─────┘    └────┬─────┘
+     │               │               │               │
+     │ POST /orders  │               │               │
+     │ {items:[...]} │               │               │
+     │─────────────→│               │               │
+     │               │ Create order  │               │
+     │               │─────────────────────────────→│
+     │ {order}       │               │               │
+     │←─────────────│               │               │
+     │               │               │               │
+     │ POST /payments│               │               │
+     │ /create-intent│               │               │
+     │─────────────→│               │               │
+     │               │ PaymentIntent │               │
+     │               │ ::create()   │               │
+     │               │─────────────→│               │
+     │               │ clientSecret  │               │
+     │               │←─────────────│               │
+     │               │               │               │
+     │               │ Save payment  │               │
+     │               │─────────────────────────────→│
+     │ {clientSecret}│               │               │
+     │←─────────────│               │               │
+     │               │               │               │
+     │ confirmPayment│               │               │
+     │ (Stripe.js)  │               │               │
+     │─────────────────────────────→│               │
+     │               │               │               │
+     │               │   Webhook     │               │
+     │               │   payment_    │               │
+     │               │   intent.     │               │
+     │               │   succeeded   │               │
+     │               │←─────────────│               │
+     │               │               │               │
+     │               │ Update order  │               │
+     │               │ + payment     │               │
+     │               │─────────────────────────────→│
+     │               │               │               │
 ```
 
 ---
 
-## 💾 Database Schema (Simplificado)
+## 📊 Database Entity Relationship
 
 ```
-┌─────────────────────────┐
-│        USERS            │
-├─────────────────────────┤
-│ id (PK)                 │
-│ email (UNIQUE)          │
-│ password_hash           │
-│ role (ENUM)             │
-│ created_at              │
-└──────────┬──────────────┘
-           │
-           │ 1:N
-           ├─────────────────────────────────────────┐
-           │                                         │
-    ┌──────▼──────────────┐           ┌─────────────▼────────┐
-    │    ORDERS           │           │   SHOPPING_CARTS     │
-    ├─────────────────────┤           ├──────────────────────┤
-    │ id (PK)             │           │ id (PK)              │
-    │ user_id (FK)        │           │ user_id (FK)         │
-    │ total               │           │ status               │
-    │ status (ENUM)       │           │ created_at           │
-    │ payment_status      │           │ updated_at           │
-    │ created_at          │           └──────────┬───────────┘
-    └──────┬──────────────┘                      │
-           │                                      │ 1:N
-           │ 1:N                                  │
-           │                                ┌─────▼─────────────┐
-    ┌──────▼──────────────────────┐        │   CART_ITEMS      │
-    │    ORDER_ITEMS              │        ├───────────────────┤
-    ├─────────────────────────────┤        │ id (PK)           │
-    │ id (PK)                     │        │ cart_id (FK)      │
-    │ order_id (FK)               │        │ product_id (FK)   │
-    │ product_id (FK)             │        │ quantity          │
-    │ quantity                    │        │ customization_data│
-    │ unit_price                  │        └───────────────────┘
-    │ customization_data (JSON)   │
-    └──────┬──────────────────────┘
-           │
-           └────────────────┬────────────────┬──────────────────┐
-                           │                 │                  │
-                ┌──────────▼─────┐ ┌──────────▼──────┐ ┌────────▼───────────┐
-                │   PRODUCTS     │ │  PAYMENTS       │ │  PRODUCT_IMAGES    │
-                ├────────────────┤ ├─────────────────┤ ├────────────────────┤
-                │ id (PK)        │ │ id (PK)         │ │ id (PK)            │
-                │ name           │ │ order_id (FK)   │ │ product_id (FK)    │
-                │ price          │ │ stripe_id       │ │ image_url          │
-                │ stock          │ │ status (ENUM)   │ │ is_primary         │
-                │ category_id    │ │ created_at      │ │ sort_order         │
-                └────────────────┘ └─────────────────┘ └────────────────────┘
-                       │
-                ┌──────▼──────────────┐
-                │   CATEGORIES        │
-                ├─────────────────────┤
-                │ id (PK)             │
-                │ name                │
-                │ slug                │
-                │ image_url           │
-                └─────────────────────┘
+┌───────────────────┐
+│      users        │
+│───────────────────│
+│ id (UUID, PK)     │
+│ first_name        │
+│ last_name         │
+│ email (unique)    │
+│ password          │
+│ role (enum)       │
+│ is_active         │
+│ timestamps        │
+└─────┬──────┬──────┘
+      │      │
+      │      │ hasMany
+      │      ↓
+      │  ┌───────────────────┐
+      │  │  user_addresses   │
+      │  │───────────────────│
+      │  │ id (UUID, PK)     │
+      │  │ user_id (FK)      │
+      │  │ address_line1     │
+      │  │ city, state, zip  │
+      │  │ is_default        │
+      │  └───────────────────┘
+      │
+      │ hasMany
+      ↓
+┌───────────────────┐        ┌───────────────────┐
+│     orders        │        │    categories     │
+│───────────────────│        │───────────────────│
+│ id (UUID, PK)     │        │ id (UUID, PK)     │
+│ user_id (FK)      │        │ name              │
+│ order_number      │        │ slug (unique)     │
+│ subtotal, total   │        │ is_active         │
+│ status (enum)     │        └─────┬─────────────┘
+│ payment_status    │              │
+│ timestamps        │              │ hasMany
+└─────┬──────┬──────┘              ↓
+      │      │            ┌───────────────────┐
+      │      │            │     products      │
+      │      │            │───────────────────│
+      │      │            │ id (UUID, PK)     │
+      │      │            │ sku (unique)      │
+      │      │            │ name, slug        │
+      │      │            │ price             │
+      │      │            │ category_id (FK)  │
+      │      │            │ status (enum)     │
+      │      │            │ is_featured       │
+      │      │            └──┬─────────┬──────┘
+      │      │               │         │
+      │      │    hasMany    │         │ hasMany
+      │      │               ↓         ↓
+      │      │     ┌──────────────┐ ┌──────────┐
+      │      │     │product_images│ │ designs  │
+      │      │     │──────────────│ │──────────│
+      │      │     │ image_url    │ │ name     │
+      │      │     │ is_primary   │ │ image_url│
+      │      │     │ sort_order   │ │ category │
+      │      │     └──────────────┘ └──────────┘
+      │      │
+      │      │ hasOne
+      │      ↓
+      │  ┌───────────────────┐
+      │  │    payments       │
+      │  │───────────────────│
+      │  │ id (UUID, PK)     │
+      │  │ order_id (FK)     │
+      │  │ stripe_pi_id      │
+      │  │ amount, currency  │
+      │  │ status (enum)     │
+      │  │ paid_at           │
+      │  └───────────────────┘
+      │
+      │ hasMany
+      ↓
+┌───────────────────┐
+│   order_items     │
+│───────────────────│
+│ id (UUID, PK)     │
+│ order_id (FK)     │
+│ product_id (FK)   │
+│ design_id (FK?)   │
+│ quantity          │
+│ unit_price        │
+│ total_price       │
+│ customization_data│
+└───────────────────┘
 ```
 
 ---
 
-## 🔐 Security Layers
+## 🐳 Docker Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Client Request                           │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-    ┌──────────────────────▼──────────────────────┐
-    │  HTTPS/TLS Encryption                       │
-    │  - SSL Certificate                          │
-    │  - Port 443                                 │
-    └──────────────────────┬──────────────────────┘
-                           │
-    ┌──────────────────────▼──────────────────────┐
-    │  CORS Validation                            │
-    │  - Only allowed origins                     │
-    │  - Credentials: true                        │
-    └──────────────────────┬──────────────────────┘
-                           │
-    ┌──────────────────────▼──────────────────────┐
-    │  Rate Limiting                              │
-    │  - Max 100 req/min per IP                   │
-    │  - Throttle sensitive endpoints             │
-    └──────────────────────┬──────────────────────┘
-                           │
-    ┌──────────────────────▼──────────────────────┐
-    │  Request Validation (Pipes)                 │
-    │  - Zod schemas                              │
-    │  - Data type validation                     │
-    │  - Sanitization                             │
-    └──────────────────────┬──────────────────────┘
-                           │
-    ┌──────────────────────▼──────────────────────┐
-    │  Authentication (Guards)                    │
-    │  - JWT Token validation                     │
-    │  - Token expiration check                   │
-    │  - Signature verification                   │
-    └──────────────────────┬──────────────────────┘
-                           │
-    ┌──────────────────────▼──────────────────────┐
-    │  Authorization (Guards)                     │
-    │  - Role-based access control                │
-    │  - Permission checks                        │
-    │  - Resource ownership validation            │
-    └──────────────────────┬──────────────────────┘
-                           │
-    ┌──────────────────────▼──────────────────────┐
-    │  Business Logic                             │
-    │  - Entity validation                        │
-    │  - Stock checks                             │
-    │  - Amount verification                      │
-    └──────────────────────┬──────────────────────┘
-                           │
-    ┌──────────────────────▼──────────────────────┐
-    │  Database (ORM)                             │
-    │  - Parameterized queries                    │
-    │  - SQL injection prevention                 │
-    │  - Data encryption at rest                  │
-    └──────────────────────┬──────────────────────┘
-                           │
-    ┌──────────────────────▼──────────────────────┐
-    │  Logging & Monitoring                       │
-    │  - Audit logs                               │
-    │  - Alert on suspicious activity             │
-    │  - Access logs                              │
-    └──────────────────────────────────────────────┘
+│                     Docker Compose                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌─────────────────────┐  ┌─────────────────────┐         │
+│  │    PostgreSQL 15     │  │      Redis 7        │         │
+│  │    :5432             │  │      :6379          │         │
+│  │    postgres_data vol │  │      redis_data vol │         │
+│  └──────────┬──────────┘  └──────────┬──────────┘         │
+│             │                        │                     │
+│             └────────┬───────────────┘                     │
+│                      │                                     │
+│  ┌───────────────────┴─────────────────────────┐          │
+│  │         Backend Container :8000              │          │
+│  │  ┌──────────────────────────────────────┐   │          │
+│  │  │  Supervisor                          │   │          │
+│  │  │  ├─ PHP 8.4-FPM (FastCGI :9000)    │   │          │
+│  │  │  └─ Nginx (HTTP :8000)              │   │          │
+│  │  └──────────────────────────────────────┘   │          │
+│  │  Laravel 13 Application                     │          │
+│  │  /var/www/html                              │          │
+│  └─────────────────────────────────────────────┘          │
+│                                                             │
+│  ┌─────────────────────────────────────────────┐          │
+│  │         Frontend Container :5173             │          │
+│  │  React 18 + Vite 8 (Dev Server)            │          │
+│  └─────────────────────────────────────────────┘          │
+│                                                             │
+│              Network: app-network (bridge)                  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📊 Cache Strategy (Redis)
+## 🛣️ Request Lifecycle (Laravel)
 
 ```
-Request
-   │
-   ├─→ Cache Key: product:{productId}
-   │    │
-   │    ├─ HIT? ✅ Return cached data
-   │    │
-   │    └─ MISS? ❌
-   │       │
-   │       ├─→ Query Database
-   │       │
-   │       ├─→ Store in Cache
-   │       │   ├─ TTL: 1 hour
-   │       │   ├─ Pattern: product:{id}
-   │       │   └─ Serialized JSON
-   │       │
-   │       └─→ Return data
-   │
-   ├─ Update Product?
-   │   │
-   │   ├─→ Update Database
-   │   │
-   │   ├─→ Invalidate Cache
-   │   │   └─ DEL product:{id}
-   │   │
-   │   └─→ Return success
-   │
-   └─ Cache Expiration?
-       │
-       ├─→ Next request triggers refresh
-       │
-       └─→ New data fetched and cached
-```
-
-### Cache Keys
-
-```
-sessions:{sessionId}              → HttpOnly cookie, 7 dias
-products:list:{page}              → Catálogo, 1 hora
-products:search:{query}:{page}    → Resultados busca, 30 min
-cart:{userId}                     → Carrinho, 24 horas
-ratelimit:{userId}:{endpoint}     → Rate limit, 1 min
-trending_products:{date}          → Trending, 1 dia
-verify:{email}                    → Email verify token, 1 hora
-```
-
----
-
-## 🚀 CI/CD Pipeline
-
-```
-Git Push
-   │
-   ├─→ GitHub Actions Triggered
-   │
-   ├─────── Backend Pipeline ─────────┐
-   │                                   │
-   │  1. Checkout code                │
-   │  2. Setup Node 20                │
-   │  3. npm install                  │
-   │  4. npm run lint                 │
-   │  5. npm run build                │
-   │  6. npm run test                 │
-   │  7. npm run test:e2e             │
-   │  8. Build Docker image           │
-   │  9. Push to registry             │
-   │  10. Deploy to staging           │
-   │                                   │
-   └──────────────┬────────────────────┘
-                  │
-   ┌──────────────▼───────────────────┐
-   │ ✅ All tests pass?               │
-   └──────────────┬───────────────────┘
-                  │
-                  ├─ YES ✅
-                  │   │
-                  │   ├─→ Create tag v1.2.3
-                  │   │
-                  │   ├─→ Mark PR ready to merge
-                  │   │
-                  │   └─→ Notify team
-                  │
-                  └─ NO ❌
-                      │
-                      ├─→ Mark PR with ❌
-                      │
-                      └─→ Notify developer
+HTTP Request
+    │
+    ↓
+┌─────────────────┐
+│   Nginx         │  (port 8000)
+│   (web server)  │  Serve static files
+└────────┬────────┘  or forward to PHP-FPM
+         │
+         ↓
+┌─────────────────┐
+│   PHP-FPM       │  (port 9000)
+│   (FastCGI)     │  Execute PHP
+└────────┬────────┘
+         │
+         ↓
+┌─────────────────┐
+│  public/        │
+│  index.php      │  Bootstrap Laravel
+└────────┬────────┘
+         │
+         ↓
+┌─────────────────┐
+│  bootstrap/     │
+│  app.php        │  Configure middleware, routes
+└────────┬────────┘
+         │
+         ↓
+┌─────────────────┐
+│  Global         │
+│  Middleware      │  CORS, Rate Limiting
+└────────┬────────┘
+         │
+         ↓
+┌─────────────────┐
+│  Route          │
+│  Resolution     │  Match URL to controller action
+└────────┬────────┘
+         │
+         ↓
+┌─────────────────┐
+│  Route          │
+│  Middleware      │  jwt.auth, admin
+└────────┬────────┘
+         │
+         ↓
+┌─────────────────┐
+│  Controller     │
+│  Method         │  Business logic
+└────────┬────────┘
+         │
+         ↓
+┌─────────────────┐
+│  Eloquent       │
+│  Model/Query    │  Database interaction
+└────────┬────────┘
+         │
+         ↓
+┌─────────────────┐
+│  ApiResponse    │
+│  Trait          │  Format JSON response
+└────────┬────────┘
+         │
+         ↓
+HTTP Response (JSON)
 ```
 
 ---
 
-## 📱 Frontend Component Tree (Simplificado)
+## 📡 API Route Map
 
 ```
-App
-├─ Router
-│  ├─ MainLayout
-│  │  ├─ Header
-│  │  │  ├─ Logo
-│  │  │  ├─ Navigation
-│  │  │  ├─ Cart Icon (with badge)
-│  │  │  └─ User Menu
-│  │  │
-│  │  ├─ Home
-│  │  │  ├─ Hero Banner
-│  │  │  └─ Featured Products
-│  │  │     └─ ProductCard[]
-│  │  │
-│  │  ├─ Products
-│  │  │  ├─ ProductFilter
-│  │  │  ├─ ProductSearch
-│  │  │  └─ ProductGrid
-│  │  │     └─ ProductCard[]
-│  │  │
-│  │  ├─ Cart
-│  │  │  ├─ CartItems[]
-│  │  │  └─ CartSummary
-│  │  │     └─ Checkout Button
-│  │  │
-│  │  ├─ Checkout
-│  │  │  ├─ AddressForm
-│  │  │  ├─ PaymentForm (Stripe)
-│  │  │  └─ OrderSummary
-│  │  │
-│  │  └─ Footer
-│  │     ├─ Links
-│  │     ├─ Social
-│  │     └─ Newsletter
-│  │
-│  ├─ AuthLayout
-│  │  ├─ Login
-│  │  └─ Register
-│  │
-│  └─ AdminLayout
-│     ├─ Dashboard
-│     ├─ Products Manager
-│     ├─ Orders Manager
-│     └─ Users Manager
+/api
+├── /v1
+│   ├── /auth
+│   │   ├── POST /register        (public)
+│   │   ├── POST /login           (public)
+│   │   ├── POST /refresh         (jwt.auth)
+│   │   └── POST /logout          (jwt.auth)
+│   │
+│   ├── /users
+│   │   ├── GET  /me              (jwt.auth)
+│   │   └── PATCH /me             (jwt.auth)
+│   │
+│   ├── /products
+│   │   ├── GET  /                (public)
+│   │   ├── GET  /featured        (public)
+│   │   ├── GET  /categories      (public)
+│   │   ├── GET  /slug/{slug}     (public)
+│   │   ├── GET  /{id}            (public)
+│   │   ├── POST /                (jwt.auth + admin)
+│   │   ├── PATCH /{id}           (jwt.auth + admin)
+│   │   └── DELETE /{id}          (jwt.auth + admin)
+│   │
+│   ├── /orders
+│   │   ├── POST /                (jwt.auth)
+│   │   ├── GET  /my-orders       (jwt.auth)
+│   │   ├── GET  /{id}            (jwt.auth)
+│   │   ├── GET  /                (jwt.auth + admin)
+│   │   └── PATCH /{id}/status    (jwt.auth + admin)
+│   │
+│   ├── /payments
+│   │   ├── POST /create-intent   (jwt.auth)
+│   │   ├── POST /confirm         (jwt.auth)
+│   │   ├── GET  /{piId}          (jwt.auth)
+│   │   └── POST /refund          (jwt.auth + admin)
+│   │
+│   └── /health
+│       └── GET  /                (public)
 │
-└─ Redux Provider
-   └─ Store
-      ├─ authSlice
-      ├─ cartSlice
-      ├─ productSlice
-      ├─ filterSlice
-      └─ uiSlice
+└── /webhooks
+    └── POST /stripe              (public, signature verified)
 ```
 
 ---
 
-**Última atualização**: Março 2026
+**Backend**: Laravel 13 (PHP 8.4) | Port 8000
+**Frontend**: React 18 (Vite 8) | Port 5173
+
+**Versão**: 2.0.0 (Laravel) | **Atualizado**: Março 2026

@@ -37,31 +37,37 @@ services:
       timeout: 5s
       retries: 5
 
-  # Backend NestJS
+  # Backend Laravel (PHP-FPM + Nginx)
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: tshirtslab-backend
     ports:
-      - "3000:3000"
+      - "8000:8000"
     environment:
-      NODE_ENV: development
-      PORT: 3000
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_USER: tshirtslab
-      DATABASE_PASSWORD: tshirtslab_secret
-      DATABASE_NAME: tshirtslab_db
+      APP_NAME: "T-Shirts Lab"
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: tshirtslab_db
+      DB_USERNAME: tshirtslab
+      DB_PASSWORD: tshirtslab_secret
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      REDIS_CLIENT: predis
       REDIS_HOST: redis
       REDIS_PORT: 6379
       JWT_SECRET: docker-dev-jwt-secret
-      JWT_EXPIRATION: 15m
-      JWT_REFRESH_SECRET: docker-dev-refresh-secret
-      JWT_REFRESH_EXPIRATION: 7d
+      JWT_TTL: 15
+      JWT_REFRESH_TTL: 10080
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_placeholder}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-whsec_placeholder}
-      CORS_ORIGIN: http://localhost:5173
+      FRONTEND_URL: http://localhost:5173
     depends_on:
       postgres:
         condition: service_healthy
