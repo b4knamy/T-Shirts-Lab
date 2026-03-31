@@ -11,15 +11,15 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+}
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
 }
 
 body {
@@ -36,6 +36,7 @@ body {
   display: flex;
   flex-direction: column;
   width: 100%;
+  max-width: 100%;
 }
 
 /* Smooth focus rings */

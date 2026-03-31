@@ -16,24 +16,24 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email'     => 'required|email|unique:users,email',
-            'password'  => 'required|string|min:8',
-            'firstName' => 'required|string|max:255',
-            'lastName'  => 'required|string|max:255',
-            'phone'     => 'nullable|string|max:20',
+            'email'      => 'required|email|unique:users,email',
+            'password'   => 'required|string|min:8',
+            'first_name' => 'required|string|max:255',
+            'last_name'  => 'required|string|max:255',
+            'phone'      => 'nullable|string|max:20',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'email.required'     => 'O e-mail é obrigatório.',
-            'email.email'        => 'Informe um e-mail válido.',
-            'email.unique'       => 'Este e-mail já está cadastrado.',
-            'password.required'  => 'A senha é obrigatória.',
-            'password.min'       => 'A senha deve ter no mínimo 8 caracteres.',
-            'firstName.required' => 'O primeiro nome é obrigatório.',
-            'lastName.required'  => 'O sobrenome é obrigatório.',
+            'email.required'      => 'O e-mail é obrigatório.',
+            'email.email'         => 'Informe um e-mail válido.',
+            'email.unique'        => 'Este e-mail já está cadastrado.',
+            'password.required'   => 'A senha é obrigatória.',
+            'password.min'        => 'A senha deve ter no mínimo 8 caracteres.',
+            'first_name.required' => 'O primeiro nome é obrigatório.',
+            'last_name.required'  => 'O sobrenome é obrigatório.',
         ];
     }
 

@@ -53,15 +53,15 @@ class ProductService
             'slug'             => Str::slug($data['name']) . '-' . Str::random(6),
             'sku'              => $data['sku'] ?? strtoupper('TSL-' . Str::random(8)),
             'description'      => $data['description'],
-            'long_description' => $data['longDescription'] ?? null,
-            'category_id'      => $data['categoryId'],
+            'long_description' => $data['long_description'] ?? null,
+            'category_id'      => $data['category_id'],
             'price'            => $data['price'],
-            'cost_price'       => $data['costPrice'] ?? null,
-            'discount_price'   => $data['discountPrice'] ?? null,
-            'discount_percent' => $data['discountPercent'] ?? null,
-            'stock_quantity'   => $data['stockQuantity'] ?? 0,
+            'cost_price'       => $data['cost_price'] ?? null,
+            'discount_price'   => $data['discount_price'] ?? null,
+            'discount_percent' => $data['discount_percent'] ?? null,
+            'stock_quantity'   => $data['stock_quantity'] ?? 0,
             'status'           => $data['status'] ?? 'ACTIVE',
-            'is_featured'      => $data['isFeatured'] ?? false,
+            'is_featured'      => $data['is_featured'] ?? false,
             'color'            => $data['color'] ?? null,
             'size'             => $data['size'] ?? null,
         ]);
@@ -76,24 +76,24 @@ class ProductService
             $updateData['slug'] = Str::slug($data['name']) . '-' . Str::random(6);
         }
 
-        $fieldMap = [
-            'description'    => 'description',
-            'longDescription' => 'long_description',
-            'categoryId'     => 'category_id',
-            'price'          => 'price',
-            'costPrice'      => 'cost_price',
-            'discountPrice'  => 'discount_price',
-            'discountPercent' => 'discount_percent',
-            'stockQuantity'  => 'stock_quantity',
-            'status'         => 'status',
-            'isFeatured'     => 'is_featured',
-            'color'          => 'color',
-            'size'           => 'size',
+        $directFields = [
+            'description',
+            'long_description',
+            'category_id',
+            'price',
+            'cost_price',
+            'discount_price',
+            'discount_percent',
+            'stock_quantity',
+            'status',
+            'is_featured',
+            'color',
+            'size',
         ];
 
-        foreach ($fieldMap as $inputKey => $dbColumn) {
-            if (array_key_exists($inputKey, $data)) {
-                $updateData[$dbColumn] = $data[$inputKey];
+        foreach ($directFields as $field) {
+            if (array_key_exists($field, $data)) {
+                $updateData[$field] = $data[$field];
             }
         }
 

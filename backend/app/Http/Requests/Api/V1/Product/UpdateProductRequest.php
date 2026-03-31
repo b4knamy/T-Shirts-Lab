@@ -16,28 +16,28 @@ class UpdateProductRequest extends FormRequest
   public function rules(): array
   {
     return [
-      'name'           => 'sometimes|string|max:255',
-      'description'    => 'sometimes|string',
-      'longDescription' => 'nullable|string',
-      'categoryId'     => 'sometimes|uuid|exists:categories,id',
-      'price'          => 'sometimes|numeric|min:0',
-      'costPrice'      => 'nullable|numeric|min:0',
-      'discountPrice'  => 'nullable|numeric|min:0',
-      'discountPercent' => 'nullable|numeric|min:0|max:100',
-      'stockQuantity'  => 'sometimes|integer|min:0',
-      'isFeatured'     => 'boolean',
-      'status'         => 'in:ACTIVE,INACTIVE,DRAFT,OUT_OF_STOCK',
-      'color'          => 'nullable|string|max:50',
-      'size'           => 'nullable|string|max:50',
+      'name'             => 'sometimes|string|max:255',
+      'description'      => 'sometimes|string',
+      'long_description' => 'nullable|string',
+      'category_id'      => 'sometimes|uuid|exists:categories,id',
+      'price'            => 'sometimes|numeric|min:0',
+      'cost_price'       => 'nullable|numeric|min:0',
+      'discount_price'   => 'nullable|numeric|min:0',
+      'discount_percent' => 'nullable|numeric|min:0|max:100',
+      'stock_quantity'   => 'sometimes|integer|min:0',
+      'is_featured'      => 'boolean',
+      'status'           => 'in:ACTIVE,INACTIVE,DRAFT,OUT_OF_STOCK',
+      'color'            => 'nullable|string|max:50',
+      'size'             => 'nullable|string|max:50',
     ];
   }
 
   public function messages(): array
   {
     return [
-      'categoryId.exists'  => 'A categoria informada não existe.',
-      'price.numeric'      => 'O preço deve ser um número.',
-      'stockQuantity.integer' => 'A quantidade deve ser um número inteiro.',
+      'category_id.exists'     => 'A categoria informada não existe.',
+      'price.numeric'          => 'O preço deve ser um número.',
+      'stock_quantity.integer'  => 'A quantidade deve ser um número inteiro.',
     ];
   }
 

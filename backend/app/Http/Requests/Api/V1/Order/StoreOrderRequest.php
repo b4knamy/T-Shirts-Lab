@@ -16,28 +16,28 @@ class StoreOrderRequest extends FormRequest
   public function rules(): array
   {
     return [
-      'items'                    => 'required|array|min:1',
-      'items.*.productId'        => 'required|uuid|exists:products,id',
-      'items.*.designId'         => 'nullable|uuid|exists:designs,id',
-      'items.*.quantity'         => 'required|integer|min:1|max:100',
-      'items.*.customizationData' => 'nullable|array',
-      'shippingAddressId'        => 'nullable|uuid|exists:user_addresses,id',
-      'billingAddressId'         => 'nullable|uuid|exists:user_addresses,id',
-      'customerNotes'            => 'nullable|string|max:1000',
+      'items'                       => 'required|array|min:1',
+      'items.*.product_id'          => 'required|uuid|exists:products,id',
+      'items.*.design_id'           => 'nullable|uuid|exists:designs,id',
+      'items.*.quantity'            => 'required|integer|min:1|max:100',
+      'items.*.customization_data'  => 'nullable|array',
+      'shipping_address_id'         => 'nullable|uuid|exists:user_addresses,id',
+      'billing_address_id'          => 'nullable|uuid|exists:user_addresses,id',
+      'customer_notes'              => 'nullable|string|max:1000',
     ];
   }
 
   public function messages(): array
   {
     return [
-      'items.required'                => 'Os itens do pedido são obrigatórios.',
-      'items.min'                     => 'O pedido deve ter pelo menos 1 item.',
-      'items.*.productId.required'    => 'O ID do produto é obrigatório.',
-      'items.*.productId.exists'      => 'Produto não encontrado.',
-      'items.*.quantity.required'     => 'A quantidade é obrigatória.',
-      'items.*.quantity.min'          => 'A quantidade mínima é 1.',
-      'items.*.quantity.max'          => 'A quantidade máxima por item é 100.',
-      'shippingAddressId.exists'      => 'Endereço de entrega não encontrado.',
+      'items.required'                    => 'Os itens do pedido são obrigatórios.',
+      'items.min'                         => 'O pedido deve ter pelo menos 1 item.',
+      'items.*.product_id.required'       => 'O ID do produto é obrigatório.',
+      'items.*.product_id.exists'         => 'Produto não encontrado.',
+      'items.*.quantity.required'         => 'A quantidade é obrigatória.',
+      'items.*.quantity.min'              => 'A quantidade mínima é 1.',
+      'items.*.quantity.max'              => 'A quantidade máxima por item é 100.',
+      'shipping_address_id.exists'        => 'Endereço de entrega não encontrado.',
     ];
   }
 

@@ -9,8 +9,8 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { add } = useCart();
-  const primaryImage = product.images?.find((img) => img.isPrimary) || product.images?.[0];
-  const hasDiscount = product.discountPrice && product.discountPrice < product.price;
+  const primaryImage = product.images?.find((img) => img.is_primary) || product.images?.[0];
+  const hasDiscount = product.discount_price && product.discount_price < product.price;
 
   return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:-translate-y-1">
@@ -19,8 +19,8 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="aspect-square bg-surface">
           {primaryImage ? (
             <img
-              src={primaryImage.imageUrl}
-              alt={primaryImage.altText || product.name}
+              src={primaryImage.image_url}
+              alt={primaryImage.alt_text || product.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
@@ -34,10 +34,10 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="absolute top-3 left-3 flex flex-col gap-1">
           {hasDiscount && (
             <span className="bg-accent text-white text-xs font-bold px-2 py-1 rounded">
-              -{product.discountPercent || Math.round((1 - product.discountPrice! / product.price) * 100)}%
+              -{product.discount_percent || Math.round((1 - product.discount_price! / product.price) * 100)}%
             </span>
           )}
-          {product.isFeatured && (
+          {product.is_featured && (
             <span className="bg-secondary text-white text-xs font-bold px-2 py-1 rounded">
               Featured
             </span>
@@ -68,7 +68,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <div className="flex items-center gap-2">
             {hasDiscount ? (
               <>
-                <span className="font-bold text-accent">${Number(product.discountPrice).toFixed(2)}</span>
+                <span className="font-bold text-accent">${Number(product.discount_price).toFixed(2)}</span>
                 <span className="text-sm text-gray-400 line-through">${Number(product.price).toFixed(2)}</span>
               </>
             ) : (
@@ -80,7 +80,7 @@ export function ProductCard({ product }: ProductCardProps) {
             onClick={() => add(product)}
             className="p-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
             aria-label="Add to cart"
-            disabled={product.stockQuantity - product.reservedQuantity <= 0}
+            disabled={product.stock_quantity - product.reserved_quantity <= 0}
           >
             <ShoppingCart className="w-4 h-4" />
           </button>

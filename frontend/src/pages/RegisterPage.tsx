@@ -37,8 +37,8 @@ export function RegisterPage() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       await registerUser({
-        firstName: data.firstName,
-        lastName: data.lastName,
+        first_name: data.firstName,
+        last_name: data.lastName,
         email: data.email,
         password: data.password,
       });

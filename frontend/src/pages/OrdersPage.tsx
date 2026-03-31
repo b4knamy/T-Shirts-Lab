@@ -23,7 +23,7 @@ export function OrdersPage() {
     setIsLoading(true);
     try {
       const response = await ordersApi.getMyOrders();
-      setOrders(response.data.data.orders);
+      setOrders(response.data.data.products);
     } catch {
       // Silently handle
     } finally {
@@ -38,7 +38,7 @@ export function OrdersPage() {
   if (isLoading) return <LoadingSpinner message="Loading orders..." />;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="w-full max-w-4xl mx-auto px-6 py-10">
       <h1 className="text-3xl font-bold mb-8">My Orders</h1>
 
       {orders.length === 0 ? (
@@ -63,10 +63,10 @@ export function OrdersPage() {
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="font-semibold">Order #{order.orderNumber}</h3>
+                  <h3 className="font-semibold">Order #{order.order_number}</h3>
                   <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
                     <Clock className="w-3.5 h-3.5" />
-                    {new Date(order.createdAt).toLocaleDateString()}
+                    {new Date(order.created_at).toLocaleDateString()}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

@@ -18,7 +18,7 @@ export function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="w-full max-w-4xl mx-auto px-6 py-10">
       <h1 className="text-3xl font-bold mb-8">My Account</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -45,7 +45,7 @@ export function ProfilePage() {
                 <User className="w-5 h-5 text-gray-400" />
                 <div>
                   <p className="text-sm text-gray-500">Full Name</p>
-                  <p className="font-medium">{user.firstName} {user.lastName}</p>
+                  <p className="font-medium">{user.first_name} {user.last_name}</p>
                 </div>
               </div>
 
@@ -71,7 +71,7 @@ export function ProfilePage() {
                 <Calendar className="w-5 h-5 text-gray-400" />
                 <div>
                   <p className="text-sm text-gray-500">Member Since</p>
-                  <p className="font-medium">{new Date(user.createdAt).toLocaleDateString()}</p>
+                  <p className="font-medium">{new Date(user.created_at).toLocaleDateString()}</p>
                 </div>
               </div>
             </div>

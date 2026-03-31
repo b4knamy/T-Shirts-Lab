@@ -48,7 +48,7 @@ export function CartSidebar() {
                   <div className="w-20 h-20 bg-surface rounded-lg overflow-hidden flex-shrink-0">
                     {item.product.images?.[0] ? (
                       <img
-                        src={item.product.images[0].imageUrl}
+                        src={item.product.images[0].image_url}
                         alt={item.product.name}
                         className="w-full h-full object-cover"
                       />
@@ -63,7 +63,7 @@ export function CartSidebar() {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-sm truncate">{item.product.name}</h3>
                     <p className="text-accent font-semibold text-sm mt-1">
-                      ${Number(item.product.discountPrice || item.product.price).toFixed(2)}
+                      ${Number(item.product.discount_price || item.product.price).toFixed(2)}
                     </p>
 
                     {/* Quantity Controls */}

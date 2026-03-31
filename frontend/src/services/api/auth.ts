@@ -4,8 +4,8 @@ import type { LoginResponse } from '../../types';
 export interface RegisterData {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   phone?: string;
 }
 
@@ -21,8 +21,8 @@ export const authApi = {
   login: (data: LoginData) =>
     apiClient.post<{ data: LoginResponse }>('/api/v1/auth/login', data),
 
-  refresh: (refreshToken: string) =>
-    apiClient.post('/api/v1/auth/refresh', { refreshToken }),
+  refresh: (refresh_token: string) =>
+    apiClient.post('/api/v1/auth/refresh', { refresh_token }),
 
   getProfile: () => apiClient.get('/api/v1/users/me'),
 };

@@ -37,7 +37,7 @@ export function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+      <div className="w-full max-w-7xl mx-auto px-6 py-20 text-center">
         <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
         <Link to="/products" className="text-accent hover:underline">
           Back to Products
@@ -46,12 +46,12 @@ export function ProductDetailPage() {
     );
   }
 
-  const hasDiscount = product.discountPrice && product.discountPrice < product.price;
-  const available = product.stockQuantity - product.reservedQuantity;
+  const hasDiscount = product.discount_price && product.discount_price < product.price;
+  const available = product.stock_quantity - product.reserved_quantity;
   const images = product.images?.length ? product.images : [];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="w-full max-w-7xl mx-auto px-6 py-10">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-gray-500 mb-8">
         <Link to="/" className="hover:text-accent">Home</Link>
@@ -67,8 +67,8 @@ export function ProductDetailPage() {
           <div className="aspect-square bg-surface rounded-2xl overflow-hidden shadow-sm">
             {images.length > 0 ? (
               <img
-                src={images[selectedImage]?.imageUrl}
-                alt={images[selectedImage]?.altText || product.name}
+                src={images[selectedImage]?.image_url}
+                alt={images[selectedImage]?.alt_text || product.name}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -89,7 +89,7 @@ export function ProductDetailPage() {
                     selectedImage === idx ? 'border-accent' : 'border-transparent'
                   }`}
                 >
-                  <img src={img.imageUrl} alt={img.altText || ''} className="w-full h-full object-cover" />
+                  <img src={img.image_url} alt={img.alt_text || ''} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
@@ -99,7 +99,7 @@ export function ProductDetailPage() {
         {/* Product Info */}
         <div>
           {product.category && (
-            <Link to={`/products?categoryId=${product.categoryId}`} className="text-sm text-accent uppercase tracking-wide font-medium">
+            <Link to={`/products?categoryId=${product.category_id}`} className="text-sm text-accent uppercase tracking-wide font-medium">
               {product.category.name}
             </Link>
           )}
@@ -110,10 +110,10 @@ export function ProductDetailPage() {
           <div className="flex items-center gap-4 mb-6">
             {hasDiscount ? (
               <>
-                <span className="text-3xl font-bold text-accent">${Number(product.discountPrice).toFixed(2)}</span>
+                <span className="text-3xl font-bold text-accent">${Number(product.discount_price).toFixed(2)}</span>
                 <span className="text-xl text-gray-400 line-through">${Number(product.price).toFixed(2)}</span>
                 <span className="bg-accent/10 text-accent text-sm font-bold px-3 py-1 rounded">
-                  -{product.discountPercent || Math.round((1 - product.discountPrice! / product.price) * 100)}% OFF
+                  -{product.discount_percent || Math.round((1 - product.discount_price! / product.price) * 100)}% OFF
                 </span>
               </>
             ) : (
@@ -171,11 +171,11 @@ export function ProductDetailPage() {
           )}
 
           {/* Extended description */}
-          {product.longDescription && (
+          {product.long_description && (
             <div className="border-t pt-6">
               <h3 className="font-semibold mb-3">Details</h3>
               <div className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">
-                {product.longDescription}
+                {product.long_description}
               </div>
             </div>
           )}

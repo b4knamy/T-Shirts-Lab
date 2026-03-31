@@ -30,13 +30,13 @@ export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];
 export interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   phone?: string;
   role: UserRole;
-  isActive: boolean;
-  profilePictureUrl?: string;
-  createdAt: string;
+  is_active: boolean;
+  profile_picture_url?: string;
+  created_at: string;
 }
 
 export interface Category {
@@ -44,8 +44,8 @@ export interface Category {
   name: string;
   slug: string;
   description?: string;
-  imageUrl?: string;
-  isActive: boolean;
+  image_url?: string;
+  is_active: boolean;
 }
 
 export interface Product {
@@ -54,80 +54,106 @@ export interface Product {
   name: string;
   slug: string;
   description: string;
-  longDescription?: string;
-  categoryId: string;
+  long_description?: string;
+  category_id: string;
   category?: Category;
   price: number;
-  costPrice?: number;
-  discountPrice?: number;
-  discountPercent?: number;
-  stockQuantity: number;
-  reservedQuantity: number;
+  cost_price?: number;
+  discount_price?: number;
+  discount_percent?: number;
+  stock_quantity: number;
+  reserved_quantity: number;
   status: string;
-  isFeatured: boolean;
+  is_featured: boolean;
   color?: string;
   size?: string;
   images: ProductImage[];
   designs: Design[];
-  createdAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ProductImage {
   id: string;
-  imageUrl: string;
-  altText?: string;
-  sortOrder: number;
-  isPrimary: boolean;
+  image_url: string;
+  alt_text?: string;
+  sort_order: number;
+  is_primary: boolean;
 }
 
 export interface Design {
   id: string;
   name: string;
   description?: string;
-  imageUrl: string;
+  image_url: string;
   category: string;
-  isApproved: boolean;
+  is_approved: boolean;
 }
 
 export interface Order {
   id: string;
-  orderNumber: string;
-  userId: string;
+  order_number: string;
+  user_id: string;
   subtotal: number;
-  discountAmount: number;
-  taxAmount: number;
-  shippingCost: number;
+  discount_amount: number;
+  tax_amount: number;
+  shipping_cost: number;
   total: number;
   status: OrderStatus;
-  paymentStatus: PaymentStatus;
-  trackingNumber?: string;
-  customerNotes?: string;
+  payment_status: PaymentStatus;
+  tracking_number?: string;
+  customer_notes?: string;
+  admin_notes?: string;
   items: OrderItem[];
-  createdAt: string;
+  payment?: Payment;
+  created_at: string;
+  updated_at?: string;
 }
 
 export interface OrderItem {
   id: string;
-  productId: string;
-  product?: Product;
-  designId?: string;
+  product_id: string;
+  product?: {
+    id: string;
+    name: string;
+    slug: string;
+    price: number;
+    image?: string;
+  };
+  design_id?: string;
+  design?: Design;
   quantity: number;
-  unitPrice: number;
+  unit_price: number;
+  total_price: number;
+  customization_data?: Record<string, unknown>;
+}
+
+export interface Payment {
+  id: string;
+  order_id: string;
+  stripe_payment_intent_id?: string;
+  amount: number;
+  currency: string;
+  status: string;
+  payment_method?: string;
+  refund_amount?: number;
+  refunded_at?: string;
+  paid_at?: string;
 }
 
 export interface CartItem {
   product: Product;
-  designId?: string;
+  design_id?: string;
   quantity: number;
 }
 
 export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
+  access_token: string;
+  refresh_token: string;
 }
 
 export interface LoginResponse {
   user: User;
-  accessToken: string;
-  refreshToken: string;
+  access_token: string;
+  refresh_token: string;
 }

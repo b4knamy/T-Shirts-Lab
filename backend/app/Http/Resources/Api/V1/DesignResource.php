@@ -13,9 +13,9 @@ class DesignResource extends JsonResource
       'id'          => $this->id,
       'name'        => $this->name,
       'description' => $this->description,
-      'imageUrl'    => $this->image_url,
+      'image_url'   => $this->image_url,
       'category'    => $this->category,
-      'isApproved'  => $this->is_approved,
+      'is_approved' => $this->is_approved,
     ];
   }
 }

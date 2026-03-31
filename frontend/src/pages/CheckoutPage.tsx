@@ -48,11 +48,11 @@ export function CheckoutPage() {
       // Create order
       const orderResponse = await ordersApi.create({
         items: items.map((item) => ({
-          productId: item.product.id,
+          product_id: item.product.id,
           quantity: item.quantity,
-          designId: item.designId,
+          design_id: item.design_id,
         })),
-        customerNotes: data.customerNotes,
+        customer_notes: data.customerNotes,
       });
 
       const order = orderResponse.data.data;
@@ -72,7 +72,7 @@ export function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+      <div className="w-full max-w-4xl mx-auto px-6 py-20 text-center">
         <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
         <h1 className="text-2xl font-bold mb-2">Your cart is empty</h1>
         <p className="text-gray-500 mb-4">Add some products before checking out.</p>
@@ -84,7 +84,7 @@ export function CheckoutPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="w-full max-w-6xl mx-auto px-6 py-10">
       <Link to="/products" className="inline-flex items-center gap-2 text-gray-500 hover:text-accent mb-8">
         <ArrowLeft className="w-4 h-4" /> Continue Shopping
       </Link>
@@ -215,7 +215,7 @@ export function CheckoutPage() {
                       {item.product.name} × {item.quantity}
                     </span>
                     <span className="font-medium">
-                      ${(Number(item.product.discountPrice || item.product.price) * item.quantity).toFixed(2)}
+                      ${(Number(item.product.discount_price || item.product.price) * item.quantity).toFixed(2)}
                     </span>
                   </li>
                 ))}

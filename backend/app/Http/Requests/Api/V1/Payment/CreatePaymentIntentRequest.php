@@ -16,7 +16,7 @@ class CreatePaymentIntentRequest extends FormRequest
   public function rules(): array
   {
     return [
-      'orderId'  => 'required|uuid|exists:orders,id',
+      'order_id' => 'required|uuid|exists:orders,id',
       'currency' => 'nullable|string|size:3',
     ];
   }
@@ -24,9 +24,9 @@ class CreatePaymentIntentRequest extends FormRequest
   public function messages(): array
   {
     return [
-      'orderId.required' => 'O ID do pedido é obrigatório.',
-      'orderId.exists'   => 'Pedido não encontrado.',
-      'currency.size'    => 'A moeda deve ter exatamente 3 caracteres (ex: brl, usd).',
+      'order_id.required' => 'O ID do pedido é obrigatório.',
+      'order_id.exists'   => 'Pedido não encontrado.',
+      'currency.size'     => 'A moeda deve ter exatamente 3 caracteres (ex: brl, usd).',
     ];
   }
 

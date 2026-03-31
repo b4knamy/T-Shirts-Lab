@@ -79,7 +79,7 @@ export function Header() {
               <div className="hidden md:flex items-center gap-3">
                 <Link to="/profile" className="flex items-center gap-2 hover:text-accent transition-colors">
                   <User className="w-5 h-5" />
-                  <span className="text-sm">{user?.firstName}</span>
+                  <span className="text-sm">{user?.first_name}</span>
                 </Link>
                 {user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' ? (
                   <Link to="/admin" className="hover:text-accent transition-colors text-sm">

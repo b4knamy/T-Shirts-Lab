@@ -16,16 +16,16 @@ class ConfirmPaymentRequest extends FormRequest
   public function rules(): array
   {
     return [
-      'paymentIntentId' => 'required|string',
-      'paymentMethodId' => 'required|string',
+      'payment_intent_id' => 'required|string',
+      'payment_method_id' => 'required|string',
     ];
   }
 
   public function messages(): array
   {
     return [
-      'paymentIntentId.required' => 'O ID do PaymentIntent é obrigatório.',
-      'paymentMethodId.required' => 'O ID do método de pagamento é obrigatório.',
+      'payment_intent_id.required' => 'O ID do PaymentIntent é obrigatório.',
+      'payment_method_id.required' => 'O ID do método de pagamento é obrigatório.',
     ];
   }
 

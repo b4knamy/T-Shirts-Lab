@@ -3,13 +3,13 @@ import type { Order } from '../../types';
 
 export interface CreateOrderData {
   items: {
-    productId: string;
-    designId?: string;
+    product_id: string;
+    design_id?: string;
     quantity: number;
   }[];
-  shippingAddressId?: string;
-  billingAddressId?: string;
-  customerNotes?: string;
+  shipping_address_id?: string;
+  billing_address_id?: string;
+  customer_notes?: string;
 }
 
 export const ordersApi = {
@@ -17,7 +17,7 @@ export const ordersApi = {
     apiClient.post<{ data: Order }>('/api/v1/orders', data),
 
   getMyOrders: (page?: number, limit?: number) =>
-    apiClient.get<{ data: { orders: Order[]; total: number } }>(
+    apiClient.get<{ data: { products: Order[]; total: number } }>(
       '/api/v1/orders/my-orders',
       { params: { page, limit } },
     ),
@@ -29,6 +29,6 @@ export const ordersApi = {
   getAll: (page?: number, limit?: number) =>
     apiClient.get('/api/v1/orders', { params: { page, limit } }),
 
-  updateStatus: (id: string, status: string, adminNotes?: string) =>
-    apiClient.patch(`/api/v1/orders/${id}/status`, { status, adminNotes }),
+  updateStatus: (id: string, status: string, admin_notes?: string) =>
+    apiClient.patch(`/api/v1/orders/${id}/status`, { status, admin_notes }),
 };

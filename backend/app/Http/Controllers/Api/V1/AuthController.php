@@ -25,9 +25,9 @@ class AuthController extends Controller
 
         return $this->jsonResponse(
             [
-                'user'         => new UserResource($result['user']),
-                'accessToken'  => $result['accessToken'],
-                'refreshToken' => $result['refreshToken'],
+                'user'          => new UserResource($result['user']),
+                'access_token'  => $result['accessToken'],
+                'refresh_token' => $result['refreshToken'],
             ],
             'User registered successfully',
             201
@@ -46,23 +46,23 @@ class AuthController extends Controller
         }
 
         return $this->jsonResponse([
-            'user'         => new UserResource($result['user']),
-            'accessToken'  => $result['accessToken'],
-            'refreshToken' => $result['refreshToken'],
+            'user'          => new UserResource($result['user']),
+            'access_token'  => $result['accessToken'],
+            'refresh_token' => $result['refreshToken'],
         ], 'Login successful');
     }
 
     public function refresh(RefreshTokenRequest $request): JsonResponse
     {
         try {
-            $result = $this->authService->refresh($request->validated('refreshToken'));
+            $result = $this->authService->refresh($request->validated('refresh_token'));
         } catch (InvalidArgumentException $e) {
             return $this->errorJsonResponse($e->getMessage(), 401);
         }
 
         return $this->jsonResponse([
-            'accessToken'  => $result['accessToken'],
-            'refreshToken' => $result['refreshToken'],
+            'access_token'  => $result['accessToken'],
+            'refresh_token' => $result['refreshToken'],
         ], 'Token refreshed');
     }
 

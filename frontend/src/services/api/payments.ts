@@ -1,20 +1,20 @@
 import apiClient from './client';
 
 export const paymentsApi = {
-  createIntent: (orderId: string, currency?: string) =>
+  createIntent: (order_id: string, currency?: string) =>
     apiClient.post<{
-      data: { clientSecret: string; paymentIntentId: string };
-    }>('/api/v1/payments/create-intent', { orderId, currency }),
+      data: { client_secret: string; payment_intent_id: string };
+    }>('/api/v1/payments/create-intent', { order_id, currency }),
 
-  confirmPayment: (paymentIntentId: string, paymentMethodId: string) =>
+  confirmPayment: (payment_intent_id: string, payment_method_id: string) =>
     apiClient.post('/api/v1/payments/confirm', {
-      paymentIntentId,
-      paymentMethodId,
+      payment_intent_id,
+      payment_method_id,
     }),
 
-  getStatus: (paymentIntentId: string) =>
-    apiClient.get(`/api/v1/payments/${paymentIntentId}`),
+  getStatus: (payment_intent_id: string) =>
+    apiClient.get(`/api/v1/payments/${payment_intent_id}`),
 
-  refund: (paymentIntentId: string, amount?: number) =>
-    apiClient.post('/api/v1/payments/refund', { paymentIntentId, amount }),
+  refund: (payment_intent_id: string, amount?: number) =>
+    apiClient.post('/api/v1/payments/refund', { payment_intent_id, amount }),
 };

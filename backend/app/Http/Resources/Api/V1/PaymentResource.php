@@ -10,16 +10,16 @@ class PaymentResource extends JsonResource
   public function toArray(Request $request): array
   {
     return [
-      'id'                     => $this->id,
-      'orderId'                => $this->order_id,
-      'stripePaymentIntentId'  => $this->stripe_payment_intent_id,
-      'amount'                 => (float) $this->amount,
-      'currency'               => $this->currency,
-      'status'                 => $this->status,
-      'paymentMethod'          => $this->payment_method,
-      'refundAmount'           => $this->refund_amount ? (float) $this->refund_amount : null,
-      'refundedAt'             => $this->refunded_at?->toISOString(),
-      'paidAt'                 => $this->paid_at?->toISOString(),
+      'id'                        => $this->id,
+      'order_id'                  => $this->order_id,
+      'stripe_payment_intent_id'  => $this->stripe_payment_intent_id,
+      'amount'                    => (float) $this->amount,
+      'currency'                  => $this->currency,
+      'status'                    => $this->status,
+      'payment_method'            => $this->payment_method,
+      'refund_amount'             => $this->refund_amount ? (float) $this->refund_amount : null,
+      'refunded_at'               => $this->refunded_at?->toISOString(),
+      'paid_at'                   => $this->paid_at?->toISOString(),
     ];
   }
 }

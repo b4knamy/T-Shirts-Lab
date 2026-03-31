@@ -24,8 +24,8 @@ class PaymentController extends Controller
 
     public function createIntent(CreatePaymentIntentRequest $request): JsonResponse
     {
-        $user     = JWTAuth::parseToken()->authenticate();
-        $order    = Order::find($request->validated('orderId'));
+        $user  = JWTAuth::parseToken()->authenticate();
+        $order = Order::find($request->validated('order_id'));
 
         if (!$order || $order->user_id !== $user->id) {
             return $this->error('Order not found', 404);
@@ -48,8 +48,8 @@ class PaymentController extends Controller
     {
         try {
             $result = $this->paymentService->confirm(
-                $request->validated('paymentIntentId'),
-                $request->validated('paymentMethodId')
+                $request->validated('payment_intent_id'),
+                $request->validated('payment_method_id')
             );
         } catch (ApiErrorException $e) {
             return $this->error('Payment confirmation error: ' . $e->getMessage(), 500);
@@ -61,7 +61,7 @@ class PaymentController extends Controller
     public function status(string $paymentIntentId): JsonResponse
     {
         try {
-            ['payment' => $payment, 'stripeStatus' => $stripeStatus] =
+            ['payment' => $payment, 'stripe_status' => $stripeStatus] =
                 $this->paymentService->getStatus($paymentIntentId);
         } catch (\RuntimeException $e) {
             return $this->error('Payment not found', 404);
@@ -70,8 +70,8 @@ class PaymentController extends Controller
         }
 
         return $this->success([
-            'payment'      => new PaymentResource($payment),
-            'stripeStatus' => $stripeStatus,
+            'payment'       => new PaymentResource($payment),
+            'stripe_status' => $stripeStatus,
         ]);
     }
 
@@ -79,7 +79,7 @@ class PaymentController extends Controller
     {
         try {
             $result = $this->paymentService->refund(
-                $request->validated('paymentIntentId'),
+                $request->validated('payment_intent_id'),
                 $request->validated('amount'),
                 $request->validated('reason')
             );

@@ -59,10 +59,10 @@ abstract class Controller
             'success' => true,
             'data' => $payload,
             'meta' => [
-                'total' => $total,
-                'page' => $page,
-                'limit' => $limit,
-                'totalPages' => ceil($total / $limit),
+                'total'       => $total,
+                'page'        => $page,
+                'limit'       => $limit,
+                'total_pages' => ceil($total / $limit),
             ],
         ]);
     }

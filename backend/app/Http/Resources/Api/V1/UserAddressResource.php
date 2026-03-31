@@ -18,9 +18,9 @@ class UserAddressResource extends JsonResource
       'neighborhood' => $this->neighborhood,
       'city'         => $this->city,
       'state'        => $this->state,
-      'zipCode'      => $this->zip_code,
+      'zip_code'     => $this->zip_code,
       'country'      => $this->country,
-      'isDefault'    => $this->is_default,
+      'is_default'   => $this->is_default,
     ];
   }
 }

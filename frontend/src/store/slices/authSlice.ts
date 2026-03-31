@@ -22,8 +22,8 @@ export const registerUser = createAsyncThunk(
     try {
       const response = await authApi.register(data);
       const result = response.data.data;
-      localStorage.setItem('accessToken', result.accessToken);
-      localStorage.setItem('refreshToken', result.refreshToken);
+      localStorage.setItem('accessToken', result.access_token);
+      localStorage.setItem('refreshToken', result.refresh_token);
       return result;
     } catch (error: unknown) {
       const err = error as { response?: { data?: { error?: { message?: string } } } };
@@ -38,8 +38,8 @@ export const loginUser = createAsyncThunk(
     try {
       const response = await authApi.login(data);
       const result = response.data.data;
-      localStorage.setItem('accessToken', result.accessToken);
-      localStorage.setItem('refreshToken', result.refreshToken);
+      localStorage.setItem('accessToken', result.access_token);
+      localStorage.setItem('refreshToken', result.refresh_token);
       return result;
     } catch (error: unknown) {
       const err = error as { response?: { data?: { error?: { message?: string } } } };
