@@ -82,7 +82,7 @@ const productSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.products = action.payload.products;
+        state.products = action.payload.data;
         state.total = action.payload.total;
         state.page = action.payload.page;
         state.limit = action.payload.limit;

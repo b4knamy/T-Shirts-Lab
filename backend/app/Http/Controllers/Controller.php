@@ -49,7 +49,7 @@ abstract class Controller
         }
 
         $payload = [
-            'products' => $data,
+            'data' => $data,
             'total' => $total,
             'page' => $page,
             'limit' => $limit,

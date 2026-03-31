@@ -24,7 +24,7 @@ export function AdminDashboard() {
           adminApi.getOrders({ limit: 100 }),
         ]);
 
-        const orders = orderRes.data.data.orders || [];
+        const orders = orderRes.data.data.data || [];
         const revenue = orders.reduce((sum: number, o: { total: number }) => sum + Number(o.total), 0);
         const pending = orders.filter((o: { status: string }) => o.status === 'PENDING').length;
 

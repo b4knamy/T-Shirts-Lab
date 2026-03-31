@@ -48,7 +48,7 @@ export function AdminOrders() {
     setIsLoading(true);
     try {
       const res = await adminApi.getOrders({ page, limit: LIMIT });
-      setOrders(res.data.data.orders || []);
+      setOrders(res.data.data.data || []);
       setTotal(res.data.meta?.total ?? 0);
     } catch {
       // silently fail

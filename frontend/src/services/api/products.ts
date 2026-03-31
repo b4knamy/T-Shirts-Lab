@@ -14,7 +14,7 @@ export interface ProductQueryParams {
 
 export const productsApi = {
   getAll: (params?: ProductQueryParams) =>
-    apiClient.get<{ data: { products: Product[]; total: number; page: number; limit: number } }>(
+    apiClient.get<{ data: { data: Product[]; total: number; page: number; limit: number } }>(
       '/api/v1/products',
       { params },
     ),

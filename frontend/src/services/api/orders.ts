@@ -17,7 +17,7 @@ export const ordersApi = {
     apiClient.post<{ data: Order }>('/api/v1/orders', data),
 
   getMyOrders: (page?: number, limit?: number) =>
-    apiClient.get<{ data: { products: Order[]; total: number } }>(
+    apiClient.get<{ data: { data: Order[]; total: number } }>(
       '/api/v1/orders/my-orders',
       { params: { page, limit } },
     ),

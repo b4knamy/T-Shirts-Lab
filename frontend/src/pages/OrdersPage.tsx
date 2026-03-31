@@ -23,7 +23,7 @@ export function OrdersPage() {
     setIsLoading(true);
     try {
       const response = await ordersApi.getMyOrders();
-      setOrders(response.data.data.products);
+      setOrders(response.data.data.data);
     } catch {
       // Silently handle
     } finally {

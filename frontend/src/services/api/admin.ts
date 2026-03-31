@@ -25,7 +25,7 @@ export const adminApi = {
   getProducts: (params?: { page?: number; limit?: number; search?: string; status?: string; categoryId?: string }) =>
     apiClient.get<{
       success: boolean;
-      data: { products: Product[]; total: number; page: number; limit: number };
+      data: { data: Product[]; total: number; page: number; limit: number };
       meta: { total: number; page: number; limit: number; total_pages: number };
     }>('/api/v1/products', { params: { ...params, status: params?.status || undefined } }),
 
