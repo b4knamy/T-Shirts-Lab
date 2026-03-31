@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
 import { AuthLayout } from './components/layout/AuthLayout';
+import { AdminLayout } from './components/layout/AdminLayout';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import {
@@ -11,9 +12,11 @@ import {
   RegisterPage,
   ProfilePage,
   OrdersPage,
+  OrderDetailPage,
   CheckoutPage,
   NotFoundPage,
 } from './pages';
+import { AdminDashboard, AdminProducts, AdminOrders } from './pages/admin';
 
 function App() {
   return (
@@ -50,6 +53,14 @@ function App() {
               }
             />
             <Route
+              path="/orders/:id"
+              element={
+                <ProtectedRoute>
+                  <OrderDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/checkout"
               element={
                 <ProtectedRoute>
@@ -60,6 +71,20 @@ function App() {
 
             {/* 404 */}
             <Route path="*" element={<NotFoundPage />} />
+          </Route>
+
+          {/* Admin Layout */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute roles={['ADMIN', 'SUPER_ADMIN']}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="orders" element={<AdminOrders />} />
           </Route>
         </Routes>
       </BrowserRouter>
