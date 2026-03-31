@@ -20,9 +20,13 @@
 │  └─ designs                                        │
 │                                                     │
 │  Orders & Transactions                             │
-│  ├─ orders                                          │
+│  ├─ orders          (+ coupon_id FK)               │
 │  ├─ order_items                                    │
 │  └─ payments                                       │
+│                                                     │
+│  Coupons & Promotions                              │
+│  ├─ coupons         (PERCENTAGE / FIXED)           │
+│  └─ coupon_usages   (per-user tracking)            │
 │                                                     │
 │  Infrastructure                                    │
 │  └─ cache (Laravel cache store)                    │

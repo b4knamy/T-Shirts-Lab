@@ -6,8 +6,8 @@
 |-------|-------|
 | **Nome** | T-Shirts Lab |
 | **Tipo** | E-commerce de camisetas personalizadas |
-| **Stack Backend** | Laravel 13 (PHP 8.4) |
-| **Stack Frontend** | React 18 + Vite + TypeScript |
+| **Stack Backend** | Laravel 11 (PHP 8.4) |
+| **Stack Frontend** | React 19 + Vite + TypeScript |
 | **Database** | PostgreSQL 15 |
 | **Cache** | Redis 7 |
 | **Pagamentos** | Stripe |
@@ -33,8 +33,13 @@ Ser referência em e-commerce de camisetas no Brasil, oferecendo experiência pr
 - ✅ Carrinho de compras
 - ✅ Checkout e processamento de pedidos
 - ✅ Integração Stripe para pagamentos
-- ✅ Painel admin básico (CRUD produtos, gerenciamento de pedidos)
+- ✅ Painel admin completo (CRUD produtos, categorias, pedidos, cupons, imagens)
 - ✅ API RESTful versionada (/api/v1/)
+- ✅ Sistema de cupons de desconto (PERCENTAGE/FIXED)
+- ✅ Banner de promoções públicas no frontend
+- ✅ Upload e gerenciamento de imagens de produtos
+- ✅ CRUD completo de categorias
+- ✅ Seeders e factories realistas para desenvolvimento
 
 ### V1 (Fase 2 - Futuro)
 - 🔄 Editor de customização de designs
@@ -55,13 +60,13 @@ Ser referência em e-commerce de camisetas no Brasil, oferecendo experiência pr
 ```
 ┌─────────────────────────────────────────────────┐
 │          CLIENTE (Browser)                      │
-│  React 18 + Vite + TypeScript                   │
-│  Redux Toolkit | Axios | TailwindCSS            │
+│  React 19 + Vite + TypeScript                   │
+│  Redux Toolkit | Axios | TailwindCSS v4          │
 │  Port 5173                                      │
 ├─────────────────────────────────────────────────┤
 │               HTTPS / API                        │
 ├─────────────────────────────────────────────────┤
-│          BACKEND (Laravel 13)                    │
+│          BACKEND (Laravel 11)                    │
 │  PHP 8.4 | Eloquent ORM | JWT Auth              │
 │  Stripe SDK | Redis Cache                        │
 │  Port 8000                                       │
@@ -78,15 +83,15 @@ Ser referência em e-commerce de camisetas no Brasil, oferecendo experiência pr
 
 | Camada | Tecnologia | Versão | Propósito |
 |--------|-----------|--------|-----------|
-| **Frontend** | React.js | 18 | UI/UX |
-| | Vite | 8 | Build tool |
+| **Frontend** | React.js | 19 | UI/UX |
+| | Vite | 6 | Build tool |
 | | TypeScript | 5.7 | Type safety |
 | | TailwindCSS | 4 | Styling |
 | | Redux Toolkit | 2 | State management |
 | | Axios | 1.9 | HTTP client |
 | | Zod | 3 | Validation |
 | | React Hook Form | 7 | Form handling |
-| **Backend** | Laravel | 13 | Framework |
+| **Backend** | Laravel | 11 | Framework |
 | | PHP | 8.4 | Runtime |
 | | Eloquent ORM | - | ORM |
 | | JWT Auth | 2.9 | Authentication |

@@ -1,10 +1,10 @@
-# Arquitetura Backend - Laravel 13
+# Arquitetura Backend - Laravel 11
 
 ## 🏗️ Stack Backend
 
 | Tecnologia | Versão | Propósito |
 |-----------|--------|-----------|
-| Laravel | 13 | Framework PHP |
+| Laravel | 11 | Framework PHP |
 | PHP | 8.4 | Runtime |
 | Eloquent ORM | - | ORM / Database |
 | JWT Auth | 2.9 | Autenticação stateless |
@@ -26,13 +26,25 @@ backend/
 │   │   │       ├── AuthController.php
 │   │   │       ├── UserController.php
 │   │   │       ├── ProductController.php
+│   │   │       ├── ProductImageController.php
+│   │   │       ├── CategoryController.php
+│   │   │       ├── CouponController.php
 │   │   │       ├── OrderController.php
 │   │   │       ├── PaymentController.php
 │   │   │       ├── WebhookController.php
 │   │   │       └── HealthController.php
-│   │   └── Middleware/
-│   │       ├── JwtAuthenticate.php
-│   │       └── AdminMiddleware.php
+│   │   ├── Middleware/
+│   │   │   ├── JwtAuthenticate.php
+│   │   │   └── AdminMiddleware.php
+│   │   ├── Requests/Api/V1/
+│   │   │   ├── Coupon/
+│   │   │   │   ├── StoreCouponRequest.php
+│   │   │   │   ├── UpdateCouponRequest.php
+│   │   │   │   └── ValidateCouponRequest.php
+│   │   │   └── ...
+│   │   └── Resources/Api/V1/
+│   │       ├── CouponResource.php
+│   │       └── ...
 │   ├── Models/
 │   │   ├── User.php
 │   │   ├── Category.php
@@ -42,7 +54,11 @@ backend/
 │   │   ├── Order.php
 │   │   ├── OrderItem.php
 │   │   ├── Payment.php
+│   │   ├── Coupon.php
+│   │   ├── CouponUsage.php
 │   │   └── UserAddress.php
+│   ├── Services/
+│   │   └── OrderService.php
 │   └── Traits/
 │       └── ApiResponse.php
 ├── bootstrap/
@@ -53,6 +69,10 @@ backend/
 │   ├── jwt.php
 │   └── services.php
 ├── database/
+│   ├── factories/
+│   │   ├── OrderFactory.php
+│   │   ├── PaymentFactory.php
+│   │   └── CouponFactory.php
 │   ├── migrations/
 │   │   ├── 2026_01_01_000001_create_users_table.php
 │   │   ├── 2026_01_01_000002_create_categories_table.php
@@ -63,9 +83,16 @@ backend/
 │   │   ├── 2026_01_01_000007_create_orders_table.php
 │   │   ├── 2026_01_01_000008_create_order_items_table.php
 │   │   ├── 2026_01_01_000009_create_payments_table.php
-│   │   └── 2026_01_01_000010_create_cache_table.php
+│   │   ├── 2026_01_01_000010_create_cache_table.php
+│   │   ├── 2026_03_30_000001_create_coupons_table.php
+│   │   └── 2026_03_31_000240_add_missing_columns_to_order_items_table.php
 │   └── seeders/
-│       └── DatabaseSeeder.php
+│       ├── DatabaseSeeder.php
+│       ├── UserSeeder.php
+│       ├── CategorySeeder.php
+│       ├── ProductSeeder.php
+│       ├── OrderSeeder.php
+│       └── CouponSeeder.php
 ├── docker/
 │   ├── nginx.conf
 │   ├── php.ini
@@ -201,6 +228,34 @@ SUPER_ADMIN  - Acesso total
 | GET | /api/v1/payments/{id} | Status do pagamento |
 | POST | /api/v1/payments/refund | Reembolso (Admin) |
 
+### Coupons
+| Method | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | /api/v1/coupons/active | Promos públicas ativas (Público) |
+| POST | /api/v1/coupons/validate | Validar cupom (Auth) |
+| GET | /api/v1/coupons | Listar todos (Admin) |
+| POST | /api/v1/coupons | Criar cupom (Admin) |
+| GET | /api/v1/coupons/{id} | Detalhe (Admin) |
+| PATCH | /api/v1/coupons/{id} | Atualizar (Admin) |
+| DELETE | /api/v1/coupons/{id} | Deletar (Admin) |
+
+### Categories (Admin)
+| Method | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | /api/v1/categories | Listar paginado (Admin) |
+| POST | /api/v1/categories | Criar categoria (Admin) |
+| PATCH | /api/v1/categories/{id} | Atualizar (Admin) |
+| DELETE | /api/v1/categories/{id} | Deletar (Admin) |
+
+### Product Images (Admin)
+| Method | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | /api/v1/products/{id}/images | Listar imagens (Admin) |
+| POST | /api/v1/products/{id}/images | Adicionar por URL (Admin) |
+| POST | /api/v1/products/{id}/images/upload | Upload de arquivo (Admin) |
+| PATCH | /api/v1/products/{id}/images/{imageId} | Atualizar (Admin) |
+| DELETE | /api/v1/products/{id}/images/{imageId} | Remover (Admin) |
+
 ### Webhooks
 | Method | Endpoint | Descrição |
 |--------|----------|-----------|
@@ -238,8 +293,8 @@ class Product extends Model
 ```php
 class Order extends Model
 {
-    // Fields: order_number, user_id, subtotal, total, status, payment_status
-    // Relations: user(), items(), payment(), shippingAddress(), billingAddress()
+    // Fields: order_number, user_id, subtotal, total, status, payment_status, coupon_id
+    // Relations: user(), items(), payment(), shippingAddress(), billingAddress(), coupon()
 }
 ```
 
@@ -249,6 +304,27 @@ class Payment extends Model
 {
     // Fields: order_id, stripe_payment_intent_id, amount, currency, status
     // Relations: order()
+}
+```
+
+### Coupon
+```php
+class Coupon extends Model
+{
+    // Fields: code, description, type (PERCENTAGE/FIXED), value, min_order_amount,
+    //         max_discount_amount, usage_limit, usage_count, per_user_limit,
+    //         is_active, is_public, starts_at, expires_at
+    // Relations: usages(), orders()
+    // Methods: isValid(), hasUserReachedLimit($userId), calculateDiscount($subtotal)
+}
+```
+
+### CouponUsage
+```php
+class CouponUsage extends Model
+{
+    // Fields: coupon_id, user_id, order_id
+    // Relations: coupon(), user(), order()
 }
 ```
 

@@ -68,11 +68,14 @@ frontend/
 │   │   ├── RegisterPage.tsx
 │   │   ├── ProfilePage.tsx
 │   │   ├── OrdersPage.tsx
+│   │   ├── OrderDetailPage.tsx
 │   │   ├── NotFoundPage.tsx
 │   │   └── admin/
 │   │       ├── AdminDashboard.tsx
-│   │       ├── AdminProducts.tsx
-│   │       └── AdminOrders.tsx
+│   │       ├── AdminProducts.tsx      # CRUD + Image Manager
+│   │       ├── AdminOrders.tsx
+│   │       ├── AdminCategories.tsx
+│   │       └── AdminCoupons.tsx
 │   │
 │   ├── store/
 │   │   ├── store.ts
@@ -89,7 +92,9 @@ frontend/
 │   │       ├── auth.ts            # Auth endpoints
 │   │       ├── products.ts        # Product endpoints
 │   │       ├── orders.ts          # Order endpoints
-│   │       └── payments.ts        # Payment endpoints
+│   │       ├── payments.ts        # Payment endpoints
+│   │       ├── admin.ts           # Admin CRUD (products, categories, coupons, images)
+│   │       └── coupons.ts         # Public coupon promo endpoints
 │   │
 │   ├── hooks/
 │   │   ├── useAuth.ts

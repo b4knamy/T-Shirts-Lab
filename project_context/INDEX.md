@@ -4,7 +4,7 @@
 
 Este diretório contém a documentação técnica completa do projeto T-Shirts Lab, uma plataforma e-commerce para venda e customização de camisetas.
 
-**Stack**: Laravel 13 (PHP 8.4) + React 18 (TypeScript) + PostgreSQL 15 + Redis 7
+**Stack**: Laravel 11 (PHP 8.4) + React 19 (TypeScript) + PostgreSQL 15 + Redis 7
 
 ---
 
@@ -19,26 +19,32 @@ Este diretório contém a documentação técnica completa do projeto T-Shirts L
 - Padrão de resposta da API
 
 ### 2. [02-BACKEND_ARCHITECTURE.md](./02-BACKEND_ARCHITECTURE.md) - Arquitetura Backend (Laravel)
-- Arquitetura MVC do Laravel 13
+- Arquitetura MVC do Laravel 11
 - Estrutura de diretórios do backend PHP
 - Configuração do framework (bootstrap/app.php, config/)
 - Modelos Eloquent e relacionamentos (Active Record)
-- Controllers API versionados (Api/V1/)
+- Controllers API versionados (Api/V1/) — 10 Controllers
 - Sistema de autenticação JWT (php-open-source-saver/jwt-auth)
 - Middleware customizado (JwtAuthenticate, AdminMiddleware)
-- Trait ApiResponse para padronização de respostas
-- Rotas da API (routes/api.php)
+- Trait ApiResponse para padronização de respostas (chave `data` genérica)
+- Sistema de cupons de desconto (Coupon, CouponUsage, CouponController)
+- CRUD de categorias (CategoryController)
+- Gerenciamento de imagens de produtos (ProductImageController — URL + upload)
+- Factories e Seeders realistas (Order, Coupon, Payment)
+- Rotas da API (routes/api.php) — 40+ endpoints
 - Rate limiting e CORS
 
 ### 3. [03-FRONTEND_ARCHITECTURE.md](./03-FRONTEND_ARCHITECTURE.md) - Arquitetura Frontend (React)
-- Arquitetura baseada em features do React 18
-- Configuração Vite 8 + TypeScript 5.7
-- Gerenciamento de estado com Redux Toolkit (RTK Query)
+- Arquitetura baseada em features do React 19
+- Configuração Vite + TypeScript 5.7
+- Gerenciamento de estado com Redux Toolkit
 - Serviço HTTP com Axios (interceptors, refresh token)
-- Sistema de rotas (React Router v7)
+- Sistema de rotas (React Router v6)
 - Validação de formulários (Zod + React Hook Form)
 - Estilização com TailwindCSS v4
 - Integração com API Laravel (port 8000)
+- Painel Admin completo: Dashboard, Products (CRUD + Image Manager), Orders, Categories, Coupons
+- Banner de promoções públicas (PromoBanner) com countdown
 - Componentes reutilizáveis e patterns
 
 ### 4. [04-DATABASE_CACHE.md](./04-DATABASE_CACHE.md) - Banco de Dados e Cache
@@ -118,29 +124,35 @@ Este diretório contém a documentação técnica completa do projeto T-Shirts L
 
 ```
 tshirtslab/
-├── backend/                 # Laravel 13 (PHP 8.4)
+├── backend/                 # Laravel 11 (PHP 8.4)
 │   ├── app/
 │   │   ├── Http/
-│   │   │   ├── Controllers/Api/V1/   # 7 Controllers
-│   │   │   └── Middleware/           # JWT, Admin
-│   │   ├── Models/                   # 9 Eloquent Models
+│   │   │   ├── Controllers/Api/V1/   # 10 Controllers
+│   │   │   ├── Middleware/           # JWT, Admin
+│   │   │   ├── Requests/Api/V1/     # Form Requests (Coupon, etc.)
+│   │   │   └── Resources/Api/V1/    # API Resources
+│   │   ├── Models/                   # 11 Eloquent Models
+│   │   ├── Services/                 # OrderService
 │   │   └── Traits/                   # ApiResponse
 │   ├── bootstrap/app.php            # App configuration
 │   ├── config/                      # auth, cors, jwt, services
 │   ├── database/
-│   │   ├── migrations/              # 10 migration files
-│   │   └── seeders/                 # DatabaseSeeder
+│   │   ├── factories/               # Order, Payment, Coupon factories
+│   │   ├── migrations/              # 12 migration files
+│   │   └── seeders/                 # User, Category, Product, Order, Coupon seeders
 │   ├── docker/                      # nginx.conf, php.ini, supervisord.conf
-│   ├── routes/api.php               # 25 API routes
+│   ├── routes/api.php               # 40+ API routes
 │   ├── Dockerfile                   # Multi-stage PHP build
 │   └── composer.json                # PHP dependencies
-├── frontend/                # React 18 (TypeScript)
+├── frontend/                # React 19 (TypeScript)
 │   ├── src/
-│   │   ├── components/              # Reusable UI components
-│   │   ├── features/                # Feature modules (Redux slices)
-│   │   ├── pages/                   # Page components
-│   │   ├── services/api/            # Axios client, API services
-│   │   └── store/                   # Redux store config
+│   │   ├── components/
+│   │   │   ├── common/              # CartSidebar, PromoBanner, ProtectedRoute, ErrorBoundary
+│   │   │   └── layout/              # MainLayout, AuthLayout, AdminLayout, Header, Footer
+│   │   ├── pages/                   # 10+ pages + admin panel (5 admin pages)
+│   │   ├── services/api/            # Axios client, 6 API services (admin, coupons, etc.)
+│   │   ├── store/                   # Redux store + slices
+│   │   └── types/                   # TypeScript interfaces (entities.ts)
 │   ├── vite.config.ts               # Vite configuration
 │   └── package.json                 # Node dependencies
 ├── docker-compose.yml       # Orquestração dos containers
@@ -171,10 +183,10 @@ tshirtslab/
 
 | Componente | Tecnologia | Versão |
 |-----------|-----------|--------|
-| Backend Framework | Laravel | 13.x |
+| Backend Framework | Laravel | 11.x |
 | Linguagem Backend | PHP | 8.4 |
-| Frontend Framework | React | 18.x |
-| Bundler Frontend | Vite | 8.x |
+| Frontend Framework | React | 19.x |
+| Bundler Frontend | Vite | 6.x |
 | TypeScript | TypeScript | 5.7 |
 | Banco de Dados | PostgreSQL | 15 |
 | Cache/Session | Redis | 7 |
