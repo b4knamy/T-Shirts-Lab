@@ -3,6 +3,9 @@
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\ProductController;
+use App\Http\Controllers\Api\V1\ProductImageController;
+use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\CouponController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\WebhookController;
@@ -41,6 +44,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/{id}', [ProductController::class, 'show']);
     });
 
+    // Coupons (public — promotional banners)
+    Route::get('/coupons/active', [CouponController::class, 'publicActive']);
+
     // Authenticated routes
     Route::middleware('jwt.auth')->group(function () {
         // Users
@@ -57,6 +63,9 @@ Route::prefix('v1')->group(function () {
         Route::post('/payments/confirm', [PaymentController::class, 'confirm']);
         Route::get('/payments/{paymentIntentId}', [PaymentController::class, 'status']);
 
+        // Coupon validation
+        Route::post('/coupons/validate', [CouponController::class, 'validate']);
+
         // Admin routes
         Route::middleware('admin')->group(function () {
             // Products management
@@ -64,9 +73,33 @@ Route::prefix('v1')->group(function () {
             Route::patch('/products/{id}', [ProductController::class, 'update']);
             Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 
+            // Product Images management
+            Route::prefix('products/{productId}/images')->group(function () {
+                Route::get('/', [ProductImageController::class, 'index']);
+                Route::post('/', [ProductImageController::class, 'store']);
+                Route::post('/upload', [ProductImageController::class, 'upload']);
+                Route::patch('/{imageId}', [ProductImageController::class, 'update']);
+                Route::delete('/{imageId}', [ProductImageController::class, 'destroy']);
+            });
+
+            // Categories management
+            Route::get('/categories', [CategoryController::class, 'index']);
+            Route::post('/categories', [CategoryController::class, 'store']);
+            Route::patch('/categories/{id}', [CategoryController::class, 'update']);
+            Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+
             // Orders management
             Route::get('/orders', [OrderController::class, 'index']);
             Route::patch('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+
+            // Coupons management
+            Route::prefix('coupons')->group(function () {
+                Route::get('/', [CouponController::class, 'index']);
+                Route::get('/{id}', [CouponController::class, 'show']);
+                Route::post('/', [CouponController::class, 'store']);
+                Route::patch('/{id}', [CouponController::class, 'update']);
+                Route::delete('/{id}', [CouponController::class, 'destroy']);
+            });
 
             // Payments
             Route::post('/payments/refund', [PaymentController::class, 'refund']);

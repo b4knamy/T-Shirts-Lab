@@ -3,4 +3,5 @@ export { authApi } from './auth';
 export { productsApi } from './products';
 export { ordersApi } from './orders';
 export { paymentsApi } from './payments';
+export { couponsApi } from './coupons';
 export { adminApi } from './admin';

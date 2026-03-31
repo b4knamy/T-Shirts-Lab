@@ -15,14 +15,14 @@ class OrderFactory extends Factory
   protected $model = Order::class;
 
   private static array $orderStatuses   = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
-  private static array $paymentStatuses = ['PENDING', 'PAID', 'FAILED', 'REFUNDED'];
+  private static array $paymentStatuses = ['PENDING', 'COMPLETED', 'FAILED', 'REFUNDED'];
 
   public function definition(): array
   {
     $subtotal     = fake()->randomFloat(2, 50.00, 500.00);
-    $shippingCost = $subtotal >= 200 ? 0.00 : fake()->randomFloat(2, 10.00, 35.00);
+    $shippingCost = $subtotal >= 200 ? 0.00 : 15.00;
     $discount     = fake()->boolean(20) ? fake()->randomFloat(2, 5.00, 50.00) : 0.00;
-    $tax          = round($subtotal * 0.08, 2);
+    $tax          = round(($subtotal - $discount) * 0.08, 2);
     $total        = round($subtotal + $shippingCost - $discount + $tax, 2);
 
     return [
@@ -34,19 +34,9 @@ class OrderFactory extends Factory
       'shipping_cost'      => $shippingCost,
       'discount_amount'    => $discount,
       'tax_amount'         => $tax,
-      'total_amount'       => $total,
-      'shipping_address'   => json_encode([
-        'street'       => 'Rua ' . ucwords(fake()->words(3, true)),
-        'number'       => (string) fake()->numberBetween(1, 9999),
-        'neighborhood' => ucwords(fake()->words(2, true)),
-        'city'         => fake()->city(),
-        'state'        => 'SP',
-        'zip_code'     => fake()->numerify('#####-###'),
-        'country'      => 'BR',
-      ]),
-      'notes'              => fake()->boolean(20) ? fake()->sentence() : null,
+      'total'              => $total,
+      'customer_notes'     => fake()->boolean(20) ? fake()->sentence() : null,
       'admin_notes'        => null,
-      'estimated_delivery' => now()->addDays(fake()->numberBetween(5, 20)),
     ];
   }
 
@@ -62,7 +52,7 @@ class OrderFactory extends Factory
   {
     return $this->state(fn() => [
       'status'         => 'CONFIRMED',
-      'payment_status' => 'PAID',
+      'payment_status' => 'COMPLETED',
     ]);
   }
 
@@ -70,7 +60,7 @@ class OrderFactory extends Factory
   {
     return $this->state(fn() => [
       'status'         => 'DELIVERED',
-      'payment_status' => 'PAID',
+      'payment_status' => 'COMPLETED',
     ]);
   }
 

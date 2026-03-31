@@ -24,6 +24,7 @@ class Order extends Model
         'billing_address_id',
         'customer_notes',
         'admin_notes',
+        'coupon_id',
     ];
 
     protected function casts(): array
@@ -60,6 +61,11 @@ class Order extends Model
     public function billingAddress()
     {
         return $this->belongsTo(UserAddress::class, 'billing_address_id');
+    }
+
+    public function coupon()
+    {
+        return $this->belongsTo(Coupon::class);
     }
 
     public static function generateOrderNumber(): string

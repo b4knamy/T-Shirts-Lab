@@ -3,15 +3,19 @@ import {
   LayoutDashboard,
   Package,
   ShoppingCart,
+  Tags,
+  Ticket,
   ArrowLeft,
   Store,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 const NAV_ITEMS = [
-  { to: '/admin',          icon: LayoutDashboard, label: 'Dashboard', end: true },
-  { to: '/admin/products', icon: Package,         label: 'Products',  end: false },
-  { to: '/admin/orders',   icon: ShoppingCart,     label: 'Orders',    end: false },
+  { to: '/admin',            icon: LayoutDashboard, label: 'Dashboard',  end: true },
+  { to: '/admin/products',   icon: Package,         label: 'Products',   end: false },
+  { to: '/admin/orders',     icon: ShoppingCart,     label: 'Orders',     end: false },
+  { to: '/admin/categories', icon: Tags,            label: 'Categories', end: false },
+  { to: '/admin/coupons',    icon: Ticket,          label: 'Coupons',    end: false },
 ];
 
 export function AdminLayout() {

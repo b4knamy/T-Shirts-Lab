@@ -147,6 +147,25 @@ export interface CartItem {
   quantity: number;
 }
 
+export interface Coupon {
+  id: string;
+  code: string;
+  description?: string;
+  type: 'PERCENTAGE' | 'FIXED';
+  value: number;
+  min_order_amount?: number;
+  max_discount_amount?: number;
+  usage_limit?: number;
+  usage_count: number;
+  per_user_limit: number;
+  is_active: boolean;
+  is_public: boolean;
+  starts_at?: string;
+  expires_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface AuthTokens {
   access_token: string;
   refresh_token: string;

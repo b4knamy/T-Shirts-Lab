@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Coupon;
+use App\Models\CouponUsage;
 use App\Models\Order;
 use App\Models\Product;
 use App\Repositories\Contracts\OrderRepositoryInterface;
@@ -60,15 +62,35 @@ class OrderService
                 $product->increment('reserved_quantity', $item['quantity']);
             }
 
-            $taxAmount    = round($subtotal * 0.08, 2);
+            // Apply coupon if provided
+            $discountAmount = 0;
+            $couponId       = null;
+            $couponCode     = $data['coupon_code'] ?? null;
+
+            if ($couponCode) {
+                $coupon = Coupon::where('code', strtoupper($couponCode))->first();
+
+                if (!$coupon || !$coupon->isValid()) {
+                    throw new \RuntimeException('Invalid or expired coupon');
+                }
+
+                if ($coupon->hasUserReachedLimit($userId)) {
+                    throw new \RuntimeException('Coupon usage limit reached');
+                }
+
+                $discountAmount = $coupon->calculateDiscount($subtotal);
+                $couponId       = $coupon->id;
+            }
+
+            $taxAmount    = round(($subtotal - $discountAmount) * 0.08, 2);
             $shippingCost = $subtotal >= 200 ? 0 : 15.00;
-            $total        = $subtotal + $taxAmount + $shippingCost;
+            $total        = round($subtotal - $discountAmount + $taxAmount + $shippingCost, 2);
 
             $order = $this->orderRepository->create([
                 'order_number'       => Order::generateOrderNumber(),
                 'user_id'            => $userId,
                 'subtotal'           => $subtotal,
-                'discount_amount'    => 0,
+                'discount_amount'    => $discountAmount,
                 'tax_amount'         => $taxAmount,
                 'shipping_cost'      => $shippingCost,
                 'total'              => $total,
@@ -77,10 +99,21 @@ class OrderService
                 'shipping_address_id' => $data['shipping_address_id'] ?? null,
                 'billing_address_id' => $data['billing_address_id'] ?? null,
                 'customer_notes'     => $data['customer_notes'] ?? null,
+                'coupon_id'          => $couponId,
             ]);
 
             foreach ($orderItems as $itemData) {
                 $order->items()->create($itemData);
+            }
+
+            // Record coupon usage
+            if ($couponId) {
+                CouponUsage::create([
+                    'coupon_id' => $couponId,
+                    'user_id'   => $userId,
+                    'order_id'  => $order->id,
+                ]);
+                Coupon::where('id', $couponId)->increment('usage_count');
             }
 
             return $order->load(['items.product.images', 'items.design', 'payment', 'user']);
