@@ -16,7 +16,7 @@ import {
   CheckoutPage,
   NotFoundPage,
 } from './pages';
-import { AdminDashboard, AdminProducts, AdminOrders, AdminCategories, AdminCoupons } from './pages/admin';
+import { AdminDashboard, AdminProducts, AdminOrders, AdminCategories, AdminCoupons, AdminReviews, AdminStaff } from './pages/admin';
 
 function App() {
   return (
@@ -77,7 +77,7 @@ function App() {
           <Route
             path="/admin"
             element={
-              <ProtectedRoute roles={['ADMIN', 'SUPER_ADMIN']}>
+              <ProtectedRoute roles={['ADMIN', 'SUPER_ADMIN', 'MODERATOR']}>
                 <AdminLayout />
               </ProtectedRoute>
             }
@@ -87,6 +87,8 @@ function App() {
             <Route path="orders" element={<AdminOrders />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="coupons" element={<AdminCoupons />} />
+            <Route path="reviews" element={<AdminReviews />} />
+            <Route path="staff" element={<AdminStaff />} />
           </Route>
         </Routes>
       </BrowserRouter>

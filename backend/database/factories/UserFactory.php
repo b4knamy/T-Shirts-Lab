@@ -35,6 +35,20 @@ class UserFactory extends Factory
         ]);
     }
 
+    public function superAdmin(): static
+    {
+        return $this->state(fn() => [
+            'role' => 'SUPER_ADMIN',
+        ]);
+    }
+
+    public function moderator(): static
+    {
+        return $this->state(fn() => [
+            'role' => 'MODERATOR',
+        ]);
+    }
+
     public function vendor(): static
     {
         return $this->state(fn() => [

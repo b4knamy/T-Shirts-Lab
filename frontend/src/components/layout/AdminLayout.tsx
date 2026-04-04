@@ -5,26 +5,33 @@ import {
   ShoppingCart,
   Tags,
   Ticket,
+  MessageSquare,
+  Users,
   ArrowLeft,
   Store,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 const NAV_ITEMS = [
-  { to: '/admin',            icon: LayoutDashboard, label: 'Dashboard',  end: true },
-  { to: '/admin/products',   icon: Package,         label: 'Products',   end: false },
-  { to: '/admin/orders',     icon: ShoppingCart,     label: 'Orders',     end: false },
-  { to: '/admin/categories', icon: Tags,            label: 'Categories', end: false },
-  { to: '/admin/coupons',    icon: Ticket,          label: 'Coupons',    end: false },
+  { to: '/admin',            icon: LayoutDashboard, label: 'Dashboard',  end: true,  adminOnly: false },
+  { to: '/admin/products',   icon: Package,         label: 'Products',   end: false, adminOnly: false },
+  { to: '/admin/orders',     icon: ShoppingCart,     label: 'Orders',     end: false, adminOnly: false },
+  { to: '/admin/categories', icon: Tags,            label: 'Categories', end: false, adminOnly: false },
+  { to: '/admin/coupons',    icon: Ticket,          label: 'Coupons',    end: false, adminOnly: false },
+  { to: '/admin/reviews',    icon: MessageSquare,   label: 'Reviews',    end: false, adminOnly: false },
+  { to: '/admin/staff',      icon: Users,           label: 'Staff',      end: false, adminOnly: true },
 ];
 
 export function AdminLayout() {
   const { user, isAuthenticated } = useAuth();
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (user && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+  if (user && !['ADMIN', 'SUPER_ADMIN', 'MODERATOR'].includes(user.role)) {
     return <Navigate to="/" replace />;
   }
+
+  const isHighAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+  const visibleItems = NAV_ITEMS.filter((item) => !item.adminOnly || isHighAdmin);
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -43,7 +50,7 @@ export function AdminLayout() {
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {NAV_ITEMS.map(({ to, icon: Icon, label, end }) => (
+          {visibleItems.map(({ to, icon: Icon, label, end }) => (
             <NavLink
               key={to}
               to={to}

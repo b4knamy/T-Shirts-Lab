@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\CouponController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\ProductReviewController;
+use App\Http\Controllers\Api\V1\UserManagementController;
 use App\Http\Controllers\Api\V1\WebhookController;
 use App\Http\Controllers\Api\V1\HealthController;
 use Illuminate\Support\Facades\Route;
@@ -100,6 +102,16 @@ Route::prefix('v1')->group(function () {
                 Route::patch('/{id}', [CouponController::class, 'update']);
                 Route::delete('/{id}', [CouponController::class, 'destroy']);
             });
+
+            // Reviews management (admin reply)
+            Route::get('/reviews', [ProductReviewController::class, 'adminIndex']);
+            Route::post('/reviews/{id}/reply', [ProductReviewController::class, 'adminReply']);
+            Route::delete('/reviews/{id}', [ProductReviewController::class, 'destroy']);
+
+            // User management (staff)
+            Route::get('/users', [UserManagementController::class, 'index']);
+            Route::post('/users', [UserManagementController::class, 'store']);
+            Route::patch('/users/{id}', [UserManagementController::class, 'update']);
 
             // Payments
             Route::post('/payments/refund', [PaymentController::class, 'refund']);

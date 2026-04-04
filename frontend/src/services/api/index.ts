@@ -5,3 +5,5 @@ export { ordersApi } from './orders';
 export { paymentsApi } from './payments';
 export { couponsApi } from './coupons';
 export { adminApi } from './admin';
+export { userApi } from './user';
+export { reviewsApi } from './reviews';

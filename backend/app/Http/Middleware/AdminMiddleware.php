@@ -13,7 +13,7 @@ class AdminMiddleware
   {
     $user = JWTAuth::parseToken()->authenticate();
 
-    if (!in_array($user->role, ['ADMIN', 'SUPER_ADMIN'])) {
+    if (!in_array($user->role, ['ADMIN', 'SUPER_ADMIN', 'MODERATOR'])) {
       return response()->json([
         'success' => false,
         'message' => 'Forbidden: Admin access required',

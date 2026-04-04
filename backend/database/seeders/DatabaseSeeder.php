@@ -23,8 +23,10 @@ class DatabaseSeeder extends Seeder
 
         $this->command->info('');
         $this->command->info('🌱 Database seeded successfully!');
-        $this->command->info('   Admin:    admin@tshirtslab.com    / Admin@123');
-        $this->command->info('   Customer: customer@tshirtslab.com / Customer@123');
+        $this->command->info('   Super Admin: superadmin@tshirtslab.com / Super@123');
+        $this->command->info('   Admin:       admin@tshirtslab.com     / Admin@123');
+        $this->command->info('   Moderator:   moderator@tshirtslab.com / Mod@123');
+        $this->command->info('   Customer:    customer@tshirtslab.com  / Customer@123');
         $this->command->info('');
         $this->command->info('   Coupons: WELCOME10, FRETE0, SUPER25, VIP20, FLASH50');
     }
