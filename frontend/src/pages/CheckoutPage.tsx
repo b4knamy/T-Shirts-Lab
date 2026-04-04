@@ -252,24 +252,71 @@ export function CheckoutPage() {
                       {item.product.name} × {item.quantity}
                     </span>
                     <span className="font-medium">
-                      ${(Number(item.product.discount_price || item.product.price) * item.quantity).toFixed(2)}
+                      R${(Number(item.product.discount_price || item.product.price) * item.quantity).toFixed(2)}
                     </span>
                   </li>
                 ))}
               </ul>
 
+              {/* Coupon Input */}
+              {!appliedCoupon ? (
+                <div className="mb-4">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      placeholder="Coupon code"
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-accent"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={couponLoading || !couponCode.trim()}
+                      className="px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-700 disabled:opacity-50 flex items-center gap-1"
+                    >
+                      {couponLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Tag className="w-4 h-4" /> Apply</>}
+                    </button>
+                  </div>
+                  {couponError && <p className="text-red-500 text-xs mt-1">{couponError}</p>}
+                </div>
+              ) : (
+                <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-4">
+                  <div className="flex items-center gap-2 text-green-700 text-sm">
+                    <Check className="w-4 h-4" />
+                    <span className="font-medium">{appliedCoupon.code}</span>
+                    <span className="text-green-600">applied</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    className="text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Subtotal</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>R${total.toFixed(2)}</span>
                 </div>
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Discount ({appliedCoupon?.code})</span>
+                    <span>-R${discountAmount.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Shipping</span>
-                  <span className="text-green-600">{total >= 50 ? 'Free' : '$9.99'}</span>
+                  <span className={shipping === 0 ? 'text-green-600' : ''}>
+                    {shipping === 0 ? 'Free' : `R$${shipping.toFixed(2)}`}
+                  </span>
                 </div>
                 <div className="flex justify-between font-semibold text-lg pt-2 border-t">
                   <span>Total</span>
-                  <span>${(total + (total >= 50 ? 0 : 9.99)).toFixed(2)}</span>
+                  <span>R${finalTotal.toFixed(2)}</span>
                 </div>
               </div>
 
