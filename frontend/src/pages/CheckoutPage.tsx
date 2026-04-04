@@ -3,9 +3,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CreditCard, Loader2, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { CreditCard, Loader2, ArrowLeft, ShoppingBag, Tag, X, Check } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
-import { ordersApi, paymentsApi } from '../services/api';
+import { ordersApi, paymentsApi, couponsApi } from '../services/api';
+import type { Coupon } from '../types';
 
 const checkoutSchema = z.object({
   shippingAddress: z.object({
@@ -29,6 +30,13 @@ export function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Coupon state
+  const [couponCode, setCouponCode] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+
   const {
     register,
     handleSubmit,
@@ -39,6 +47,34 @@ export function CheckoutPage() {
       shippingAddress: { country: 'BR' },
     },
   });
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setCouponLoading(true);
+    setCouponError(null);
+    try {
+      const res = await couponsApi.validate(couponCode.trim(), total);
+      setAppliedCoupon(res.data.data.coupon);
+      setDiscountAmount(res.data.data.discount);
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } };
+      setCouponError(e.response?.data?.message || 'Invalid coupon code');
+      setAppliedCoupon(null);
+      setDiscountAmount(0);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setDiscountAmount(0);
+    setCouponCode('');
+    setCouponError(null);
+  };
+
+  const shipping = total >= 50 ? 0 : 9.99;
+  const finalTotal = Math.max(0, total - discountAmount + shipping);
 
   const onSubmit = async (data: CheckoutFormData) => {
     setIsProcessing(true);
@@ -53,6 +89,7 @@ export function CheckoutPage() {
           design_id: item.design_id,
         })),
         customer_notes: data.customerNotes,
+        ...(appliedCoupon ? { coupon_code: appliedCoupon.code } : {}),
       });
 
       const order = orderResponse.data.data;

@@ -24,6 +24,7 @@ class StoreOrderRequest extends FormRequest
       'shipping_address_id'         => 'nullable|uuid|exists:user_addresses,id',
       'billing_address_id'          => 'nullable|uuid|exists:user_addresses,id',
       'customer_notes'              => 'nullable|string|max:1000',
+      'coupon_code'                 => 'nullable|string|max:50',
     ];
   }
 

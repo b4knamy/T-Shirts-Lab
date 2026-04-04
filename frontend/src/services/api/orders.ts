@@ -10,6 +10,7 @@ export interface CreateOrderData {
   shipping_address_id?: string;
   billing_address_id?: string;
   customer_notes?: string;
+  coupon_code?: string;
 }
 
 export const ordersApi = {
