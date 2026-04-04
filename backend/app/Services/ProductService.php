@@ -20,12 +20,12 @@ class ProductService
         return $this->productRepository->paginate($filters, $page, $limit);
     }
 
-    public function findById(string $id): Product
+    public function findById(string $id): ?Product
     {
         return $this->productRepository->findById($id);
     }
 
-    public function findBySlug(string $slug): Product
+    public function findBySlug(string $slug): ?Product
     {
         return $this->productRepository->findBySlug($slug);
     }
