@@ -12,7 +12,9 @@ class ProductRepository implements ProductRepositoryInterface
 {
   public function paginate(array $filters, int $page, int $limit): array
   {
-    $query = Product::with(['category', 'images', 'designs']);
+    $query = Product::with(['category', 'images', 'designs'])
+      ->withAvg('reviews', 'rating')
+      ->withCount('reviews');
 
     if (!empty($filters['search'])) {
       $search = $filters['search'];
@@ -27,7 +29,7 @@ class ProductRepository implements ProductRepositoryInterface
       $query->where('category_id', $filters['categoryId']);
     }
 
-    if (!empty($filters['status'])) {
+    if (!empty($filters['status']) && $filters['status'] !== 'ALL') {
       $query->where('status', $filters['status']);
     }
 
@@ -60,12 +62,17 @@ class ProductRepository implements ProductRepositoryInterface
 
   public function findById(string $id): ?Product
   {
-    return Product::with(['category', 'images', 'designs'])->find($id);
+    return Product::with(['category', 'images', 'designs'])
+      ->withAvg('reviews', 'rating')
+      ->withCount('reviews')
+      ->find($id);
   }
 
   public function findBySlug(string $slug): ?Product
   {
     return Product::with(['category', 'images', 'designs'])
+      ->withAvg('reviews', 'rating')
+      ->withCount('reviews')
       ->where('slug', $slug)
       ->first();
   }
@@ -74,6 +81,8 @@ class ProductRepository implements ProductRepositoryInterface
   {
     return Cache::remember("products:featured:{$limit}", 3600, function () use ($limit) {
       return Product::with(['category', 'images', 'designs'])
+        ->withAvg('reviews', 'rating')
+        ->withCount('reviews')
         ->where('is_featured', true)
         ->where('status', 'ACTIVE')
         ->limit($limit)

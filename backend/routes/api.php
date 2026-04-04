@@ -44,6 +44,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/categories', [ProductController::class, 'categories']);
         Route::get('/slug/{slug}', [ProductController::class, 'showBySlug']);
         Route::get('/{id}', [ProductController::class, 'show']);
+        Route::get('/{id}/reviews', [ProductReviewController::class, 'index']);
     });
 
     // Coupons (public — promotional banners)
@@ -54,6 +55,15 @@ Route::prefix('v1')->group(function () {
         // Users
         Route::get('/users/me', [UserController::class, 'me']);
         Route::patch('/users/me', [UserController::class, 'updateProfile']);
+        Route::post('/users/me/avatar', [UserController::class, 'uploadAvatar']);
+        Route::get('/users/me/addresses', [UserController::class, 'addresses']);
+        Route::post('/users/me/addresses', [UserController::class, 'storeAddress']);
+        Route::patch('/users/me/addresses/{id}', [UserController::class, 'updateAddress']);
+        Route::delete('/users/me/addresses/{id}', [UserController::class, 'destroyAddress']);
+
+        // Product Reviews (auth)
+        Route::post('/products/{id}/reviews', [ProductReviewController::class, 'store']);
+        Route::patch('/reviews/{id}', [ProductReviewController::class, 'update']);
 
         // Orders
         Route::post('/orders', [OrderController::class, 'store']);

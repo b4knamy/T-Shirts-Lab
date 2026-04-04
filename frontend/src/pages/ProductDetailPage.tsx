@@ -5,6 +5,8 @@ import { useAppDispatch, useAppSelector } from '../store';
 import { clearCurrentProduct, fetchProductBySlug } from '../store/slices/productSlice';
 import { useCart } from '../hooks/useCart';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { StarRating } from '../components/common/StarRating';
+import { ProductReviews } from '../components/product/ProductReviews';
 
 export function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -106,6 +108,16 @@ export function ProductDetailPage() {
 
           <h1 className="text-3xl font-bold mt-2 mb-4">{product.name}</h1>
 
+          {/* Rating Summary */}
+          {product.reviews_count !== undefined && product.reviews_count > 0 && (
+            <div className="flex items-center gap-2 mb-4">
+              <StarRating rating={Math.round(product.average_rating || 0)} size="sm" />
+              <span className="text-sm text-gray-500">
+                {product.average_rating} ({product.reviews_count} review{product.reviews_count !== 1 ? 's' : ''})
+              </span>
+            </div>
+          )}
+
           {/* Price */}
           <div className="flex items-center gap-4 mb-6">
             {hasDiscount ? (
@@ -181,6 +193,9 @@ export function ProductDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Reviews Section */}
+      <ProductReviews productId={product.id} />
 
       {/* Back button */}
       <div className="mt-12">
