@@ -37,7 +37,22 @@ export interface User {
   role: UserRole;
   is_active: boolean;
   profile_picture_url?: string;
+  addresses?: UserAddress[];
   created_at: string;
+}
+
+export interface UserAddress {
+  id: string;
+  label?: string;
+  street: string;
+  number: string;
+  complement?: string;
+  neighborhood?: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  country?: string;
+  is_default: boolean;
 }
 
 export interface Category {
