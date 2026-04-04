@@ -3,7 +3,7 @@
 ## 🚀 TL;DR
 
 **O que é?** E-commerce de camisetas personalizadas
-**Stack:** Laravel 13 (PHP) + React 18 + PostgreSQL 15 + Redis 7 + Stripe
+**Stack:** Laravel 11 (PHP 8.4) + React 19 + PostgreSQL 15 + Redis 7 + Stripe
 **Backend Port:** 8000 | **Frontend Port:** 5173
 
 ---
@@ -41,8 +41,12 @@ npm run dev
 
 | Tipo | Email | Senha |
 |------|-------|-------|
+| Super Admin | superadmin@tshirtslab.com | Super@123 |
 | Admin | admin@tshirtslab.com | Admin@123 |
+| Moderador | moderator@tshirtslab.com | Mod@123 |
 | Customer | customer@tshirtslab.com | Customer@123 |
+
+**Cupons:** `WELCOME10`, `FRETE0`, `SUPER25`, `VIP20`, `FLASH50`
 
 ---
 
@@ -55,11 +59,21 @@ POST   /api/v1/auth/login
 POST   /api/v1/auth/refresh
 POST   /api/v1/auth/logout
 
-# Users
+# Users (Auth)
 GET    /api/v1/users/me
 PATCH  /api/v1/users/me
+POST   /api/v1/users/me/avatar
+GET    /api/v1/users/me/addresses
+POST   /api/v1/users/me/addresses
+PATCH  /api/v1/users/me/addresses/{id}
+DELETE /api/v1/users/me/addresses/{id}
 
-# Products
+# Staff Management (Admin/SuperAdmin)
+GET    /api/v1/users                       # Listar todos os usuários
+POST   /api/v1/users                       # Criar staff (MODERATOR/ADMIN)
+PATCH  /api/v1/users/{id}                  # Alterar role/status
+
+# Products (público para leitura)
 GET    /api/v1/products
 GET    /api/v1/products/featured
 GET    /api/v1/products/categories
@@ -69,8 +83,21 @@ POST   /api/v1/products                    # Admin
 PATCH  /api/v1/products/{id}               # Admin
 DELETE /api/v1/products/{id}               # Admin
 
+# Product Images (Admin)
+GET    /api/v1/products/{id}/images
+POST   /api/v1/products/{id}/images
+POST   /api/v1/products/{id}/images/upload
+PATCH  /api/v1/products/{id}/images/{imageId}
+DELETE /api/v1/products/{id}/images/{imageId}
+
+# Categories (Admin)
+GET    /api/v1/categories
+POST   /api/v1/categories
+PATCH  /api/v1/categories/{id}
+DELETE /api/v1/categories/{id}
+
 # Orders
-POST   /api/v1/orders
+POST   /api/v1/orders                      # { items, coupon_code?, customer_notes? }
 GET    /api/v1/orders/my-orders
 GET    /api/v1/orders/{id}
 GET    /api/v1/orders                      # Admin
@@ -82,8 +109,24 @@ POST   /api/v1/payments/confirm
 GET    /api/v1/payments/{paymentIntentId}
 POST   /api/v1/payments/refund             # Admin
 
-# Webhooks
+# Coupons
+GET    /api/v1/coupons/active              # Público
+POST   /api/v1/coupons/validate            # Auth — { code, subtotal }
+GET    /api/v1/coupons                     # Admin
+POST   /api/v1/coupons                     # Admin
+GET    /api/v1/coupons/{id}               # Admin
+PATCH  /api/v1/coupons/{id}              # Admin
+DELETE /api/v1/coupons/{id}             # Admin
+
+# Reviews
+GET    /api/v1/products/{id}/reviews       # Público
+POST   /api/v1/products/{id}/reviews       # Auth
+PATCH  /api/v1/reviews/{id}/reply          # Admin
+DELETE /api/v1/reviews/{id}               # Admin
+
+# Webhooks & Health
 POST   /api/webhooks/stripe
+GET    /api/v1/health
 ```
 
 ---
@@ -139,27 +182,35 @@ Redis para:
 ## 📁 Project Structure (Simplificado)
 
 ```
-backend/                              # Laravel 13
+backend/                              # Laravel 11 (PHP 8.4)
 ├── app/
-│   ├── Http/Controllers/Api/V1/     # Controllers
+│   ├── Http/Controllers/Api/V1/     # 12 Controllers
 │   ├── Http/Middleware/             # JWT + Admin
-│   ├── Models/                      # Eloquent Models
+│   ├── Http/Requests/               # Form Requests (validação)
+│   ├── Http/Resources/              # API Resources (snake_case)
+│   ├── Models/                      # Eloquent Models (UUIDs)
+│   ├── Services/                    # Lógica de negócio
+│   ├── Repositories/                # Data access layer
 │   └── Traits/                      # ApiResponse
-├── config/                          # Auth, JWT, CORS, Services
-├── database/migrations/             # 10 migration files
-├── routes/api.php                   # All API routes
+├── config/                          # Auth, JWT, CORS, Services, Cache
+├── database/
+│   ├── migrations/                  # 14 migration files
+│   ├── seeders/                     # 6 seeders (55 produtos, 24 users, 172 reviews)
+│   └── factories/                   # Order, Payment, User, Coupon factories
+├── routes/api.php                   # 50+ endpoints versionados
 └── .env
 
-frontend/                             # React 18 + Vite
+frontend/                             # React 19 + Vite 6 + TypeScript 5.7
 ├── src/
-│   ├── components/                  # Reusable components
-│   ├── pages/                       # Page components
-│   ├── store/                       # Redux
-│   ├── services/                    # API calls
-│   ├── hooks/                       # Custom hooks
+│   ├── components/                  # Reusable components (Header, Cart, Reviews...)
+│   ├── pages/                       # Page components + admin/
+│   ├── store/                       # Redux Toolkit (auth, cart slices)
+│   ├── services/api/                # Axios API clients por domínio
+│   ├── hooks/                       # useAuth, useCart, useProducts...
+│   ├── types/                       # TypeScript entities
 │   └── main.tsx
 
-docker-compose.yml                    # Local development
+docker-compose.yml                    # Desenvolvimento local
 ```
 
 ---
@@ -195,8 +246,10 @@ VITE_API_BASE_URL=http://localhost:8000
 3. **Stripe Webhooks** - Sempre validar assinatura
 4. **CORS** - Configurado apenas para FRONTEND_URL
 5. **UUIDs** - Todas as tabelas usam UUID como PK
-6. **camelCase** - API retorna camelCase para o frontend, Models usam snake_case
+6. **snake_case** - API retorna **snake_case** em todas as respostas (sem exceção)
+7. **MODERATOR** - Acessa admin panel mas não pode gerenciar staff
+8. **Hierarquia de roles**: SUPER_ADMIN > ADMIN > MODERATOR > CUSTOMER
 
 ---
 
-**Versão**: 2.0.0 (Laravel) | **Atualizado**: Março 2026
+**Versão**: Laravel 11 + React 19 | **Atualizado**: Abril 2026

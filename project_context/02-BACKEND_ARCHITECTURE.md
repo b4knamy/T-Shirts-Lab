@@ -24,9 +24,11 @@ backend/
 │   │   ├── Controllers/
 │   │   │   └── Api/V1/
 │   │   │       ├── AuthController.php
-│   │   │       ├── UserController.php
+│   │   │       ├── UserController.php          # Perfil, avatar, endereços
+│   │   │       ├── UserManagementController.php # Staff CRUD (Admin/SuperAdmin)
 │   │   │       ├── ProductController.php
 │   │   │       ├── ProductImageController.php
+│   │   │       ├── ProductReviewController.php  # Reviews + admin reply
 │   │   │       ├── CategoryController.php
 │   │   │       ├── CouponController.php
 │   │   │       ├── OrderController.php
@@ -50,6 +52,7 @@ backend/
 │   │   ├── Category.php
 │   │   ├── Product.php
 │   │   ├── ProductImage.php
+│   │   ├── ProductReview.php
 │   │   ├── Design.php
 │   │   ├── Order.php
 │   │   ├── OrderItem.php
@@ -70,6 +73,7 @@ backend/
 │   └── services.php
 ├── database/
 │   ├── factories/
+│   │   ├── UserFactory.php
 │   │   ├── OrderFactory.php
 │   │   ├── PaymentFactory.php
 │   │   └── CouponFactory.php
@@ -84,15 +88,17 @@ backend/
 │   │   ├── 2026_01_01_000008_create_order_items_table.php
 │   │   ├── 2026_01_01_000009_create_payments_table.php
 │   │   ├── 2026_01_01_000010_create_cache_table.php
+│   │   ├── 2026_01_01_000010_create_product_reviews_table.php
 │   │   ├── 2026_03_30_000001_create_coupons_table.php
-│   │   └── 2026_03_31_000240_add_missing_columns_to_order_items_table.php
+│   │   └── 2026_04_01_015117_add_moderator_role_to_users_table.php
 │   └── seeders/
 │       ├── DatabaseSeeder.php
-│       ├── UserSeeder.php
-│       ├── CategorySeeder.php
-│       ├── ProductSeeder.php
-│       ├── OrderSeeder.php
-│       └── CouponSeeder.php
+│       ├── UserSeeder.php         # 24 users (super_admin, admin, moderator, customer, 20 random)
+│       ├── CategorySeeder.php     # 5 categorias
+│       ├── ProductSeeder.php      # 55 produtos com imagens e designs
+│       ├── OrderSeeder.php        # 61 pedidos com itens e pagamentos
+│       ├── CouponSeeder.php       # 5 cupons
+│       └── ReviewSeeder.php       # 172 reviews com ratings ponderados
 ├── docker/
 │   ├── nginx.conf
 │   ├── php.ini
@@ -167,18 +173,24 @@ trait ApiResponse {
 
 ### RBAC (Roles)
 ```
-CUSTOMER     - Comprar, ver pedidos
-VENDOR       - Gerenciar produtos próprios
-ADMIN        - CRUD completo
-SUPER_ADMIN  - Acesso total
+CUSTOMER     - Comprar, ver pedidos, escrever reviews, gerenciar perfil/endereços
+MODERATOR    - Tudo do CUSTOMER + acessa painel admin (sem gerenciar staff)
+ADMIN        - Tudo do MODERATOR + gerenciar staff (criar/editar MODERATORs)
+SUPER_ADMIN  - Acesso total (pode criar/editar ADMINs e MODERATORs)
 ```
+
+### Hierarquia de Permissões para Staff
+- **SUPER_ADMIN** pode criar e modificar ADMIN e MODERATOR
+- **ADMIN** pode criar e modificar apenas MODERATOR
+- **MODERATOR** não tem acesso à gestão de staff
+- Ninguém pode modificar um SUPER_ADMIN via API
 
 ### Fluxo de Auth
 ```
-1. POST /api/v1/auth/register → { user, accessToken, refreshToken }
-2. POST /api/v1/auth/login → { user, accessToken, refreshToken }
-3. Requests autenticados: Authorization: Bearer <accessToken>
-4. Token expirado → POST /api/v1/auth/refresh { refreshToken }
+1. POST /api/v1/auth/register → { user, access_token, refresh_token }
+2. POST /api/v1/auth/login → { user, access_token, refresh_token }
+3. Requests autenticados: Authorization: Bearer <access_token>
+4. Token expirado → POST /api/v1/auth/refresh { refresh_token }
 ```
 
 ---
@@ -198,6 +210,18 @@ SUPER_ADMIN  - Acesso total
 |--------|----------|-----------|
 | GET | /api/v1/users/me | Perfil do usuário logado |
 | PATCH | /api/v1/users/me | Atualizar perfil |
+| POST | /api/v1/users/me/avatar | Upload de avatar |
+| GET | /api/v1/users/me/addresses | Listar endereços |
+| POST | /api/v1/users/me/addresses | Criar endereço |
+| PATCH | /api/v1/users/me/addresses/{id} | Atualizar endereço |
+| DELETE | /api/v1/users/me/addresses/{id} | Remover endereço |
+
+### Staff Management (Admin/SuperAdmin)
+| Method | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | /api/v1/users | Listar todos usuários (paginado, filtros) |
+| POST | /api/v1/users | Criar staff (MODERATOR ou ADMIN) |
+| PATCH | /api/v1/users/{id} | Alterar role / is_active |
 
 ### Products (Público para leitura)
 | Method | Endpoint | Descrição |
@@ -246,6 +270,14 @@ SUPER_ADMIN  - Acesso total
 | POST | /api/v1/categories | Criar categoria (Admin) |
 | PATCH | /api/v1/categories/{id} | Atualizar (Admin) |
 | DELETE | /api/v1/categories/{id} | Deletar (Admin) |
+
+### Reviews
+| Method | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | /api/v1/products/{id}/reviews | Listar reviews do produto (Público) |
+| POST | /api/v1/products/{id}/reviews | Criar review (Auth) |
+| PATCH | /api/v1/reviews/{id}/reply | Resposta do admin (Admin) |
+| DELETE | /api/v1/reviews/{id} | Deletar review (Admin) |
 
 ### Product Images (Admin)
 | Method | Endpoint | Descrição |
@@ -328,6 +360,24 @@ class CouponUsage extends Model
 }
 ```
 
+### ProductReview
+```php
+class ProductReview extends Model
+{
+    // Fields: user_id, product_id, rating (1-5), comment, admin_reply, admin_replied_at
+    // Relations: user(), product()
+}
+```
+
+### UserAddress
+```php
+class UserAddress extends Model
+{
+    // Fields: user_id, street, number, complement, neighborhood, city, state, zip_code, country, is_default
+    // Relations: user()
+}
+```
+
 ---
 
 ## ⚙️ Configuração
@@ -394,4 +444,4 @@ php artisan test --coverage         # Com coverage
 
 ---
 
-**Última atualização**: Março 2026
+**Última atualização**: Abril 2026

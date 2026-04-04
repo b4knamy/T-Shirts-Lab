@@ -2,7 +2,7 @@
 
 ## Sobre
 
-Documentação técnica completa do **T-Shirts Lab**, uma plataforma e-commerce para venda e customização de camisetas construída com **Laravel 13** (PHP 8.4) no backend e **React 18** (TypeScript) no frontend.
+Documentação técnica completa do **T-Shirts Lab**, uma plataforma e-commerce para venda e customização de camisetas construída com **Laravel 11** (PHP 8.4) no backend e **React 19** (TypeScript) no frontend.
 
 ---
 
@@ -10,8 +10,8 @@ Documentação técnica completa do **T-Shirts Lab**, uma plataforma e-commerce 
 
 | Camada | Tecnologia |
 |--------|-----------|
-| **Backend** | Laravel 13 (PHP 8.4) |
-| **Frontend** | React 18 + Vite 8 + TypeScript 5.7 |
+| **Backend** | Laravel 11 (PHP 8.4) |
+| **Frontend** | React 19 + Vite 6 + TypeScript 5.7 |
 | **Banco de Dados** | PostgreSQL 15 |
 | **Cache** | Redis 7 (Predis) |
 | **Autenticação** | JWT (php-open-source-saver/jwt-auth) |
