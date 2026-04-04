@@ -16,20 +16,20 @@ class UpdateProfileRequest extends FormRequest
   public function rules(): array
   {
     return [
-      'firstName'         => 'sometimes|string|max:255',
-      'lastName'          => 'sometimes|string|max:255',
-      'phone'             => 'nullable|string|max:20',
-      'profilePictureUrl' => 'nullable|string|url|max:500',
+      'first_name'          => 'sometimes|string|max:255',
+      'last_name'           => 'sometimes|string|max:255',
+      'phone'               => 'nullable|string|max:20',
+      'profile_picture_url' => 'nullable|string|max:500',
     ];
   }
 
   public function messages(): array
   {
     return [
-      'firstName.string'          => 'O primeiro nome deve ser um texto.',
-      'lastName.string'           => 'O sobrenome deve ser um texto.',
-      'phone.max'                 => 'O telefone deve ter no máximo 20 caracteres.',
-      'profilePictureUrl.url'     => 'A URL da foto de perfil deve ser válida.',
+      'first_name.string'           => 'O primeiro nome deve ser um texto.',
+      'last_name.string'            => 'O sobrenome deve ser um texto.',
+      'phone.max'                   => 'O telefone deve ter no máximo 20 caracteres.',
+      'profile_picture_url.max'     => 'A URL da foto de perfil deve ter no máximo 500 caracteres.',
     ];
   }
 

@@ -16,8 +16,8 @@ class AuthService
         $user = User::create([
             'email'             => $data['email'],
             'password_hash'     => Hash::make($data['password']),
-            'first_name'        => $data['firstName'],
-            'last_name'         => $data['lastName'],
+            'first_name'        => $data['first_name'],
+            'last_name'         => $data['last_name'],
             'phone'             => $data['phone'] ?? null,
             'role'              => 'CUSTOMER',
             'is_active'         => true,
@@ -104,9 +104,9 @@ class AuthService
         $user->update(['refresh_token' => $refreshToken]);
 
         return [
-            'user' => $user,
-            'accessToken' => $accessToken,
-            'refreshToken' => $refreshToken,
+            'user'          => $user,
+            'access_token'  => $accessToken,
+            'refresh_token' => $refreshToken,
         ];
     }
 }

@@ -24,21 +24,7 @@ class UserController extends Controller
     {
         $user = JWTAuth::parseToken()->authenticate();
 
-        $fieldMap = [
-            'firstName'         => 'first_name',
-            'lastName'          => 'last_name',
-            'phone'             => 'phone',
-            'profilePictureUrl' => 'profile_picture_url',
-        ];
-
-        $updateData = [];
-        foreach ($fieldMap as $input => $column) {
-            if ($request->has($input)) {
-                $updateData[$column] = $request->input($input);
-            }
-        }
-
-        $user->update($updateData);
+        $user->update($request->validated());
         $user->refresh();
 
         return $this->success(new UserResource($user), 'Profile updated');

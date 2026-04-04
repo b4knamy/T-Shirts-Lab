@@ -26,8 +26,8 @@ class AuthController extends Controller
         return $this->jsonResponse(
             [
                 'user'          => new UserResource($result['user']),
-                'access_token'  => $result['accessToken'],
-                'refresh_token' => $result['refreshToken'],
+                'access_token'  => $result['access_token'],
+                'refresh_token' => $result['refresh_token'],
             ],
             'User registered successfully',
             201
@@ -47,8 +47,8 @@ class AuthController extends Controller
 
         return $this->jsonResponse([
             'user'          => new UserResource($result['user']),
-            'access_token'  => $result['accessToken'],
-            'refresh_token' => $result['refreshToken'],
+            'access_token'  => $result['access_token'],
+            'refresh_token' => $result['refresh_token'],
         ], 'Login successful');
     }
 
@@ -61,8 +61,8 @@ class AuthController extends Controller
         }
 
         return $this->jsonResponse([
-            'access_token'  => $result['accessToken'],
-            'refresh_token' => $result['refreshToken'],
+            'access_token'  => $result['access_token'],
+            'refresh_token' => $result['refresh_token'],
         ], 'Token refreshed');
     }
 
