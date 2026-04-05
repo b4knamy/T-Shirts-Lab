@@ -82,9 +82,9 @@ class OrderService
                 $couponId = $coupon->id;
             }
 
-            $taxAmount = round(($subtotal - $discountAmount) * 0.08, 2);
-            $shippingCost = $subtotal >= 200 ? 0 : 15.00;
-            $total = round($subtotal - $discountAmount + $taxAmount + $shippingCost, 2);
+            $taxAmount = 0;
+            $shippingCost = $subtotal >= 50 ? 0 : 9.99;
+            $total = round($subtotal - $discountAmount + $shippingCost, 2);
 
             $order = $this->orderRepository->create([
                 'order_number' => Order::generateOrderNumber(),

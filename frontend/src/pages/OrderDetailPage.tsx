@@ -277,33 +277,28 @@ export function OrderDetailPage() {
             <div className="px-6 py-4 space-y-3 text-sm">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
-                <span>${Number(order.subtotal).toFixed(2)}</span>
+                <span>R${Number(order.subtotal).toFixed(2)}</span>
               </div>
 
               {order.discount_amount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount</span>
-                  <span>-${Number(order.discount_amount).toFixed(2)}</span>
+                  <span>-R${Number(order.discount_amount).toFixed(2)}</span>
                 </div>
               )}
-
-              <div className="flex justify-between text-gray-600">
-                <span>Tax (8%)</span>
-                <span>${Number(order.tax_amount).toFixed(2)}</span>
-              </div>
 
               <div className="flex justify-between text-gray-600">
                 <span>Shipping</span>
                 <span>
                   {Number(order.shipping_cost) === 0
                     ? <span className="text-green-600">Free</span>
-                    : `$${Number(order.shipping_cost).toFixed(2)}`}
+                    : `R$${Number(order.shipping_cost).toFixed(2)}`}
                 </span>
               </div>
 
               <div className="flex justify-between font-bold text-base pt-3 border-t border-gray-100">
                 <span>Total</span>
-                <span className="text-accent">${Number(order.total).toFixed(2)}</span>
+                <span className="text-accent">R${Number(order.total).toFixed(2)}</span>
               </div>
             </div>
           </div>
