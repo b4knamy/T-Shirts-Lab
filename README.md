@@ -19,8 +19,8 @@ Criar uma plataforma escalável, segura e de alta performance para venda de cami
 ## 🔧 Setup local após clonar
 
 ```bash
-# Ativa os git hooks (valida mensagens de commit)
-git config core.hooksPath .githooks
+# Instala dependências e ativa os git hooks automaticamente (via Husky)
+npm install
 ```
 
 > Commits devem seguir o padrão [Conventional Commits](https://www.conventionalcommits.org/):
