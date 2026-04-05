@@ -90,7 +90,6 @@ jobs:
       - name: Run tests
         env:
           APP_ENV: testing
-          APP_KEY: ${{ env.APP_KEY }}
           DB_CONNECTION: pgsql
           DB_HOST: 127.0.0.1
           DB_PORT: 5432
@@ -106,7 +105,7 @@ jobs:
           JWT_SECRET: ci-testing-jwt-secret
           STRIPE_SECRET_KEY: sk_test_fake_ci_key
           STRIPE_WEBHOOK_SECRET: whsec_fake_ci_key
-        run: php artisan test --parallel
+        run: php artisan test
 
   #───────────────────────────────────────────────
   # Backend – Code Style (Laravel Pint)
