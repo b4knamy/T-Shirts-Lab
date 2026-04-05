@@ -65,14 +65,24 @@ class AuthService
     public function refresh(string $refreshToken): array
     {
         try {
+            // Decode without touching the global JWTAuth token context.
+            // getPayload() would validate expiry — refresh tokens have a
+            // longer TTL set at issue time so this is fine.
             $payload = JWTAuth::setToken($refreshToken)->getPayload();
-            $user    = User::find($payload->get('sub'));
+
+            if ($payload->get('type') !== 'refresh') {
+                throw new \InvalidArgumentException('Invalid refresh token', 401);
+            }
+
+            $user = User::find($payload->get('sub'));
 
             if (!$user || $user->refresh_token !== $refreshToken) {
                 throw new \InvalidArgumentException('Invalid refresh token', 401);
             }
 
             return $this->issueTokens($user);
+        } catch (\InvalidArgumentException $e) {
+            throw $e;
         } catch (JWTException) {
             throw new \InvalidArgumentException('Invalid refresh token', 401);
         }
@@ -91,15 +101,17 @@ class AuthService
 
     private function issueTokens(User $user): array
     {
+        // Access token — use the configured TTL (jwt.ttl, e.g. 60 min)
+        JWTAuth::factory()->setTTL(config('jwt.ttl'));
         $accessToken = JWTAuth::fromUser($user);
 
-        // The jwt-auth manager does not expose setTTL directly.
-        // setTTL is available on the Payload Factory, so set it there
-        // before generating the refresh token.
+        // Refresh token — longer TTL, marked with a custom claim so we can
+        // distinguish it from access tokens on the refresh endpoint.
         JWTAuth::factory()->setTTL(config('jwt.refresh_ttl'));
+        $refreshToken = JWTAuth::claims(['type' => 'refresh'])->fromUser($user);
 
-        $refreshToken = JWTAuth::claims(['type' => 'refresh'])
-            ->fromUser($user);
+        // Reset factory TTL back to default so nothing else is affected
+        JWTAuth::factory()->setTTL(config('jwt.ttl'));
 
         $user->update(['refresh_token' => $refreshToken]);
 
