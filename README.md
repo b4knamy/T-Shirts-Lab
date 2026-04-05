@@ -16,6 +16,18 @@ Criar uma plataforma escalável, segura e de alta performance para venda de cami
 - **Pagamentos**: Stripe
 - **Infra**: Docker + Docker Compose
 
+## 🔧 Setup local após clonar
+
+```bash
+# Ativa os git hooks (valida mensagens de commit)
+git config core.hooksPath .githooks
+```
+
+> Commits devem seguir o padrão [Conventional Commits](https://www.conventionalcommits.org/):
+> `type(scope): descrição` — ex: `feat(auth): add JWT refresh rotation`
+>
+> Tipos válidos: `feat` `fix` `docs` `style` `refactor` `test` `chore` `perf` `build` `ci` `revert`
+
 ## 📚 Documentação
 
 Toda a documentação do projeto está organizada em `project_context/`:

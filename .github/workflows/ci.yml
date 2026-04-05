@@ -8,6 +8,34 @@ on:
 
 jobs:
   #───────────────────────────────────────────────
+  # Commit Message Lint (Conventional Commits)
+  #───────────────────────────────────────────────
+  commitlint:
+    name: Commit Messages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install commitlint
+        run: npm ci
+
+      - name: Lint commit messages
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+          else
+            npx commitlint --from ${{ github.event.before }} --to ${{ github.event.after }} --verbose
+          fi
+
+  #───────────────────────────────────────────────
   # Backend – Laravel 13 / PHP 8.4
   #───────────────────────────────────────────────
   backend:

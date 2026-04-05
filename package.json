@@ -1,0 +1,24 @@
+{
+  "name": "tshirtslab",
+  "version": "1.0.0",
+  "description": "Um projeto de e-commerce profissional para venda de camisetas personalizadas (animes, games, filmes, designs custom). Desenvolvido como estudo avançado em arquitetura de software com stack moderno e padrões de produção.",
+  "main": "commitlint.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/b4knamy/T-Shirts-Lab.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/b4knamy/T-Shirts-Lab/issues"
+  },
+  "homepage": "https://github.com/b4knamy/T-Shirts-Lab#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0"
+  }
+}
