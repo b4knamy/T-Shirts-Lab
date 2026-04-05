@@ -12,30 +12,30 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ProductReviewFactory extends Factory
 {
-  protected $model = ProductReview::class;
+    protected $model = ProductReview::class;
 
-  public function definition(): array
-  {
-    return [
-      'user_id'    => User::factory(),
-      'product_id' => Product::factory(),
-      'rating'     => fake()->numberBetween(1, 5),
-      'comment'    => fake()->paragraph(),
-    ];
-  }
+    public function definition(): array
+    {
+        return [
+            'user_id' => User::factory(),
+            'product_id' => Product::factory(),
+            'rating' => fake()->numberBetween(1, 5),
+            'comment' => fake()->paragraph(),
+        ];
+    }
 
-  public function withAdminReply(): static
-  {
-    return $this->state(fn() => [
-      'admin_reply'      => fake()->sentence(),
-      'admin_replied_at' => now(),
-    ]);
-  }
+    public function withAdminReply(): static
+    {
+        return $this->state(fn () => [
+            'admin_reply' => fake()->sentence(),
+            'admin_replied_at' => now(),
+        ]);
+    }
 
-  public function withoutComment(): static
-  {
-    return $this->state(fn() => [
-      'comment' => null,
-    ]);
-  }
+    public function withoutComment(): static
+    {
+        return $this->state(fn () => [
+            'comment' => null,
+        ]);
+    }
 }

@@ -24,10 +24,10 @@ class PaymentController extends Controller
 
     public function createIntent(CreatePaymentIntentRequest $request): JsonResponse
     {
-        $user  = JWTAuth::parseToken()->authenticate();
+        $user = JWTAuth::parseToken()->authenticate();
         $order = Order::find($request->validated('order_id'));
 
-        if (!$order || $order->user_id !== $user->id) {
+        if (! $order || $order->user_id !== $user->id) {
             return $this->error('Order not found', 404);
         }
 
@@ -38,7 +38,7 @@ class PaymentController extends Controller
         try {
             $result = $this->paymentService->createIntent($order, $request->validated('currency') ?? 'brl');
         } catch (ApiErrorException $e) {
-            return $this->error('Payment processing error: ' . $e->getMessage(), 500);
+            return $this->error('Payment processing error: '.$e->getMessage(), 500);
         }
 
         return $this->success($result, 'Payment intent created');
@@ -52,7 +52,7 @@ class PaymentController extends Controller
                 $request->validated('payment_method_id')
             );
         } catch (ApiErrorException $e) {
-            return $this->error('Payment confirmation error: ' . $e->getMessage(), 500);
+            return $this->error('Payment confirmation error: '.$e->getMessage(), 500);
         }
 
         return $this->success($result, 'Payment confirmed');
@@ -70,7 +70,7 @@ class PaymentController extends Controller
         }
 
         return $this->success([
-            'payment'       => new PaymentResource($payment),
+            'payment' => new PaymentResource($payment),
             'stripe_status' => $stripeStatus,
         ]);
     }
@@ -88,7 +88,7 @@ class PaymentController extends Controller
         } catch (\InvalidArgumentException $e) {
             return $this->error($e->getMessage(), 400);
         } catch (ApiErrorException $e) {
-            return $this->error('Refund error: ' . $e->getMessage(), 500);
+            return $this->error('Refund error: '.$e->getMessage(), 500);
         }
 
         return $this->success($result, 'Refund processed');

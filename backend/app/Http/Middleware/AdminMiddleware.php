@@ -9,17 +9,17 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AdminMiddleware
 {
-  public function handle(Request $request, Closure $next): Response
-  {
-    $user = JWTAuth::parseToken()->authenticate();
+    public function handle(Request $request, Closure $next): Response
+    {
+        $user = JWTAuth::parseToken()->authenticate();
 
-    if (!in_array($user->role, ['ADMIN', 'SUPER_ADMIN', 'MODERATOR'])) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Forbidden: Admin access required',
-      ], 403);
+        if (! in_array($user->role, ['ADMIN', 'SUPER_ADMIN', 'MODERATOR'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Forbidden: Admin access required',
+            ], 403);
+        }
+
+        return $next($request);
     }
-
-    return $next($request);
-  }
 }

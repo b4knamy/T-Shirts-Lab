@@ -2,54 +2,54 @@
 
 namespace App\Http\Requests\Api\V1\Order;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class StoreOrderRequest extends FormRequest
 {
-  public function authorize(): bool
-  {
-    return true;
-  }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
-  public function rules(): array
-  {
-    return [
-      'items'                       => 'required|array|min:1',
-      'items.*.product_id'          => 'required|uuid|exists:products,id',
-      'items.*.design_id'           => 'nullable|uuid|exists:designs,id',
-      'items.*.quantity'            => 'required|integer|min:1|max:100',
-      'items.*.customization_data'  => 'nullable|array',
-      'shipping_address_id'         => 'nullable|uuid|exists:user_addresses,id',
-      'billing_address_id'          => 'nullable|uuid|exists:user_addresses,id',
-      'customer_notes'              => 'nullable|string|max:1000',
-      'coupon_code'                 => 'nullable|string|max:50',
-    ];
-  }
+    public function rules(): array
+    {
+        return [
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|uuid|exists:products,id',
+            'items.*.design_id' => 'nullable|uuid|exists:designs,id',
+            'items.*.quantity' => 'required|integer|min:1|max:100',
+            'items.*.customization_data' => 'nullable|array',
+            'shipping_address_id' => 'nullable|uuid|exists:user_addresses,id',
+            'billing_address_id' => 'nullable|uuid|exists:user_addresses,id',
+            'customer_notes' => 'nullable|string|max:1000',
+            'coupon_code' => 'nullable|string|max:50',
+        ];
+    }
 
-  public function messages(): array
-  {
-    return [
-      'items.required'                    => 'Os itens do pedido são obrigatórios.',
-      'items.min'                         => 'O pedido deve ter pelo menos 1 item.',
-      'items.*.product_id.required'       => 'O ID do produto é obrigatório.',
-      'items.*.product_id.exists'         => 'Produto não encontrado.',
-      'items.*.quantity.required'         => 'A quantidade é obrigatória.',
-      'items.*.quantity.min'              => 'A quantidade mínima é 1.',
-      'items.*.quantity.max'              => 'A quantidade máxima por item é 100.',
-      'shipping_address_id.exists'        => 'Endereço de entrega não encontrado.',
-    ];
-  }
+    public function messages(): array
+    {
+        return [
+            'items.required' => 'Os itens do pedido são obrigatórios.',
+            'items.min' => 'O pedido deve ter pelo menos 1 item.',
+            'items.*.product_id.required' => 'O ID do produto é obrigatório.',
+            'items.*.product_id.exists' => 'Produto não encontrado.',
+            'items.*.quantity.required' => 'A quantidade é obrigatória.',
+            'items.*.quantity.min' => 'A quantidade mínima é 1.',
+            'items.*.quantity.max' => 'A quantidade máxima por item é 100.',
+            'shipping_address_id.exists' => 'Endereço de entrega não encontrado.',
+        ];
+    }
 
-  protected function failedValidation(Validator $validator): never
-  {
-    throw new HttpResponseException(
-      response()->json([
-        'success' => false,
-        'message' => 'Validation error',
-        'errors'  => $validator->errors(),
-      ], 422)
-    );
-  }
+    protected function failedValidation(Validator $validator): never
+    {
+        throw new HttpResponseException(
+            response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors(),
+            ], 422)
+        );
+    }
 }

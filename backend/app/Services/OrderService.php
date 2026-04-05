@@ -33,7 +33,7 @@ class OrderService
     public function createOrder(array $data, string $userId): Order
     {
         return DB::transaction(function () use ($data, $userId) {
-            $subtotal   = 0;
+            $subtotal = 0;
             $orderItems = [];
 
             foreach ($data['items'] as $item) {
@@ -45,16 +45,16 @@ class OrderService
                     );
                 }
 
-                $unitPrice  = (float) ($product->discount_price ?? $product->price);
+                $unitPrice = (float) ($product->discount_price ?? $product->price);
                 $totalPrice = $unitPrice * $item['quantity'];
-                $subtotal  += $totalPrice;
+                $subtotal += $totalPrice;
 
                 $orderItems[] = [
-                    'product_id'         => $item['product_id'],
-                    'design_id'          => $item['design_id'] ?? null,
-                    'quantity'           => $item['quantity'],
-                    'unit_price'         => $unitPrice,
-                    'total_price'        => $totalPrice,
+                    'product_id' => $item['product_id'],
+                    'design_id' => $item['design_id'] ?? null,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $unitPrice,
+                    'total_price' => $totalPrice,
                     'customization_data' => $item['customization_data'] ?? null,
                 ];
 
@@ -64,13 +64,13 @@ class OrderService
 
             // Apply coupon if provided
             $discountAmount = 0;
-            $couponId       = null;
-            $couponCode     = $data['coupon_code'] ?? null;
+            $couponId = null;
+            $couponCode = $data['coupon_code'] ?? null;
 
             if ($couponCode) {
                 $coupon = Coupon::where('code', strtoupper($couponCode))->first();
 
-                if (!$coupon || !$coupon->isValid()) {
+                if (! $coupon || ! $coupon->isValid()) {
                     throw new \RuntimeException('Invalid or expired coupon');
                 }
 
@@ -79,27 +79,27 @@ class OrderService
                 }
 
                 $discountAmount = $coupon->calculateDiscount($subtotal);
-                $couponId       = $coupon->id;
+                $couponId = $coupon->id;
             }
 
-            $taxAmount    = round(($subtotal - $discountAmount) * 0.08, 2);
+            $taxAmount = round(($subtotal - $discountAmount) * 0.08, 2);
             $shippingCost = $subtotal >= 200 ? 0 : 15.00;
-            $total        = round($subtotal - $discountAmount + $taxAmount + $shippingCost, 2);
+            $total = round($subtotal - $discountAmount + $taxAmount + $shippingCost, 2);
 
             $order = $this->orderRepository->create([
-                'order_number'       => Order::generateOrderNumber(),
-                'user_id'            => $userId,
-                'subtotal'           => $subtotal,
-                'discount_amount'    => $discountAmount,
-                'tax_amount'         => $taxAmount,
-                'shipping_cost'      => $shippingCost,
-                'total'              => $total,
-                'status'             => 'PENDING',
-                'payment_status'     => 'PENDING',
+                'order_number' => Order::generateOrderNumber(),
+                'user_id' => $userId,
+                'subtotal' => $subtotal,
+                'discount_amount' => $discountAmount,
+                'tax_amount' => $taxAmount,
+                'shipping_cost' => $shippingCost,
+                'total' => $total,
+                'status' => 'PENDING',
+                'payment_status' => 'PENDING',
                 'shipping_address_id' => $data['shipping_address_id'] ?? null,
                 'billing_address_id' => $data['billing_address_id'] ?? null,
-                'customer_notes'     => $data['customer_notes'] ?? null,
-                'coupon_id'          => $couponId,
+                'customer_notes' => $data['customer_notes'] ?? null,
+                'coupon_id' => $couponId,
             ]);
 
             foreach ($orderItems as $itemData) {
@@ -110,8 +110,8 @@ class OrderService
             if ($couponId) {
                 CouponUsage::create([
                     'coupon_id' => $couponId,
-                    'user_id'   => $userId,
-                    'order_id'  => $order->id,
+                    'user_id' => $userId,
+                    'order_id' => $order->id,
                 ]);
                 Coupon::where('id', $couponId)->increment('usage_count');
             }
@@ -124,7 +124,7 @@ class OrderService
     {
         $order = $this->orderRepository->findById($id);
 
-        if (!$order) {
+        if (! $order) {
             throw new \RuntimeException('Order not found', 404);
         }
 

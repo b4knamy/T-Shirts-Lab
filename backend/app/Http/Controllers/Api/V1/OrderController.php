@@ -35,8 +35,8 @@ class OrderController extends Controller
 
     public function myOrders(Request $request): JsonResponse
     {
-        $user  = JWTAuth::parseToken()->authenticate();
-        $page  = (int) $request->get('page', 1);
+        $user = JWTAuth::parseToken()->authenticate();
+        $page = (int) $request->get('page', 1);
         $limit = min((int) $request->get('limit', 20), 100);
 
         ['orders' => $orders, 'total' => $total] = $this->orderService->paginateForUser($user->id, $page, $limit);
@@ -46,10 +46,10 @@ class OrderController extends Controller
 
     public function show(string $id): JsonResponse
     {
-        $user  = JWTAuth::parseToken()->authenticate();
+        $user = JWTAuth::parseToken()->authenticate();
         $order = $this->orderService->findById($id);
 
-        if (!$order) {
+        if (! $order) {
             return $this->error('Order not found', 404);
         }
 
@@ -63,7 +63,7 @@ class OrderController extends Controller
     // Admin
     public function index(Request $request): JsonResponse
     {
-        $page  = (int) $request->get('page', 1);
+        $page = (int) $request->get('page', 1);
         $limit = min((int) $request->get('limit', 20), 100);
 
         ['orders' => $orders, 'total' => $total] = $this->orderService->paginateAll($page, $limit);

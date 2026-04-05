@@ -49,21 +49,21 @@ class ProductService
     public function create(array $data): Product
     {
         return $this->productRepository->create([
-            'name'             => $data['name'],
-            'slug'             => Str::slug($data['name']) . '-' . Str::random(6),
-            'sku'              => $data['sku'] ?? strtoupper('TSL-' . Str::random(8)),
-            'description'      => $data['description'],
+            'name' => $data['name'],
+            'slug' => Str::slug($data['name']).'-'.Str::random(6),
+            'sku' => $data['sku'] ?? strtoupper('TSL-'.Str::random(8)),
+            'description' => $data['description'],
             'long_description' => $data['long_description'] ?? null,
-            'category_id'      => $data['category_id'],
-            'price'            => $data['price'],
-            'cost_price'       => $data['cost_price'] ?? null,
-            'discount_price'   => $data['discount_price'] ?? null,
+            'category_id' => $data['category_id'],
+            'price' => $data['price'],
+            'cost_price' => $data['cost_price'] ?? null,
+            'discount_price' => $data['discount_price'] ?? null,
             'discount_percent' => $data['discount_percent'] ?? null,
-            'stock_quantity'   => $data['stock_quantity'] ?? 0,
-            'status'           => $data['status'] ?? 'ACTIVE',
-            'is_featured'      => $data['is_featured'] ?? false,
-            'color'            => $data['color'] ?? null,
-            'size'             => $data['size'] ?? null,
+            'stock_quantity' => $data['stock_quantity'] ?? 0,
+            'status' => $data['status'] ?? 'ACTIVE',
+            'is_featured' => $data['is_featured'] ?? false,
+            'color' => $data['color'] ?? null,
+            'size' => $data['size'] ?? null,
         ]);
     }
 
@@ -73,7 +73,7 @@ class ProductService
 
         if (isset($data['name'])) {
             $updateData['name'] = $data['name'];
-            $updateData['slug'] = Str::slug($data['name']) . '-' . Str::random(6);
+            $updateData['slug'] = Str::slug($data['name']).'-'.Str::random(6);
         }
 
         $directFields = [

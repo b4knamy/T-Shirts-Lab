@@ -14,10 +14,10 @@ Route::controller(CouponController::class)->group(function () {
 
     // Admin — coupon management
     Route::middleware(['jwt.auth', 'admin'])->prefix('coupons')->group(function () {
-        Route::get('/',        'index');
-        Route::get('/{id}',    'show');
-        Route::post('/',       'store');
-        Route::patch('/{id}',  'update');
+        Route::get('/', 'index');
+        Route::get('/{id}', 'show');
+        Route::post('/', 'store');
+        Route::patch('/{id}', 'update');
         Route::delete('/{id}', 'destroy');
     });
 });

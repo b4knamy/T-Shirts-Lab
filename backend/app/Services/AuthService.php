@@ -3,24 +3,22 @@
 namespace App\Services;
 
 use App\Models\User;
-use App\Repositories\Contracts\OrderRepositoryInterface;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
-use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class AuthService
 {
     public function register(array $data): array
     {
         $user = User::create([
-            'email'             => $data['email'],
-            'password_hash'     => Hash::make($data['password']),
-            'first_name'        => $data['first_name'],
-            'last_name'         => $data['last_name'],
-            'phone'             => $data['phone'] ?? null,
-            'role'              => 'CUSTOMER',
-            'is_active'         => true,
+            'email' => $data['email'],
+            'password_hash' => Hash::make($data['password']),
+            'first_name' => $data['first_name'],
+            'last_name' => $data['last_name'],
+            'phone' => $data['phone'] ?? null,
+            'role' => 'CUSTOMER',
+            'is_active' => true,
         ]);
 
         return $this->issueTokens($user);
@@ -30,7 +28,7 @@ class AuthService
     {
         $user = User::where('email', $email)->first();
 
-        if (!$user) {
+        if (! $user) {
             throw new \InvalidArgumentException('Invalid credentials', 401);
         }
 
@@ -51,11 +49,11 @@ class AuthService
             }
         }
 
-        if (!$valid) {
+        if (! $valid) {
             throw new \InvalidArgumentException('Invalid credentials', 401);
         }
 
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             throw new \InvalidArgumentException('Account is disabled', 403);
         }
 
@@ -76,7 +74,7 @@ class AuthService
 
             $user = User::find($payload->get('sub'));
 
-            if (!$user || $user->refresh_token !== $refreshToken) {
+            if (! $user || $user->refresh_token !== $refreshToken) {
                 throw new \InvalidArgumentException('Invalid refresh token', 401);
             }
 
@@ -116,8 +114,8 @@ class AuthService
         $user->update(['refresh_token' => $refreshToken]);
 
         return [
-            'user'          => $user,
-            'access_token'  => $accessToken,
+            'user' => $user,
+            'access_token' => $accessToken,
             'refresh_token' => $refreshToken,
         ];
     }

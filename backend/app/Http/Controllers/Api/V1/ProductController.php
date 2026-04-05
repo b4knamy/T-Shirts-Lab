@@ -22,7 +22,7 @@ class ProductController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $page  = (int) $request->get('page', 1);
+        $page = (int) $request->get('page', 1);
         $limit = min((int) $request->get('limit', 20), 100);
 
         $filters = $request->only(['search', 'categoryId', 'status', 'sortBy', 'minPrice', 'maxPrice']);
@@ -42,7 +42,7 @@ class ProductController extends Controller
     {
         $product = $this->productService->findById($id);
 
-        if (!$product) {
+        if (! $product) {
             return $this->error('Product not found', 404);
         }
 
@@ -53,7 +53,7 @@ class ProductController extends Controller
     {
         $product = $this->productService->findBySlug($slug);
 
-        if (!$product) {
+        if (! $product) {
             return $this->error('Product not found', 404);
         }
 
@@ -62,7 +62,7 @@ class ProductController extends Controller
 
     public function featured(Request $request): JsonResponse
     {
-        $limit    = (int) $request->query('limit', 8);
+        $limit = (int) $request->query('limit', 8);
         $products = $this->productService->getFeatured($limit);
 
         return $this->success(ProductResource::collection($products));
@@ -87,7 +87,7 @@ class ProductController extends Controller
     {
         $product = $this->productService->findById($id);
 
-        if (!$product) {
+        if (! $product) {
             return $this->error('Product not found', 404);
         }
 
@@ -100,7 +100,7 @@ class ProductController extends Controller
     {
         $product = $this->productService->findById($id);
 
-        if (!$product) {
+        if (! $product) {
             return $this->error('Product not found', 404);
         }
 

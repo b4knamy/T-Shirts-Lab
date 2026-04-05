@@ -8,7 +8,6 @@ use App\Http\Requests\Api\V1\Auth\RefreshTokenRequest;
 use App\Http\Requests\Api\V1\Auth\RegisterRequest;
 use App\Http\Resources\Api\V1\UserResource;
 use App\Services\AuthService;
-use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use InvalidArgumentException;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
@@ -25,8 +24,8 @@ class AuthController extends Controller
 
         return $this->jsonResponse(
             [
-                'user'          => new UserResource($result['user']),
-                'access_token'  => $result['access_token'],
+                'user' => new UserResource($result['user']),
+                'access_token' => $result['access_token'],
                 'refresh_token' => $result['refresh_token'],
             ],
             'User registered successfully',
@@ -46,8 +45,8 @@ class AuthController extends Controller
         }
 
         return $this->jsonResponse([
-            'user'          => new UserResource($result['user']),
-            'access_token'  => $result['access_token'],
+            'user' => new UserResource($result['user']),
+            'access_token' => $result['access_token'],
             'refresh_token' => $result['refresh_token'],
         ], 'Login successful');
     }
@@ -61,7 +60,7 @@ class AuthController extends Controller
         }
 
         return $this->jsonResponse([
-            'access_token'  => $result['access_token'],
+            'access_token' => $result['access_token'],
             'refresh_token' => $result['refresh_token'],
         ], 'Token refreshed');
     }

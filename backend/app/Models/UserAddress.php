@@ -8,31 +8,31 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserAddress extends Model
 {
-  use HasFactory, HasUuids;
+    use HasFactory, HasUuids;
 
-  protected $fillable = [
-    'user_id',
-    'label',
-    'street',
-    'number',
-    'complement',
-    'neighborhood',
-    'city',
-    'state',
-    'zip_code',
-    'country',
-    'is_default',
-  ];
-
-  protected function casts(): array
-  {
-    return [
-      'is_default' => 'boolean',
+    protected $fillable = [
+        'user_id',
+        'label',
+        'street',
+        'number',
+        'complement',
+        'neighborhood',
+        'city',
+        'state',
+        'zip_code',
+        'country',
+        'is_default',
     ];
-  }
 
-  public function user()
-  {
-    return $this->belongsTo(User::class);
-  }
+    protected function casts(): array
+    {
+        return [
+            'is_default' => 'boolean',
+        ];
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

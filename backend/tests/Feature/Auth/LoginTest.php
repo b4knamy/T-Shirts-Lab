@@ -18,13 +18,13 @@ class LoginTest extends TestCase
     public function test_login_with_valid_credentials(): void
     {
         User::factory()->create([
-            'email'         => 'user@example.com',
+            'email' => 'user@example.com',
             'password_hash' => Hash::make('Secret@123'),
-            'is_active'     => true,
+            'is_active' => true,
         ]);
 
         $response = $this->postJson($this->endpoint, [
-            'email'    => 'user@example.com',
+            'email' => 'user@example.com',
             'password' => 'Secret@123',
         ]);
 
@@ -41,7 +41,7 @@ class LoginTest extends TestCase
             ->assertJson([
                 'success' => true,
                 'message' => 'Login successful',
-                'data'    => [
+                'data' => [
                     'user' => ['email' => 'user@example.com'],
                 ],
             ]);
@@ -50,12 +50,12 @@ class LoginTest extends TestCase
     public function test_login_returns_jwt_tokens(): void
     {
         User::factory()->create([
-            'email'         => 'jwt@example.com',
+            'email' => 'jwt@example.com',
             'password_hash' => Hash::make('Secret@123'),
         ]);
 
         $response = $this->postJson($this->endpoint, [
-            'email'    => 'jwt@example.com',
+            'email' => 'jwt@example.com',
             'password' => 'Secret@123',
         ]);
 
@@ -72,12 +72,12 @@ class LoginTest extends TestCase
     public function test_login_as_admin(): void
     {
         User::factory()->admin()->create([
-            'email'         => 'admin@example.com',
+            'email' => 'admin@example.com',
             'password_hash' => Hash::make('Admin@123'),
         ]);
 
         $response = $this->postJson($this->endpoint, [
-            'email'    => 'admin@example.com',
+            'email' => 'admin@example.com',
             'password' => 'Admin@123',
         ]);
 
@@ -90,12 +90,12 @@ class LoginTest extends TestCase
     public function test_login_as_super_admin(): void
     {
         User::factory()->superAdmin()->create([
-            'email'         => 'super@example.com',
+            'email' => 'super@example.com',
             'password_hash' => Hash::make('Super@123'),
         ]);
 
         $response = $this->postJson($this->endpoint, [
-            'email'    => 'super@example.com',
+            'email' => 'super@example.com',
             'password' => 'Super@123',
         ]);
 
@@ -108,12 +108,12 @@ class LoginTest extends TestCase
     public function test_login_as_moderator(): void
     {
         User::factory()->moderator()->create([
-            'email'         => 'mod@example.com',
+            'email' => 'mod@example.com',
             'password_hash' => Hash::make('Mod@123'),
         ]);
 
         $response = $this->postJson($this->endpoint, [
-            'email'    => 'mod@example.com',
+            'email' => 'mod@example.com',
             'password' => 'Mod@123',
         ]);
 
@@ -128,12 +128,12 @@ class LoginTest extends TestCase
     public function test_login_fails_with_wrong_password(): void
     {
         User::factory()->create([
-            'email'         => 'user@example.com',
+            'email' => 'user@example.com',
             'password_hash' => Hash::make('Secret@123'),
         ]);
 
         $response = $this->postJson($this->endpoint, [
-            'email'    => 'user@example.com',
+            'email' => 'user@example.com',
             'password' => 'WrongPassword',
         ]);
 
@@ -147,7 +147,7 @@ class LoginTest extends TestCase
     public function test_login_fails_with_nonexistent_email(): void
     {
         $response = $this->postJson($this->endpoint, [
-            'email'    => 'ghost@example.com',
+            'email' => 'ghost@example.com',
             'password' => 'Secret@123',
         ]);
 
@@ -163,12 +163,12 @@ class LoginTest extends TestCase
     public function test_login_fails_when_account_is_disabled(): void
     {
         User::factory()->inactive()->create([
-            'email'         => 'disabled@example.com',
+            'email' => 'disabled@example.com',
             'password_hash' => Hash::make('Secret@123'),
         ]);
 
         $response = $this->postJson($this->endpoint, [
-            'email'    => 'disabled@example.com',
+            'email' => 'disabled@example.com',
             'password' => 'Secret@123',
         ]);
 
@@ -204,7 +204,7 @@ class LoginTest extends TestCase
     public function test_login_fails_with_invalid_email_format(): void
     {
         $response = $this->postJson($this->endpoint, [
-            'email'    => 'not-an-email',
+            'email' => 'not-an-email',
             'password' => 'Secret@123',
         ]);
 

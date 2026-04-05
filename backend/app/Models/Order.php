@@ -70,6 +70,6 @@ class Order extends Model
 
     public static function generateOrderNumber(): string
     {
-        return 'ORD-' . strtoupper(substr(md5(uniqid()), 0, 8)) . '-' . time();
+        return 'ORD-'.strtoupper(substr(md5(uniqid()), 0, 8)).'-'.time();
     }
 }

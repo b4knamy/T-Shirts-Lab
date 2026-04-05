@@ -46,13 +46,13 @@ class UserController extends Controller
 
         // Delete old avatar if it exists on local storage
         if ($user->profile_picture_url && str_contains($user->profile_picture_url, '/storage/avatars/')) {
-            $oldPath = str_replace(url('storage') . '/', '', $user->profile_picture_url);
+            $oldPath = str_replace(url('storage').'/', '', $user->profile_picture_url);
             Storage::disk('public')->delete($oldPath);
         }
 
-        $path = $request->file('avatar')->store('avatars/' . $user->id, 'public');
+        $path = $request->file('avatar')->store('avatars/'.$user->id, 'public');
 
-        $user->update(['profile_picture_url' => url('storage/' . $path)]);
+        $user->update(['profile_picture_url' => url('storage/'.$path)]);
         $user->refresh();
         $user->load('addresses');
 
@@ -72,20 +72,20 @@ class UserController extends Controller
         $user = JWTAuth::parseToken()->authenticate();
 
         $data = $request->validate([
-            'label'        => 'nullable|string|max:100',
-            'street'       => 'required|string|max:255',
-            'number'       => 'required|string|max:20',
-            'complement'   => 'nullable|string|max:255',
+            'label' => 'nullable|string|max:100',
+            'street' => 'required|string|max:255',
+            'number' => 'required|string|max:20',
+            'complement' => 'nullable|string|max:255',
             'neighborhood' => 'nullable|string|max:255',
-            'city'         => 'required|string|max:255',
-            'state'        => 'required|string|max:2',
-            'zip_code'     => 'required|string|max:20',
-            'country'      => 'nullable|string|max:2',
-            'is_default'   => 'boolean',
+            'city' => 'required|string|max:255',
+            'state' => 'required|string|max:2',
+            'zip_code' => 'required|string|max:20',
+            'country' => 'nullable|string|max:2',
+            'is_default' => 'boolean',
         ]);
 
         // If setting as default, unset others
-        if (!empty($data['is_default'])) {
+        if (! empty($data['is_default'])) {
             $user->addresses()->update(['is_default' => false]);
         }
 
@@ -105,24 +105,24 @@ class UserController extends Controller
         $user = JWTAuth::parseToken()->authenticate();
         $address = $user->addresses()->find($id);
 
-        if (!$address) {
+        if (! $address) {
             return $this->error('Address not found', 404);
         }
 
         $data = $request->validate([
-            'label'        => 'nullable|string|max:100',
-            'street'       => 'sometimes|string|max:255',
-            'number'       => 'sometimes|string|max:20',
-            'complement'   => 'nullable|string|max:255',
+            'label' => 'nullable|string|max:100',
+            'street' => 'sometimes|string|max:255',
+            'number' => 'sometimes|string|max:20',
+            'complement' => 'nullable|string|max:255',
             'neighborhood' => 'nullable|string|max:255',
-            'city'         => 'sometimes|string|max:255',
-            'state'        => 'sometimes|string|max:2',
-            'zip_code'     => 'sometimes|string|max:20',
-            'country'      => 'nullable|string|max:2',
-            'is_default'   => 'boolean',
+            'city' => 'sometimes|string|max:255',
+            'state' => 'sometimes|string|max:2',
+            'zip_code' => 'sometimes|string|max:20',
+            'country' => 'nullable|string|max:2',
+            'is_default' => 'boolean',
         ]);
 
-        if (!empty($data['is_default'])) {
+        if (! empty($data['is_default'])) {
             $user->addresses()->where('id', '!=', $id)->update(['is_default' => false]);
         }
 
@@ -136,7 +136,7 @@ class UserController extends Controller
         $user = JWTAuth::parseToken()->authenticate();
         $address = $user->addresses()->find($id);
 
-        if (!$address) {
+        if (! $address) {
             return $this->error('Address not found', 404);
         }
 

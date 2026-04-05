@@ -7,26 +7,26 @@ use Illuminate\Database\Eloquent\Model;
 
 class CouponUsage extends Model
 {
-  use HasUuids;
+    use HasUuids;
 
-  protected $fillable = [
-    'coupon_id',
-    'user_id',
-    'order_id',
-  ];
+    protected $fillable = [
+        'coupon_id',
+        'user_id',
+        'order_id',
+    ];
 
-  public function coupon()
-  {
-    return $this->belongsTo(Coupon::class);
-  }
+    public function coupon()
+    {
+        return $this->belongsTo(Coupon::class);
+    }
 
-  public function user()
-  {
-    return $this->belongsTo(User::class);
-  }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
-  public function order()
-  {
-    return $this->belongsTo(Order::class);
-  }
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
 }

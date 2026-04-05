@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 trait ApiResponse
 {
@@ -11,7 +12,7 @@ trait ApiResponse
         // If a JsonResource or ResourceCollection was passed, unwrap it so
         // the frontend receives the raw array/object it expects under
         // response.data (avoids nested data.data shapes).
-        if ($data instanceof \Illuminate\Http\Resources\Json\JsonResource) {
+        if ($data instanceof JsonResource) {
             $payload = $data->response()->getData(true);
             // If the resource produced an array with a 'data' key, return that
             // inner array; otherwise return the whole payload.
@@ -52,7 +53,7 @@ trait ApiResponse
         // If a Resource or ResourceCollection was passed, unwrap its inner
         // 'data' so the frontend receives an array of items rather than
         // a nested resource object.
-        if ($data instanceof \Illuminate\Http\Resources\Json\JsonResource) {
+        if ($data instanceof JsonResource) {
             $payload = $data->response()->getData(true);
             $data = $payload['data'] ?? $payload;
         }
@@ -68,9 +69,9 @@ trait ApiResponse
             'success' => true,
             'data' => $payload,
             'meta' => [
-                'total'       => $total,
-                'page'        => $page,
-                'limit'       => $limit,
+                'total' => $total,
+                'page' => $page,
+                'limit' => $limit,
                 'total_pages' => ceil($total / $limit),
             ],
         ]);
