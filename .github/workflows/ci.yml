@@ -102,7 +102,6 @@ jobs:
           REDIS_HOST: 127.0.0.1
           REDIS_PORT: 6379
           BCRYPT_ROUNDS: 4
-          JWT_SECRET: ci-testing-jwt-secret
           STRIPE_SECRET_KEY: sk_test_fake_ci_key
           STRIPE_WEBHOOK_SECRET: whsec_fake_ci_key
         run: php artisan test
