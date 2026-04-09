@@ -84,6 +84,24 @@ class CouponController extends Controller
             $query->where('code', 'ilike', '%'.$request->get('search').'%');
         }
 
+        if ($request->has('type')) {
+            $query->where('type', $request->get('type'));
+        }
+
+        if ($request->has('status')) {
+            $status = $request->get('status');
+            if ($status === 'active') {
+                $query->where('is_active', true)
+                    ->where(function ($q) {
+                        $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                    });
+            } elseif ($status === 'inactive') {
+                $query->where('is_active', false);
+            } elseif ($status === 'expired') {
+                $query->where('expires_at', '<=', now());
+            }
+        }
+
         $total = $query->count();
         $coupons = $query->skip(($page - 1) * $limit)->take($limit)->get();
 

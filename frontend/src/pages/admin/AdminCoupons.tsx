@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   Plus, Edit3, Trash2, X, Save, Ticket, AlertTriangle, Check,
-  ChevronLeft, ChevronRight, Eye, Percent, DollarSign, Globe, Lock,
+  ChevronLeft, ChevronRight, Eye, Percent, DollarSign, Globe, Lock, Search,
 } from 'lucide-react';
 import { adminApi } from '../../services/api/admin';
 import type { Coupon } from '../../types';
@@ -40,6 +40,9 @@ export function AdminCoupons() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<Coupon | null>(null);
@@ -57,11 +60,17 @@ export function AdminCoupons() {
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await adminApi.getCoupons({ page, limit: LIMIT });
+      const res = await adminApi.getCoupons({
+        page,
+        limit: LIMIT,
+        search: search || undefined,
+        type: typeFilter || undefined,
+        status: statusFilter || undefined,
+      });
       setCoupons(res.data.data.data || []);
       setTotal(res.data.meta?.total ?? 0);
     } catch { /* silent */ } finally { setIsLoading(false); }
-  }, [page]);
+  }, [page, search, typeFilter, statusFilter]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -128,6 +137,54 @@ export function AdminCoupons() {
         <button onClick={openNew} className="inline-flex items-center gap-2 bg-accent hover:bg-accent-light text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors shadow-md shadow-accent/20">
           <Plus className="w-4 h-4" /> New Coupon
         </button>
+      </div>
+
+      {/* Search & Filters */}
+      <div className="bg-white border border-gray-100 rounded-2xl mb-6 overflow-hidden">
+        <div className="flex items-center px-5 py-3 gap-3">
+          <Search className="w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by coupon code…"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            className="flex-1 outline-none text-sm bg-transparent"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="text-gray-400 hover:text-gray-600">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-3 px-5 pb-3 border-t border-gray-50 pt-3">
+          <select
+            value={typeFilter}
+            onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}
+            className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-accent bg-white"
+          >
+            <option value="">All Types</option>
+            <option value="PERCENTAGE">Percentage</option>
+            <option value="FIXED">Fixed</option>
+          </select>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-accent bg-white"
+          >
+            <option value="">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="expired">Expired</option>
+          </select>
+          {(search || typeFilter || statusFilter) && (
+            <button
+              onClick={() => { setSearch(''); setTypeFilter(''); setStatusFilter(''); setPage(1); }}
+              className="text-xs text-accent hover:underline"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Table */}

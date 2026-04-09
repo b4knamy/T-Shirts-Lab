@@ -27,6 +27,10 @@ class CategoryController extends Controller
             $query->where('name', 'ilike', '%'.$request->get('search').'%');
         }
 
+        if ($request->has('status')) {
+            $query->where('is_active', $request->get('status') === 'active');
+        }
+
         $total = $query->count();
         $categories = $query->skip(($page - 1) * $limit)->take($limit)->get();
 

@@ -10,10 +10,32 @@ use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
-    public function paginateAll(int $page, int $limit): array
+    public function paginateAll(array $filters, int $page, int $limit): array
     {
         $query = Order::with(['items.product', 'payment', 'user'])
             ->orderBy('created_at', 'desc');
+
+        if (! empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('order_number', 'ilike', "%{$search}%")
+                    ->orWhereHas('user', function ($uq) use ($search) {
+                        $uq->where('first_name', 'ilike', "%{$search}%")
+                            ->orWhere('last_name', 'ilike', "%{$search}%")
+                            ->orWhere('email', 'ilike', "%{$search}%");
+                    });
+            });
+        }
+
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (! empty($filters['payment_status'])) {
+            $query->whereHas('payment', function ($q) use ($filters) {
+                $q->where('status', $filters['payment_status']);
+            });
+        }
 
         $total = $query->count();
         $orders = $query->skip(($page - 1) * $limit)->take($limit)->get();

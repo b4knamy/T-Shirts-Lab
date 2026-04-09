@@ -134,6 +134,17 @@ class ProductReviewController extends Controller
             $query->whereNull('admin_reply');
         }
 
+        if ($request->filled('rating')) {
+            $query->where('rating', (int) $request->input('rating'));
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->whereHas('product', function ($q) use ($search) {
+                $q->where('name', 'ilike', "%{$search}%");
+            });
+        }
+
         $reviews = $query->paginate($request->input('limit', 15));
 
         return $this->success([
