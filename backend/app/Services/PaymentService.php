@@ -20,12 +20,12 @@ class PaymentService
         $amount = (int) round($order->total * 100);
 
         $paymentIntent = PaymentIntent::create([
-            'amount'   => $amount,
+            'amount' => $amount,
             'currency' => $currency,
             'metadata' => [
-                'order_id'     => $order->id,
+                'order_id' => $order->id,
                 'order_number' => $order->order_number,
-                'user_id'      => $order->user_id,
+                'user_id' => $order->user_id,
             ],
             'automatic_payment_methods' => ['enabled' => true],
         ]);
@@ -34,17 +34,17 @@ class PaymentService
             ['order_id' => $order->id],
             [
                 'stripe_payment_intent_id' => $paymentIntent->id,
-                'amount'                   => $order->total,
-                'currency'                 => $currency,
-                'status'                   => 'PROCESSING',
-                'metadata'                 => ['stripe_status' => $paymentIntent->status],
+                'amount' => $order->total,
+                'currency' => $currency,
+                'status' => 'PROCESSING',
+                'metadata' => ['stripe_status' => $paymentIntent->status],
             ]
         );
 
         $order->update(['payment_status' => 'PROCESSING']);
 
         return [
-            'clientSecret'    => $paymentIntent->client_secret,
+            'clientSecret' => $paymentIntent->client_secret,
             'paymentIntentId' => $paymentIntent->id,
         ];
     }
@@ -59,20 +59,20 @@ class PaymentService
         if ($payment) {
             $status = $paymentIntent->status === 'succeeded' ? 'COMPLETED' : 'PROCESSING';
             $payment->update([
-                'status'         => $status,
+                'status' => $status,
                 'payment_method' => $paymentMethodId,
             ]);
 
             if ($status === 'COMPLETED') {
                 $payment->order->update([
                     'payment_status' => 'COMPLETED',
-                    'status'         => 'CONFIRMED',
+                    'status' => 'CONFIRMED',
                 ]);
             }
         }
 
         return [
-            'status'          => $paymentIntent->status,
+            'status' => $paymentIntent->status,
             'paymentIntentId' => $paymentIntent->id,
         ];
     }
@@ -88,7 +88,7 @@ class PaymentService
         $paymentIntent = PaymentIntent::retrieve($paymentIntentId);
 
         return [
-            'payment'       => $payment,
+            'payment' => $payment,
             'stripe_status' => $paymentIntent->status,
         ];
     }
@@ -119,20 +119,20 @@ class PaymentService
         $refundAmount = $amount ?? (float) $payment->amount;
 
         $payment->update([
-            'status'       => 'REFUNDED',
+            'status' => 'REFUNDED',
             'refund_amount' => $refundAmount,
-            'refunded_at'  => now(),
+            'refunded_at' => now(),
         ]);
 
         $payment->order->update([
             'payment_status' => 'REFUNDED',
-            'status'         => 'REFUNDED',
+            'status' => 'REFUNDED',
         ]);
 
         return [
             'refundId' => $refund->id,
-            'amount'   => $refundAmount,
-            'status'   => 'REFUNDED',
+            'amount' => $refundAmount,
+            'status' => 'REFUNDED',
         ];
     }
 }

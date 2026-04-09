@@ -59,11 +59,11 @@ class OrderService
                 $subtotal += $totalPrice;
 
                 $orderItems[] = [
-                    'product_id'         => $item['product_id'],
-                    'design_id'          => $item['design_id'] ?? null,
-                    'quantity'           => $item['quantity'],
-                    'unit_price'         => $unitPrice,
-                    'total_price'        => $totalPrice,
+                    'product_id' => $item['product_id'],
+                    'design_id' => $item['design_id'] ?? null,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $unitPrice,
+                    'total_price' => $totalPrice,
                     'customization_data' => $item['customization_data'] ?? null,
                 ];
 
@@ -94,19 +94,19 @@ class OrderService
             $total = round($subtotal - $discountAmount + $shippingCost, 2);
 
             $order = Order::create([
-                'order_number'       => Order::generateOrderNumber(),
-                'user_id'            => $userId,
-                'subtotal'           => $subtotal,
-                'discount_amount'    => $discountAmount,
-                'tax_amount'         => 0,
-                'shipping_cost'      => $shippingCost,
-                'total'              => $total,
-                'status'             => 'PENDING',
-                'payment_status'     => 'PENDING',
+                'order_number' => Order::generateOrderNumber(),
+                'user_id' => $userId,
+                'subtotal' => $subtotal,
+                'discount_amount' => $discountAmount,
+                'tax_amount' => 0,
+                'shipping_cost' => $shippingCost,
+                'total' => $total,
+                'status' => 'PENDING',
+                'payment_status' => 'PENDING',
                 'shipping_address_id' => $data['shipping_address_id'] ?? null,
-                'billing_address_id'  => $data['billing_address_id'] ?? null,
-                'customer_notes'     => $data['customer_notes'] ?? null,
-                'coupon_id'          => $couponId,
+                'billing_address_id' => $data['billing_address_id'] ?? null,
+                'customer_notes' => $data['customer_notes'] ?? null,
+                'coupon_id' => $couponId,
             ]);
 
             foreach ($orderItems as $itemData) {
@@ -116,8 +116,8 @@ class OrderService
             if ($couponId) {
                 CouponUsage::create([
                     'coupon_id' => $couponId,
-                    'user_id'   => $userId,
-                    'order_id'  => $order->id,
+                    'user_id' => $userId,
+                    'order_id' => $order->id,
                 ]);
                 Coupon::where('id', $couponId)->increment('usage_count');
             }
