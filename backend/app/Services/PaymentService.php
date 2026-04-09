@@ -3,16 +3,15 @@
 namespace App\Services;
 
 use App\Models\Order;
-use App\Repositories\Contracts\PaymentRepositoryInterface;
+use App\Models\Payment;
 use Stripe\PaymentIntent;
 use Stripe\Refund;
 use Stripe\Stripe;
 
 class PaymentService
 {
-    public function __construct(
-        private readonly PaymentRepositoryInterface $paymentRepository
-    ) {
+    public function __construct()
+    {
         Stripe::setApiKey(config('services.stripe.secret'));
     }
 
@@ -21,28 +20,31 @@ class PaymentService
         $amount = (int) round($order->total * 100);
 
         $paymentIntent = PaymentIntent::create([
-            'amount' => $amount,
+            'amount'   => $amount,
             'currency' => $currency,
             'metadata' => [
-                'order_id' => $order->id,
+                'order_id'     => $order->id,
                 'order_number' => $order->order_number,
-                'user_id' => $order->user_id,
+                'user_id'      => $order->user_id,
             ],
             'automatic_payment_methods' => ['enabled' => true],
         ]);
 
-        $this->paymentRepository->createOrUpdate($order->id, [
-            'stripe_payment_intent_id' => $paymentIntent->id,
-            'amount' => $order->total,
-            'currency' => $currency,
-            'status' => 'PROCESSING',
-            'metadata' => ['stripe_status' => $paymentIntent->status],
-        ]);
+        Payment::updateOrCreate(
+            ['order_id' => $order->id],
+            [
+                'stripe_payment_intent_id' => $paymentIntent->id,
+                'amount'                   => $order->total,
+                'currency'                 => $currency,
+                'status'                   => 'PROCESSING',
+                'metadata'                 => ['stripe_status' => $paymentIntent->status],
+            ]
+        );
 
         $order->update(['payment_status' => 'PROCESSING']);
 
         return [
-            'clientSecret' => $paymentIntent->client_secret,
+            'clientSecret'    => $paymentIntent->client_secret,
             'paymentIntentId' => $paymentIntent->id,
         ];
     }
@@ -52,32 +54,32 @@ class PaymentService
         $paymentIntent = PaymentIntent::retrieve($paymentIntentId);
         $paymentIntent->confirm(['payment_method' => $paymentMethodId]);
 
-        $payment = $this->paymentRepository->findByPaymentIntentId($paymentIntentId);
+        $payment = Payment::where('stripe_payment_intent_id', $paymentIntentId)->first();
 
         if ($payment) {
             $status = $paymentIntent->status === 'succeeded' ? 'COMPLETED' : 'PROCESSING';
-            $this->paymentRepository->update($paymentIntentId, [
-                'status' => $status,
+            $payment->update([
+                'status'         => $status,
                 'payment_method' => $paymentMethodId,
             ]);
 
             if ($status === 'COMPLETED') {
                 $payment->order->update([
                     'payment_status' => 'COMPLETED',
-                    'status' => 'CONFIRMED',
+                    'status'         => 'CONFIRMED',
                 ]);
             }
         }
 
         return [
-            'status' => $paymentIntent->status,
+            'status'          => $paymentIntent->status,
             'paymentIntentId' => $paymentIntent->id,
         ];
     }
 
     public function getStatus(string $paymentIntentId): array
     {
-        $payment = $this->paymentRepository->findByPaymentIntentId($paymentIntentId);
+        $payment = Payment::where('stripe_payment_intent_id', $paymentIntentId)->first();
 
         if (! $payment) {
             throw new \RuntimeException('Payment not found', 404);
@@ -86,14 +88,14 @@ class PaymentService
         $paymentIntent = PaymentIntent::retrieve($paymentIntentId);
 
         return [
-            'payment' => $payment,
+            'payment'       => $payment,
             'stripe_status' => $paymentIntent->status,
         ];
     }
 
     public function refund(string $paymentIntentId, ?float $amount = null, ?string $reason = null): array
     {
-        $payment = $this->paymentRepository->findByPaymentIntentId($paymentIntentId);
+        $payment = Payment::where('stripe_payment_intent_id', $paymentIntentId)->first();
 
         if (! $payment) {
             throw new \RuntimeException('Payment not found', 404);
@@ -116,21 +118,21 @@ class PaymentService
         $refund = Refund::create($refundData);
         $refundAmount = $amount ?? (float) $payment->amount;
 
-        $this->paymentRepository->update($paymentIntentId, [
-            'status' => 'REFUNDED',
+        $payment->update([
+            'status'       => 'REFUNDED',
             'refund_amount' => $refundAmount,
-            'refunded_at' => now(),
+            'refunded_at'  => now(),
         ]);
 
         $payment->order->update([
             'payment_status' => 'REFUNDED',
-            'status' => 'REFUNDED',
+            'status'         => 'REFUNDED',
         ]);
 
         return [
             'refundId' => $refund->id,
-            'amount' => $refundAmount,
-            'status' => 'REFUNDED',
+            'amount'   => $refundAmount,
+            'status'   => 'REFUNDED',
         ];
     }
 }

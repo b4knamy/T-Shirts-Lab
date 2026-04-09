@@ -6,28 +6,37 @@ use App\Models\Coupon;
 use App\Models\CouponUsage;
 use App\Models\Order;
 use App\Models\Product;
-use App\Repositories\Contracts\OrderRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
-    public function __construct(
-        private readonly OrderRepositoryInterface $orderRepository
-    ) {}
-
     public function paginateAll(int $page, int $limit): array
     {
-        return $this->orderRepository->paginateAll($page, $limit);
+        $query = Order::with(['items.product', 'payment', 'user'])
+            ->orderBy('created_at', 'desc');
+
+        $total = $query->count();
+        $orders = $query->skip(($page - 1) * $limit)->take($limit)->get();
+
+        return compact('orders', 'total');
     }
 
     public function paginateForUser(string $userId, int $page, int $limit): array
     {
-        return $this->orderRepository->paginateForUser($userId, $page, $limit);
+        $query = Order::with(['items.product', 'payment'])
+            ->where('user_id', $userId)
+            ->orderBy('created_at', 'desc');
+
+        $total = $query->count();
+        $orders = $query->skip(($page - 1) * $limit)->take($limit)->get();
+
+        return compact('orders', 'total');
     }
 
     public function findById(string $id): ?Order
     {
-        return $this->orderRepository->findById($id);
+        return Order::with(['items.product.images', 'items.design', 'payment', 'user'])
+            ->find($id);
     }
 
     public function createOrder(array $data, string $userId): Order
@@ -50,11 +59,11 @@ class OrderService
                 $subtotal += $totalPrice;
 
                 $orderItems[] = [
-                    'product_id' => $item['product_id'],
-                    'design_id' => $item['design_id'] ?? null,
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $unitPrice,
-                    'total_price' => $totalPrice,
+                    'product_id'         => $item['product_id'],
+                    'design_id'          => $item['design_id'] ?? null,
+                    'quantity'           => $item['quantity'],
+                    'unit_price'         => $unitPrice,
+                    'total_price'        => $totalPrice,
                     'customization_data' => $item['customization_data'] ?? null,
                 ];
 
@@ -62,7 +71,6 @@ class OrderService
                 $product->increment('reserved_quantity', $item['quantity']);
             }
 
-            // Apply coupon if provided
             $discountAmount = 0;
             $couponId = null;
             $couponCode = $data['coupon_code'] ?? null;
@@ -82,36 +90,34 @@ class OrderService
                 $couponId = $coupon->id;
             }
 
-            $taxAmount = 0;
             $shippingCost = $subtotal >= 50 ? 0 : 9.99;
             $total = round($subtotal - $discountAmount + $shippingCost, 2);
 
-            $order = $this->orderRepository->create([
-                'order_number' => Order::generateOrderNumber(),
-                'user_id' => $userId,
-                'subtotal' => $subtotal,
-                'discount_amount' => $discountAmount,
-                'tax_amount' => $taxAmount,
-                'shipping_cost' => $shippingCost,
-                'total' => $total,
-                'status' => 'PENDING',
-                'payment_status' => 'PENDING',
+            $order = Order::create([
+                'order_number'       => Order::generateOrderNumber(),
+                'user_id'            => $userId,
+                'subtotal'           => $subtotal,
+                'discount_amount'    => $discountAmount,
+                'tax_amount'         => 0,
+                'shipping_cost'      => $shippingCost,
+                'total'              => $total,
+                'status'             => 'PENDING',
+                'payment_status'     => 'PENDING',
                 'shipping_address_id' => $data['shipping_address_id'] ?? null,
-                'billing_address_id' => $data['billing_address_id'] ?? null,
-                'customer_notes' => $data['customer_notes'] ?? null,
-                'coupon_id' => $couponId,
+                'billing_address_id'  => $data['billing_address_id'] ?? null,
+                'customer_notes'     => $data['customer_notes'] ?? null,
+                'coupon_id'          => $couponId,
             ]);
 
             foreach ($orderItems as $itemData) {
                 $order->items()->create($itemData);
             }
 
-            // Record coupon usage
             if ($couponId) {
                 CouponUsage::create([
                     'coupon_id' => $couponId,
-                    'user_id' => $userId,
-                    'order_id' => $order->id,
+                    'user_id'   => $userId,
+                    'order_id'  => $order->id,
                 ]);
                 Coupon::where('id', $couponId)->increment('usage_count');
             }
@@ -122,13 +128,12 @@ class OrderService
 
     public function updateStatus(string $id, string $status, ?string $adminNotes = null): Order
     {
-        $order = $this->orderRepository->findById($id);
+        $order = $this->findById($id);
 
         if (! $order) {
             throw new \RuntimeException('Order not found', 404);
         }
 
-        // Release reserved stock on cancellation
         if ($status === 'CANCELLED') {
             foreach ($order->items as $item) {
                 $item->product->increment('stock_quantity', $item->quantity);
@@ -136,6 +141,13 @@ class OrderService
             }
         }
 
-        return $this->orderRepository->updateStatus($id, $status, $adminNotes);
+        $updateData = ['status' => $status];
+        if ($adminNotes !== null) {
+            $updateData['admin_notes'] = $adminNotes;
+        }
+
+        $order->update($updateData);
+
+        return Order::with(['items.product', 'payment'])->findOrFail($id);
     }
 }
