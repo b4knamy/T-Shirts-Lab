@@ -1,0 +1,23 @@
+#!/bin/sh
+# Run Laravel Pint only on staged PHP files
+
+STAGED_PHP=$(git diff --cached --name-only --diff-filter=ACMR | grep '\.php$')
+
+if [ -z "$STAGED_PHP" ]; then
+    exit 0
+fi
+
+echo "Running Laravel Pint on staged PHP files..."
+
+cd backend
+
+# Build the file list as individual arguments
+echo "$STAGED_PHP" | xargs vendor/bin/pint --test
+
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "❌ Pint found code style issues. Run 'cd backend && vendor/bin/pint' to fix them, then re-stage."
+    exit 1
+fi
+
+echo "✅ Pint passed."
