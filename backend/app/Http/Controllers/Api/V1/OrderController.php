@@ -66,7 +66,9 @@ class OrderController extends Controller
         $page = (int) $request->get('page', 1);
         $limit = min((int) $request->get('limit', 20), 100);
 
-        ['orders' => $orders, 'total' => $total] = $this->orderService->paginateAll($page, $limit);
+        $filters = $request->only(['search', 'status', 'payment_status']);
+
+        ['orders' => $orders, 'total' => $total] = $this->orderService->paginateAll($filters, $page, $limit);
 
         return $this->paginated(OrderResource::collection($orders), $total, $page, $limit);
     }

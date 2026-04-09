@@ -34,6 +34,8 @@ export function AdminProducts() {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
 
   /* ── Modal state ───────────────────────────────────────────────────────── */
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -53,7 +55,13 @@ export function AdminProducts() {
   const loadProducts = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await adminApi.getProducts({ page, limit: LIMIT, search: search || undefined });
+      const res = await adminApi.getProducts({
+        page,
+        limit: LIMIT,
+        search: search || undefined,
+        status: statusFilter || undefined,
+        categoryId: categoryFilter || undefined,
+      });
       setProducts(res.data.data.data);
       setTotal(res.data.meta?.total ?? res.data.data.total);
     } catch {
@@ -61,7 +69,7 @@ export function AdminProducts() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, search]);
+  }, [page, search, statusFilter, categoryFilter]);
 
   useEffect(() => {
     adminApi.getCategories().then((r) => setCategories(r.data.data));
@@ -172,7 +180,7 @@ export function AdminProducts() {
         </button>
       </div>
 
-      {/* Search */}
+      {/* Search & Filters */}
       <div className="bg-white border border-gray-100 rounded-2xl mb-6 overflow-hidden">
         <div className="flex items-center px-5 py-3 gap-3">
           <Search className="w-5 h-5 text-gray-400" />
@@ -186,6 +194,37 @@ export function AdminProducts() {
           {search && (
             <button onClick={() => setSearch('')} className="text-gray-400 hover:text-gray-600">
               <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-3 px-5 pb-3 border-t border-gray-50 pt-3">
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-accent bg-white"
+          >
+            <option value="">All Statuses</option>
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
+            <option value="DRAFT">Draft</option>
+            <option value="OUT_OF_STOCK">Out of Stock</option>
+          </select>
+          <select
+            value={categoryFilter}
+            onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
+            className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-accent bg-white"
+          >
+            <option value="">All Categories</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          {(statusFilter || categoryFilter) && (
+            <button
+              onClick={() => { setStatusFilter(''); setCategoryFilter(''); setPage(1); }}
+              className="text-xs text-accent hover:underline"
+            >
+              Clear filters
             </button>
           )}
         </div>

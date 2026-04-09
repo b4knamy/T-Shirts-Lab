@@ -21,7 +21,7 @@ class CouponFactory extends Factory
             : fake()->randomFloat(2, 5, 50);
 
         return [
-            'code' => strtoupper(Str::random(3) . fake()->numerify('###')),
+            'code' => strtoupper(Str::random(3).fake()->numerify('###')),
             'description' => fake()->sentence(),
             'type' => $type,
             'value' => $value,
@@ -41,7 +41,7 @@ class CouponFactory extends Factory
 
     public function public(): static
     {
-        return $this->state(fn() => [
+        return $this->state(fn () => [
             'is_public' => true,
             'starts_at' => now(),
             'expires_at' => now()->addDays(fake()->numberBetween(1, 14)),
@@ -50,7 +50,7 @@ class CouponFactory extends Factory
 
     public function percentage(float $value = 10): static
     {
-        return $this->state(fn() => [
+        return $this->state(fn () => [
             'type' => 'PERCENTAGE',
             'value' => $value,
             'min_order_amount' => null,
@@ -59,7 +59,7 @@ class CouponFactory extends Factory
 
     public function fixed(float $value = 20): static
     {
-        return $this->state(fn() => [
+        return $this->state(fn () => [
             'type' => 'FIXED',
             'value' => $value,
             'min_order_amount' => null,
@@ -68,7 +68,7 @@ class CouponFactory extends Factory
 
     public function expired(): static
     {
-        return $this->state(fn() => [
+        return $this->state(fn () => [
             'starts_at' => now()->subDays(30),
             'expires_at' => now()->subDays(1),
         ]);
@@ -76,6 +76,6 @@ class CouponFactory extends Factory
 
     public function inactive(): static
     {
-        return $this->state(fn() => ['is_active' => false]);
+        return $this->state(fn () => ['is_active' => false]);
     }
 }

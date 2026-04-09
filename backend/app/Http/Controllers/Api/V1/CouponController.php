@@ -60,7 +60,7 @@ class CouponController extends Controller
 
         if ($discount <= 0) {
             return $this->error(
-                'Minimum order amount of $'.number_format((float) $coupon->min_order_amount, 2).' required',
+                'Minimum order amount of $' . number_format((float) $coupon->min_order_amount, 2) . ' required',
                 422
             );
         }
@@ -81,7 +81,25 @@ class CouponController extends Controller
         $query = Coupon::orderBy('created_at', 'desc');
 
         if ($request->has('search')) {
-            $query->where('code', 'ilike', '%'.$request->get('search').'%');
+            $query->where('code', 'ilike', '%' . $request->get('search') . '%');
+        }
+
+        if ($request->has('type')) {
+            $query->where('type', $request->get('type'));
+        }
+
+        if ($request->has('status')) {
+            $status = $request->get('status');
+            if ($status === 'active') {
+                $query->where('is_active', true)
+                    ->where(function ($q) {
+                        $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                    });
+            } elseif ($status === 'inactive') {
+                $query->where('is_active', false);
+            } elseif ($status === 'expired') {
+                $query->where('expires_at', '<=', now());
+            }
         }
 
         $total = $query->count();

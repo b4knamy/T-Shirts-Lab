@@ -22,7 +22,7 @@ export interface AdminProductPayload {
 
 export const adminApi = {
   /* Products */
-  getProducts: (params?: { page?: number; limit?: number; search?: string; status?: string; categoryId?: string }) =>
+  getProducts: (params?: { page?: number; limit?: number; search?: string; status?: string; categoryId?: string; sortBy?: string }) =>
     apiClient.get<{
       success: boolean;
       data: { data: Product[]; total: number; page: number; limit: number };
@@ -65,7 +65,7 @@ export const adminApi = {
   getCategories: () =>
     apiClient.get<{ data: Category[] }>('/api/v1/products/categories'),
 
-  getCategoriesPaginated: (params?: { page?: number; limit?: number; search?: string }) =>
+  getCategoriesPaginated: (params?: { page?: number; limit?: number; search?: string; status?: string }) =>
     apiClient.get<{
       success: boolean;
       data: { data: Category[]; total: number };
@@ -82,7 +82,7 @@ export const adminApi = {
     apiClient.delete(`/api/v1/categories/${id}`),
 
   /* Orders */
-  getOrders: (params?: { page?: number; limit?: number }) =>
+  getOrders: (params?: { page?: number; limit?: number; search?: string; status?: string; payment_status?: string }) =>
     apiClient.get<{
       success: boolean;
       data: { data: Order[]; total: number };
@@ -96,7 +96,7 @@ export const adminApi = {
     apiClient.patch(`/api/v1/orders/${id}/status`, { status, admin_notes }),
 
   /* Coupons */
-  getCoupons: (params?: { page?: number; limit?: number; search?: string }) =>
+  getCoupons: (params?: { page?: number; limit?: number; search?: string; type?: string; status?: string }) =>
     apiClient.get<{
       success: boolean;
       data: { data: Coupon[]; total: number };
