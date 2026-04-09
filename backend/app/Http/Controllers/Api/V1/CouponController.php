@@ -60,7 +60,7 @@ class CouponController extends Controller
 
         if ($discount <= 0) {
             return $this->error(
-                'Minimum order amount of $' . number_format((float) $coupon->min_order_amount, 2) . ' required',
+                'Minimum order amount of $'.number_format((float) $coupon->min_order_amount, 2).' required',
                 422
             );
         }
@@ -81,7 +81,7 @@ class CouponController extends Controller
         $query = Coupon::orderBy('created_at', 'desc');
 
         if ($request->has('search')) {
-            $query->where('code', 'ilike', '%' . $request->get('search') . '%');
+            $query->where('code', 'ilike', '%'.$request->get('search').'%');
         }
 
         if ($request->has('type')) {

@@ -24,7 +24,7 @@ class CategoryController extends Controller
         $query = Category::orderBy('name');
 
         if ($request->has('search')) {
-            $query->where('name', 'ilike', '%' . $request->get('search') . '%');
+            $query->where('name', 'ilike', '%'.$request->get('search').'%');
         }
 
         if ($request->has('status')) {
@@ -50,7 +50,7 @@ class CategoryController extends Controller
 
         // Check for slug collision
         if (Category::where('slug', $data['slug'])->exists()) {
-            $data['slug'] .= '-' . Str::random(4);
+            $data['slug'] .= '-'.Str::random(4);
         }
 
         $data['is_active'] = $data['is_active'] ?? true;
@@ -79,7 +79,7 @@ class CategoryController extends Controller
         if (isset($data['name'])) {
             $slug = Str::slug($data['name']);
             if ($slug !== $category->slug && Category::where('slug', $slug)->where('id', '!=', $id)->exists()) {
-                $slug .= '-' . Str::random(4);
+                $slug .= '-'.Str::random(4);
             }
             $data['slug'] = $slug;
         }
