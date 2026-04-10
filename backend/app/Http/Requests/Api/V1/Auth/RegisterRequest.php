@@ -2,11 +2,9 @@
 
 namespace App\Http\Requests\Api\V1\Auth;
 
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Http\Requests\Api\V1\CustomFormRequest;
 
-class RegisterRequest extends FormRequest
+class RegisterRequest extends CustomFormRequest
 {
     public function authorize(): bool
     {
@@ -35,16 +33,5 @@ class RegisterRequest extends FormRequest
             'first_name.required' => 'O primeiro nome é obrigatório.',
             'last_name.required' => 'O sobrenome é obrigatório.',
         ];
-    }
-
-    protected function failedValidation(Validator $validator): never
-    {
-        throw new HttpResponseException(
-            response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $validator->errors(),
-            ], 422)
-        );
     }
 }

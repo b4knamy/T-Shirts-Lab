@@ -2,11 +2,9 @@
 
 namespace App\Http\Requests\Api\V1\Order;
 
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Http\Requests\Api\V1\CustomFormRequest;
 
-class UpdateOrderStatusRequest extends FormRequest
+class UpdateOrderStatusRequest extends CustomFormRequest
 {
     public function authorize(): bool
     {
@@ -16,8 +14,8 @@ class UpdateOrderStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => 'required|in:PENDING,CONFIRMED,PROCESSING,SHIPPED,DELIVERED,CANCELLED,REFUNDED',
-            'admin_notes' => 'nullable|string|max:1000',
+            'status' => ['required', 'in:PENDING,CONFIRMED,PROCESSING,SHIPPED,DELIVERED,CANCELLED,REFUNDED'],
+            'admin_notes' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
@@ -26,17 +24,7 @@ class UpdateOrderStatusRequest extends FormRequest
         return [
             'status.required' => 'O status é obrigatório.',
             'status.in' => 'Status inválido. Use: PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED ou REFUNDED.',
+            'admin_notes.max' => 'As notas administrativas devem ter no máximo 1000 caracteres.',
         ];
-    }
-
-    protected function failedValidation(Validator $validator): never
-    {
-        throw new HttpResponseException(
-            response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $validator->errors(),
-            ], 422)
-        );
     }
 }
