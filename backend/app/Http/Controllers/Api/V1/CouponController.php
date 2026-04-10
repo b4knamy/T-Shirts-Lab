@@ -47,7 +47,7 @@ class CouponController extends Controller
             if (str_starts_with($result, 'min_order:')) {
                 $amount = substr($result, strlen('min_order:'));
 
-                return $this->error('Minimum order amount of $' . $amount . ' required', 422);
+                return $this->error('Minimum order amount of $'.$amount.' required', 422);
             }
 
             return $this->error($result, 422);

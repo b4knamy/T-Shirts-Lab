@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Api\V1\ProductImageResource;
 use App\Http\Requests\Api\V1\ProductImage\StoreProductImageRequest;
-use App\Http\Requests\Api\V1\ProductImage\UploadProductImageRequest;
 use App\Http\Requests\Api\V1\ProductImage\UpdateProductImageRequest;
+use App\Http\Requests\Api\V1\ProductImage\UploadProductImageRequest;
+use App\Http\Resources\Api\V1\ProductImageResource;
 use App\Services\ProductImageService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class ProductImageController extends Controller
 {

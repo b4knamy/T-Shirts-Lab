@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Api\V1\UserResource;
 use App\Http\Requests\Api\V1\UserManagement\StoreStaffRequest;
 use App\Http\Requests\Api\V1\UserManagement\UpdateUserRequest;
+use App\Http\Resources\Api\V1\UserResource;
 use App\Services\UserManagementService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\UserAddress;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -29,20 +30,20 @@ class UserService
     {
         // Delete old avatar if stored locally
         if ($user->profile_picture_url && str_contains($user->profile_picture_url, '/storage/avatars/')) {
-            $oldPath = str_replace(url('storage') . '/', '', $user->profile_picture_url);
+            $oldPath = str_replace(url('storage').'/', '', $user->profile_picture_url);
             Storage::disk('public')->delete($oldPath);
         }
 
-        $path = $file->store('avatars/' . $user->id, 'public');
+        $path = $file->store('avatars/'.$user->id, 'public');
 
-        $user->update(['profile_picture_url' => url('storage/' . $path)]);
+        $user->update(['profile_picture_url' => url('storage/'.$path)]);
         $user->refresh();
         $user->load('addresses');
 
         return $user;
     }
 
-    public function getAddresses(User $user): \Illuminate\Database\Eloquent\Collection
+    public function getAddresses(User $user): Collection
     {
         return $user->addresses()->orderByDesc('is_default')->get();
     }

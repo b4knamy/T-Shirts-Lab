@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Category;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
@@ -14,7 +13,7 @@ class CategoryService
         $query = Category::orderBy('name');
 
         if (! empty($filters['search'])) {
-            $query->where('name', 'ilike', '%' . $filters['search'] . '%');
+            $query->where('name', 'ilike', '%'.$filters['search'].'%');
         }
 
         if (! empty($filters['status'])) {
@@ -32,7 +31,7 @@ class CategoryService
         $data['slug'] = Str::slug($data['name']);
 
         if (Category::where('slug', $data['slug'])->exists()) {
-            $data['slug'] .= '-' . Str::random(4);
+            $data['slug'] .= '-'.Str::random(4);
         }
 
         $data['is_active'] = $data['is_active'] ?? true;
@@ -54,7 +53,7 @@ class CategoryService
         if (isset($data['name'])) {
             $slug = Str::slug($data['name']);
             if ($slug !== $category->slug && Category::where('slug', $slug)->where('id', '!=', $id)->exists()) {
-                $slug .= '-' . Str::random(4);
+                $slug .= '-'.Str::random(4);
             }
             $data['slug'] = $slug;
         }
@@ -66,7 +65,7 @@ class CategoryService
     }
 
     /**
-     * @return Category|string|null  Returns the Category on success, a string error message on failure, null if not found.
+     * @return Category|string|null Returns the Category on success, a string error message on failure, null if not found.
      */
     public function delete(string $id): Category|string|null
     {

@@ -14,7 +14,7 @@ class UpdateCouponRequest extends CustomFormRequest
     public function rules(): array
     {
         return [
-            'code' => ['sometimes', 'string', 'max:50', 'unique:coupons,code,' . $this->route('id')],
+            'code' => ['sometimes', 'string', 'max:50', 'unique:coupons,code,'.$this->route('id')],
             'description' => ['nullable', 'string', 'max:255'],
             'type' => ['sometimes', 'in:PERCENTAGE,FIXED'],
             'value' => ['sometimes', 'numeric', 'min:0.01'],

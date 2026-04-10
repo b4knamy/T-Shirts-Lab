@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Api\V1\ProductReviewResource;
+use App\Http\Requests\Api\V1\ProductReview\AdminReplyReviewRequest;
 use App\Http\Requests\Api\V1\ProductReview\StoreProductReviewRequest;
 use App\Http\Requests\Api\V1\ProductReview\UpdateProductReviewRequest;
-use App\Http\Requests\Api\V1\ProductReview\AdminReplyReviewRequest;
+use App\Http\Resources\Api\V1\ProductReviewResource;
 use App\Services\ProductReviewService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;

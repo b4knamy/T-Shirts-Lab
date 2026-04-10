@@ -4,10 +4,11 @@ namespace App\Services;
 
 use App\Models\Coupon;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 
 class CouponService
 {
-    public function getPublicActive(): \Illuminate\Database\Eloquent\Collection
+    public function getPublicActive(): Collection
     {
         return Coupon::where('is_active', true)
             ->where('is_public', true)
@@ -26,7 +27,7 @@ class CouponService
     }
 
     /**
-     * @return array{coupon: Coupon, discount: float}|string  Returns data array on success or an error string.
+     * @return array{coupon: Coupon, discount: float}|string Returns data array on success or an error string.
      */
     public function validate(string $code, float $subtotal, User $user): array|string
     {
@@ -47,7 +48,7 @@ class CouponService
         $discount = $coupon->calculateDiscount($subtotal);
 
         if ($discount <= 0) {
-            return 'min_order:' . number_format((float) $coupon->min_order_amount, 2);
+            return 'min_order:'.number_format((float) $coupon->min_order_amount, 2);
         }
 
         return compact('coupon', 'discount');
@@ -58,7 +59,7 @@ class CouponService
         $query = Coupon::orderBy('created_at', 'desc');
 
         if (! empty($filters['search'])) {
-            $query->where('code', 'ilike', '%' . $filters['search'] . '%');
+            $query->where('code', 'ilike', '%'.$filters['search'].'%');
         }
 
         if (! empty($filters['type'])) {

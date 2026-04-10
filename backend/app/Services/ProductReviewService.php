@@ -26,7 +26,7 @@ class ProductReviewService
     }
 
     /**
-     * @return ProductReview|string  Returns the review on success or an error string.
+     * @return ProductReview|string Returns the review on success or an error string.
      */
     public function create(string $productId, User $user, array $data): ProductReview|string
     {
