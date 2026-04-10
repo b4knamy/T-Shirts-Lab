@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\ProductReview\AdminReplyReviewRequest;
+use App\Http\Requests\Api\V1\ProductReview\StoreProductReviewRequest;
+use App\Http\Requests\Api\V1\ProductReview\UpdateProductReviewRequest;
 use App\Http\Resources\Api\V1\ProductReviewResource;
-use App\Models\Product;
-use App\Models\ProductReview;
+use App\Services\ProductReviewService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,21 +17,16 @@ class ProductReviewController extends Controller
 {
     use ApiResponse;
 
+    public function __construct(
+        private readonly ProductReviewService $productReviewService
+    ) {}
+
     /**
      * Public — paginated reviews for a product + average rating.
      */
     public function index(string $id): JsonResponse
     {
-        $product = Product::findOrFail($id);
-
-        $reviews = $product->reviews()
-            ->with('user')
-            ->latest()
-            ->paginate(10);
-
-        $stats = ProductReview::where('product_id', $id)
-            ->selectRaw('ROUND(AVG(rating), 1) as average_rating, COUNT(*) as total_reviews')
-            ->first();
+        ['reviews' => $reviews, 'stats' => $stats] = $this->productReviewService->getForProduct($id);
 
         return $this->success([
             'reviews' => ProductReviewResource::collection($reviews),
@@ -47,79 +44,45 @@ class ProductReviewController extends Controller
     /**
      * Auth — create a review (one per user per product).
      */
-    public function store(Request $request, string $id): JsonResponse
+    public function store(StoreProductReviewRequest $request, string $id): JsonResponse
     {
         $user = JWTAuth::parseToken()->authenticate();
 
-        $data = $request->validate([
-            'rating' => 'required|integer|min:1|max:5',
-            'comment' => 'nullable|string|max:2000',
-        ]);
+        $data = $request->validated();
 
-        $product = Product::findOrFail($id);
+        $result = $this->productReviewService->create($id, $user, $data);
 
-        // Check if user already reviewed
-        $existing = ProductReview::where('user_id', $user->id)
-            ->where('product_id', $product->id)
-            ->first();
-
-        if ($existing) {
-            return $this->error('You have already reviewed this product', 422);
+        if (is_string($result)) {
+            return $this->error($result, 422);
         }
 
-        $review = ProductReview::create([
-            'user_id' => $user->id,
-            'product_id' => $product->id,
-            'rating' => $data['rating'],
-            'comment' => $data['comment'] ?? null,
-        ]);
-
-        $review->load('user');
-
-        return $this->success(new ProductReviewResource($review), 'Review submitted', 201);
+        return $this->success(new ProductReviewResource($result), 'Review submitted', 201);
     }
 
     /**
      * Auth — update own review.
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(UpdateProductReviewRequest $request, string $id): JsonResponse
     {
         $user = JWTAuth::parseToken()->authenticate();
 
-        $review = ProductReview::where('id', $id)
-            ->where('user_id', $user->id)
-            ->firstOrFail();
+        $data = $request->validated();
 
-        $data = $request->validate([
-            'rating' => 'sometimes|integer|min:1|max:5',
-            'comment' => 'nullable|string|max:2000',
-        ]);
+        $review = $this->productReviewService->update($id, $user, $data);
 
-        $review->update($data);
-        $review->load('user');
-
-        return $this->success(new ProductReviewResource($review->fresh()), 'Review updated');
+        return $this->success(new ProductReviewResource($review), 'Review updated');
     }
 
     /**
      * Admin — reply to a review.
      */
-    public function adminReply(Request $request, string $id): JsonResponse
+    public function adminReply(AdminReplyReviewRequest $request, string $id): JsonResponse
     {
-        $data = $request->validate([
-            'admin_reply' => 'required|string|max:2000',
-        ]);
+        $data = $request->validated();
 
-        $review = ProductReview::findOrFail($id);
+        $review = $this->productReviewService->addAdminReply($id, $data['admin_reply']);
 
-        $review->update([
-            'admin_reply' => $data['admin_reply'],
-            'admin_replied_at' => now(),
-        ]);
-
-        $review->load('user');
-
-        return $this->success(new ProductReviewResource($review->fresh()), 'Reply added');
+        return $this->success(new ProductReviewResource($review), 'Reply added');
     }
 
     /**
@@ -127,25 +90,8 @@ class ProductReviewController extends Controller
      */
     public function adminIndex(Request $request): JsonResponse
     {
-        $query = ProductReview::with(['user', 'product'])
-            ->latest();
-
-        if ($request->filled('unreplied')) {
-            $query->whereNull('admin_reply');
-        }
-
-        if ($request->filled('rating')) {
-            $query->where('rating', (int) $request->input('rating'));
-        }
-
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->whereHas('product', function ($q) use ($search) {
-                $q->where('name', 'ilike', "%{$search}%");
-            });
-        }
-
-        $reviews = $query->paginate($request->input('limit', 15));
+        $filters = $request->only(['unreplied', 'rating', 'search']);
+        $reviews = $this->productReviewService->adminList($filters, $request->input('limit', 15));
 
         return $this->success([
             'data' => ProductReviewResource::collection($reviews)->map(function ($resource) {
@@ -172,8 +118,7 @@ class ProductReviewController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
-        $review = ProductReview::findOrFail($id);
-        $review->delete();
+        $this->productReviewService->delete($id);
 
         return $this->success(null, 'Review deleted');
     }
