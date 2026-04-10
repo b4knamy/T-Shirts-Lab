@@ -7,7 +7,7 @@ use App\Http\Requests\Api\V1\Coupon\StoreCouponRequest;
 use App\Http\Requests\Api\V1\Coupon\UpdateCouponRequest;
 use App\Http\Requests\Api\V1\Coupon\ValidateCouponRequest;
 use App\Http\Resources\Api\V1\CouponResource;
-use App\Models\Coupon;
+use App\Services\CouponService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,23 +17,14 @@ class CouponController extends Controller
 {
     use ApiResponse;
 
+    public function __construct(
+        private readonly CouponService $couponService
+    ) {}
+
     /* ── Public: active promo banners (is_public + valid) ────────────── */
     public function publicActive(): JsonResponse
     {
-        $coupons = Coupon::where('is_active', true)
-            ->where('is_public', true)
-            ->where(function ($q) {
-                $q->whereNull('starts_at')->orWhere('starts_at', '<=', now());
-            })
-            ->where(function ($q) {
-                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
-            })
-            ->where(function ($q) {
-                $q->whereNull('usage_limit')
-                    ->orWhereRaw('usage_count < usage_limit');
-            })
-            ->orderBy('expires_at')
-            ->get();
+        $coupons = $this->couponService->getPublicActive();
 
         return $this->success(CouponResource::collection($coupons));
     }
@@ -42,32 +33,29 @@ class CouponController extends Controller
     public function validate(ValidateCouponRequest $request): JsonResponse
     {
         $user = JWTAuth::parseToken()->authenticate();
-        $coupon = Coupon::where('code', strtoupper($request->validated('code')))->first();
+        $result = $this->couponService->validate(
+            $request->validated('code'),
+            (float) $request->validated('subtotal'),
+            $user
+        );
 
-        if (! $coupon) {
+        if ($result === 'not_found') {
             return $this->error('Coupon not found', 404);
         }
 
-        if (! $coupon->isValid()) {
-            return $this->error('This coupon is no longer valid', 422);
-        }
+        if (is_string($result)) {
+            if (str_starts_with($result, 'min_order:')) {
+                $amount = substr($result, strlen('min_order:'));
 
-        if ($coupon->hasUserReachedLimit($user->id)) {
-            return $this->error('You have already used this coupon the maximum number of times', 422);
-        }
+                return $this->error('Minimum order amount of $' . $amount . ' required', 422);
+            }
 
-        $discount = $coupon->calculateDiscount((float) $request->validated('subtotal'));
-
-        if ($discount <= 0) {
-            return $this->error(
-                'Minimum order amount of $'.number_format((float) $coupon->min_order_amount, 2).' required',
-                422
-            );
+            return $this->error($result, 422);
         }
 
         return $this->success([
-            'coupon' => new CouponResource($coupon),
-            'discount' => $discount,
+            'coupon' => new CouponResource($result['coupon']),
+            'discount' => $result['discount'],
         ]);
     }
 
@@ -78,39 +66,15 @@ class CouponController extends Controller
         $page = (int) $request->get('page', 1);
         $limit = min((int) $request->get('limit', 20), 100);
 
-        $query = Coupon::orderBy('created_at', 'desc');
+        $filters = $request->only(['search', 'type', 'status']);
+        $result = $this->couponService->paginate($filters, $page, $limit);
 
-        if ($request->has('search')) {
-            $query->where('code', 'ilike', '%'.$request->get('search').'%');
-        }
-
-        if ($request->has('type')) {
-            $query->where('type', $request->get('type'));
-        }
-
-        if ($request->has('status')) {
-            $status = $request->get('status');
-            if ($status === 'active') {
-                $query->where('is_active', true)
-                    ->where(function ($q) {
-                        $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
-                    });
-            } elseif ($status === 'inactive') {
-                $query->where('is_active', false);
-            } elseif ($status === 'expired') {
-                $query->where('expires_at', '<=', now());
-            }
-        }
-
-        $total = $query->count();
-        $coupons = $query->skip(($page - 1) * $limit)->take($limit)->get();
-
-        return $this->paginated(CouponResource::collection($coupons), $total, $page, $limit);
+        return $this->paginated(CouponResource::collection($result['coupons']), $result['total'], $page, $limit);
     }
 
     public function show(string $id): JsonResponse
     {
-        $coupon = Coupon::find($id);
+        $coupon = $this->couponService->find($id);
 
         if (! $coupon) {
             return $this->error('Coupon not found', 404);
@@ -121,41 +85,29 @@ class CouponController extends Controller
 
     public function store(StoreCouponRequest $request): JsonResponse
     {
-        $data = $request->validated();
-        $data['code'] = strtoupper($data['code']);
-
-        $coupon = Coupon::create($data);
+        $coupon = $this->couponService->create($request->validated());
 
         return $this->success(new CouponResource($coupon), 'Coupon created', 201);
     }
 
     public function update(UpdateCouponRequest $request, string $id): JsonResponse
     {
-        $coupon = Coupon::find($id);
+        $coupon = $this->couponService->update($id, $request->validated());
 
         if (! $coupon) {
             return $this->error('Coupon not found', 404);
         }
 
-        $data = $request->validated();
-        if (isset($data['code'])) {
-            $data['code'] = strtoupper($data['code']);
-        }
-
-        $coupon->update($data);
-
-        return $this->success(new CouponResource($coupon->fresh()), 'Coupon updated');
+        return $this->success(new CouponResource($coupon), 'Coupon updated');
     }
 
     public function destroy(string $id): JsonResponse
     {
-        $coupon = Coupon::find($id);
+        $coupon = $this->couponService->delete($id);
 
         if (! $coupon) {
             return $this->error('Coupon not found', 404);
         }
-
-        $coupon->delete();
 
         return $this->success(null, 'Coupon deleted');
     }

@@ -4,19 +4,18 @@ namespace App\Services;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use InvalidArgumentException;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use RuntimeException;
 
 class AuthService
 {
     public function register(array $data): array
     {
         $user = User::create([
-            'email' => $data['email'],
+            ...$data,
             'password_hash' => Hash::make($data['password']),
-            'first_name' => $data['first_name'],
-            'last_name' => $data['last_name'],
-            'phone' => $data['phone'] ?? null,
             'role' => 'CUSTOMER',
             'is_active' => true,
         ]);
@@ -29,7 +28,7 @@ class AuthService
         $user = User::where('email', $email)->first();
 
         if (! $user) {
-            throw new \InvalidArgumentException('Invalid credentials', 401);
+            throw new InvalidArgumentException('Invalid credentials', 401);
         }
 
         // Validate password using the configured hasher. Older records may have
@@ -39,7 +38,7 @@ class AuthService
         // future logins use the standard Laravel driver.
         try {
             $valid = Hash::check($password, $user->password_hash);
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             // Example message: "This password does not use the Bcrypt algorithm."
             $valid = password_verify($password, $user->password_hash);
 
@@ -50,11 +49,11 @@ class AuthService
         }
 
         if (! $valid) {
-            throw new \InvalidArgumentException('Invalid credentials', 401);
+            throw new InvalidArgumentException('Invalid credentials', 401);
         }
 
         if (! $user->is_active) {
-            throw new \InvalidArgumentException('Account is disabled', 403);
+            throw new InvalidArgumentException('Account is disabled', 403);
         }
 
         return $this->issueTokens($user);
@@ -69,20 +68,20 @@ class AuthService
             $payload = JWTAuth::setToken($refreshToken)->getPayload();
 
             if ($payload->get('type') !== 'refresh') {
-                throw new \InvalidArgumentException('Invalid refresh token', 401);
+                throw new InvalidArgumentException('Invalid refresh token', 401);
             }
 
             $user = User::find($payload->get('sub'));
 
             if (! $user || $user->refresh_token !== $refreshToken) {
-                throw new \InvalidArgumentException('Invalid refresh token', 401);
+                throw new InvalidArgumentException('Invalid refresh token', 401);
             }
 
             return $this->issueTokens($user);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             throw $e;
         } catch (JWTException) {
-            throw new \InvalidArgumentException('Invalid refresh token', 401);
+            throw new InvalidArgumentException('Invalid refresh token', 401);
         }
     }
 

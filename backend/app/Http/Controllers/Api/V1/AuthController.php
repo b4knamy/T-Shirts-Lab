@@ -37,8 +37,8 @@ class AuthController extends Controller
     {
         try {
             $result = $this->authService->login(
-                $request->validated('email'),
-                $request->validated('password')
+                email: $request->validated('email'),
+                password: $request->validated('password')
             );
         } catch (InvalidArgumentException $e) {
             return $this->errorJsonResponse($e->getMessage(), $e->getCode() ?: 401);
