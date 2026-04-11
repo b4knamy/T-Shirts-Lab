@@ -1,0 +1,32 @@
+# Never bake local env files into the image
+.env
+.env.*
+!.env.example
+
+# Development artifacts
+node_modules/
+npm-debug.log
+
+# Version control
+.git
+.gitignore
+
+# Tests and docs
+tests/
+phpunit.xml
+README.md
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs and storage
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+
+# Docker build file itself (not the config files needed at runtime)
+Dockerfile

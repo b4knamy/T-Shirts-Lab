@@ -10,7 +10,8 @@
 #   • React frontend   → vite dev server   (port 5173)
 #
 # Usage:
-#   ./dev.sh            — start all services (default)
+#   ./dev.sh            — start all services (native PHP + Vite)
+#   ./dev.sh --docker   — start EVERYTHING in Docker (+ Grafana at :3000)
 #   ./dev.sh --no-docker — skip Docker step (if DB/Redis already running)
 #   ./dev.sh --stop     — stop Docker services and all background processes
 # =============================================================================
@@ -42,11 +43,13 @@ sep()  { echo -e "${CYAN}──────────────────�
 # ── Argument parsing ──────────────────────────────────────────────────────────
 USE_DOCKER=true
 STOP_MODE=false
+FULL_DOCKER=false   # --docker: run entire stack (backend + frontend) in containers
 
 for arg in "$@"; do
   case "$arg" in
     --no-docker) USE_DOCKER=false ;;
     --stop)      STOP_MODE=true  ;;
+    --docker)    FULL_DOCKER=true ;;
   esac
 done
 
@@ -68,11 +71,50 @@ if $STOP_MODE; then
   # Also stop the Docker services
   if command -v docker compose &>/dev/null; then
     log "Stopping Docker services…"
-    docker compose -f "$SCRIPT_DIR/docker-compose.yml" stop postgres redis
+    docker compose -f "$SCRIPT_DIR/docker-compose.yml" \
+                   -f "$SCRIPT_DIR/docker-compose.logging.yml" \
+                   stop 2>/dev/null || \
+    docker compose -f "$SCRIPT_DIR/docker-compose.yml" stop
     ok "Docker services stopped."
   fi
 
   ok "Dev environment stopped."
+  exit 0
+fi
+
+# ── Full Docker mode (--docker) ───────────────────────────────────────────────
+# Runs backend + frontend + monitoring all inside containers.
+# No native PHP or Node required on the host.
+if $FULL_DOCKER; then
+  sep
+  echo -e "${BOLD}  🐳  T-Shirts Lab — Full Docker Mode${RESET}"
+  sep
+
+  if ! command -v docker &>/dev/null; then
+    err "Docker is not installed."
+    exit 1
+  fi
+
+  log "Building and starting all containers…"
+  docker compose \
+    -f "$SCRIPT_DIR/docker-compose.yml" \
+    -f "$SCRIPT_DIR/docker-compose.logging.yml" \
+    up -d --build
+
+  sep
+  echo -e ""
+  echo -e "  ${BOLD}${GREEN}All containers are running!${RESET}"
+  echo -e ""
+  echo -e "  ${BOLD}Frontend${RESET}   http://localhost:5173"
+  echo -e "  ${BOLD}Backend${RESET}    http://localhost:8000"
+  echo -e "  ${BOLD}API Base${RESET}   http://localhost:8000/api/v1"
+  echo -e "  ${BOLD}Grafana${RESET}    http://localhost:3000  ${CYAN}(admin / admin)${RESET}"
+  echo -e "  ${BOLD}Loki${RESET}       http://localhost:3100"
+  echo -e ""
+  echo -e "  Logs:  ${BOLD}docker compose logs -f backend${RESET}"
+  echo -e "  Stop:  ${BOLD}./dev.sh --stop${RESET}"
+  echo -e ""
+  sep
   exit 0
 fi
 
@@ -150,7 +192,7 @@ if $USE_DOCKER; then
     log "Waiting for PostgreSQL to be healthy…"
     for i in $(seq 1 30); do
       if $COMPOSE_CMD -f "$SCRIPT_DIR/docker-compose.yml" exec -T postgres \
-          pg_isready -U tshirtslab -d tshirtslab_db &>/dev/null; then
+          pg_isready -U "${POSTGRES_USER:-tshirtslab}" -d "${POSTGRES_DB:-tshirtslab_db}" &>/dev/null; then
         ok "PostgreSQL is ready."
         break
       fi
@@ -226,6 +268,9 @@ echo -e ""
 echo -e "  ${BOLD}Frontend${RESET}   http://localhost:5173"
 echo -e "  ${BOLD}Backend${RESET}    http://localhost:8000"
 echo -e "  ${BOLD}API Base${RESET}   http://localhost:8000/api/v1"
+echo -e ""
+echo -e "  Tip: run ${BOLD}./dev.sh --docker${RESET} to start everything in containers"
+echo -e "       (adds Grafana log dashboard at http://localhost:3000)"
 echo -e ""
 echo -e "  Stop with:  ${BOLD}./dev.sh --stop${RESET}   or press ${BOLD}Ctrl+C${RESET}"
 echo -e ""

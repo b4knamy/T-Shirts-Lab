@@ -43,15 +43,15 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "@php artisan serve --host=0.0.0.0 --port=8000"
+            "bash ../dev.sh"
         ],
         "dev:start": [
             "Composer\\Config::disableProcessTimeout",
-            "bash ../dev.sh"
+            "bash ../dev.sh --docker"
         ],
-        "dev:start:no-docker": [
+        "dev:start:native": [
             "Composer\\Config::disableProcessTimeout",
-            "bash ../dev.sh --no-docker"
+            "bash ../dev.sh"
         ],
         "dev:stop": [
             "bash ../dev.sh --stop"
