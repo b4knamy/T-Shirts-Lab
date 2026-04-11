@@ -67,7 +67,7 @@ class LogManager extends Command
         } elseif ($hasDaily) {
             $this->info('📡 Mode: File-only (daily rotation)');
         } else {
-            $this->warn('⚠️  Mode: Custom stack — ' . implode(', ', $stack));
+            $this->warn('⚠️  Mode: Custom stack — '.implode(', ', $stack));
         }
 
         return Command::SUCCESS;
@@ -122,7 +122,7 @@ class LogManager extends Command
 
         if ($channel && ! isset(self::LOG_FILES[$channel])) {
             $this->error("Unknown channel: {$channel}");
-            $this->info('Available: ' . implode(', ', array_keys(self::LOG_FILES)));
+            $this->info('Available: '.implode(', ', array_keys(self::LOG_FILES)));
 
             return Command::FAILURE;
         }
@@ -159,7 +159,7 @@ class LogManager extends Command
 
         if (! isset(self::LOG_FILES[$channel])) {
             $this->error("Unknown channel: {$channel}");
-            $this->info('Available: ' . implode(', ', array_keys(self::LOG_FILES)));
+            $this->info('Available: '.implode(', ', array_keys(self::LOG_FILES)));
 
             return Command::FAILURE;
         }
@@ -173,7 +173,7 @@ class LogManager extends Command
         }
 
         // Get the most recent file
-        usort($files, fn($a, $b) => filemtime($b) - filemtime($a));
+        usort($files, fn ($a, $b) => filemtime($b) - filemtime($a));
         $latestFile = $files[0];
 
         $this->info("📄 Tailing: {$latestFile} (last {$lines} lines)");
@@ -207,7 +207,7 @@ class LogManager extends Command
         $units = ['B', 'KB', 'MB', 'GB'];
         $i = (int) floor(log($bytes, 1024));
 
-        return round($bytes / pow(1024, $i), 2) . ' ' . $units[$i];
+        return round($bytes / pow(1024, $i), 2).' '.$units[$i];
     }
 
     private function invalidAction(string $action): int
