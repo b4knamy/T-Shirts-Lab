@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\WebhookService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Stripe\Exception\SignatureVerificationException;
 use Stripe\Stripe;
 use Stripe\Webhook;
@@ -27,10 +28,26 @@ class WebhookController extends Controller
         try {
             $event = Webhook::constructEvent($payload, $sigHeader, $webhookSecret);
         } catch (SignatureVerificationException $e) {
+            Log::channel('security')->error('Stripe webhook: invalid signature', [
+                'ip' => $request->ip(),
+                'error' => $e->getMessage(),
+            ]);
+
             return response()->json(['error' => 'Invalid signature'], 400);
         } catch (\Exception $e) {
+            Log::channel('webhook')->error('Stripe webhook: processing error', [
+                'ip' => $request->ip(),
+                'error' => $e->getMessage(),
+            ]);
+
             return response()->json(['error' => 'Webhook error'], 400);
         }
+
+        Log::channel('webhook')->info('Stripe webhook received', [
+            'event_type' => $event->type,
+            'event_id' => $event->id ?? null,
+            'ip' => $request->ip(),
+        ]);
 
         switch ($event->type) {
             case 'payment_intent.succeeded':
@@ -38,6 +55,12 @@ class WebhookController extends Controller
                 break;
             case 'payment_intent.payment_failed':
                 $this->webhookService->handlePaymentFailed($event->data->object);
+                break;
+            default:
+                Log::channel('webhook')->info('Stripe webhook: unhandled event type', [
+                    'event_type' => $event->type,
+                    'event_id' => $event->id ?? null,
+                ]);
                 break;
         }
 

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenExpiredException;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenInvalidException;
@@ -18,6 +19,11 @@ class JwtAuthenticate
             $user = JWTAuth::parseToken()->authenticate();
 
             if (! $user) {
+                Log::channel('security')->warning('JWT auth: user not found for valid token', [
+                    'ip' => $request->ip(),
+                    'path' => $request->path(),
+                ]);
+
                 return response()->json([
                     'success' => false,
                     'message' => 'User not found',
@@ -25,6 +31,13 @@ class JwtAuthenticate
             }
 
             if (! $user->is_active) {
+                Log::channel('security')->warning('JWT auth: disabled account access attempt', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'ip' => $request->ip(),
+                    'path' => $request->path(),
+                ]);
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Account is disabled',
@@ -36,6 +49,12 @@ class JwtAuthenticate
                 'message' => 'Token expired',
             ], 401);
         } catch (TokenInvalidException $e) {
+            Log::channel('security')->warning('JWT auth: invalid token', [
+                'ip' => $request->ip(),
+                'path' => $request->path(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Token invalid',

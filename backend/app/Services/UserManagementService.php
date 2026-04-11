@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class UserManagementService
 {
@@ -34,10 +35,17 @@ class UserManagementService
     public function createStaff(User $currentUser, array $data): User|string
     {
         if ($data['role'] === 'ADMIN' && $currentUser->role !== 'SUPER_ADMIN') {
+            Log::channel('security')->warning('Unauthorized attempt to create admin user', [
+                'actor_id' => $currentUser->id,
+                'actor_role' => $currentUser->role,
+                'target_role' => $data['role'],
+                'ip' => request()->ip(),
+            ]);
+
             return 'Only Super Admins can create Admin users';
         }
 
-        return User::create([
+        $user = User::create([
             'email' => $data['email'],
             'password_hash' => Hash::make($data['password']),
             'first_name' => $data['first_name'],
@@ -46,6 +54,15 @@ class UserManagementService
             'role' => $data['role'],
             'is_active' => true,
         ]);
+
+        Log::channel('auth')->info('Staff user created', [
+            'created_by' => $currentUser->id,
+            'new_user_id' => $user->id,
+            'email' => $user->email,
+            'role' => $user->role,
+        ]);
+
+        return $user;
     }
 
     /**
@@ -60,18 +77,48 @@ class UserManagementService
         }
 
         if ($targetUser->role === 'SUPER_ADMIN') {
+            Log::channel('security')->warning('Attempt to modify Super Admin', [
+                'actor_id' => $currentUser->id,
+                'actor_role' => $currentUser->role,
+                'target_id' => $targetUser->id,
+                'ip' => request()->ip(),
+            ]);
+
             return 'Cannot modify Super Admin accounts';
         }
 
         if ($targetUser->role === 'ADMIN' && $currentUser->role !== 'SUPER_ADMIN') {
+            Log::channel('security')->warning('Unauthorized attempt to modify admin user', [
+                'actor_id' => $currentUser->id,
+                'actor_role' => $currentUser->role,
+                'target_id' => $targetUser->id,
+                'ip' => request()->ip(),
+            ]);
+
             return 'Only Super Admins can modify Admin users';
         }
 
         if (isset($data['role']) && $data['role'] === 'ADMIN' && $currentUser->role !== 'SUPER_ADMIN') {
+            Log::channel('security')->warning('Unauthorized attempt to promote user to admin', [
+                'actor_id' => $currentUser->id,
+                'actor_role' => $currentUser->role,
+                'target_id' => $targetUser->id,
+                'ip' => request()->ip(),
+            ]);
+
             return 'Only Super Admins can promote users to Admin';
         }
 
+        $previousRole = $targetUser->role;
         $targetUser->update($data);
+
+        Log::channel('auth')->info('User account updated by admin', [
+            'updated_by' => $currentUser->id,
+            'target_id' => $targetUser->id,
+            'target_email' => $targetUser->email,
+            'changes' => array_keys($data),
+            'role_changed' => isset($data['role']) ? "{$previousRole} -> {$data['role']}" : null,
+        ]);
 
         return $targetUser->fresh();
     }
