@@ -1,0 +1,94 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # ---------------------------------------------------------------------------
+  # Docker container logs via Docker socket service discovery.
+  # Promtail discovers all running containers and reads their JSON log files
+  # directly from /var/lib/docker/containers/<id>/<id>-json.log
+  # ---------------------------------------------------------------------------
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 15s
+        filters:
+          # Only scrape containers that belong to this project
+          - name: label
+            values: ["com.docker.compose.project=tshirtslab"]
+
+    relabel_configs:
+      # Use container name as the "container" label
+      - source_labels: [__meta_docker_container_name]
+        regex: "/(.*)"
+        target_label: container
+
+      # Use compose service name as "service" label
+      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+        target_label: service
+
+      # Set a fixed job label for Loki queries
+      - target_label: job
+        replacement: tshirtslab
+
+      # Drop infrastructure containers — only keep application services
+      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+        action: drop
+        regex: "loki|promtail|grafana|postgres|redis|frontend"
+
+      # Double-guard: drop by container name pattern too
+      - source_labels: [__meta_docker_container_name]
+        action: keep
+        regex: "/tshirtslab-backend"
+
+    pipeline_stages:
+      # Step 1 — Docker wraps each stdout line in a JSON envelope:
+      #   {"log":"<actual json line>\n","stream":"stdout","time":"..."}
+      - docker: {}
+
+      # Step 2 — Only apply JSON parsing to Laravel structured log lines.
+      #   Supervisord, nginx, and php-fpm emit plain text — skip them.
+      - match:
+          selector: '{job="tshirtslab"}'
+          stages:
+            # Only process lines that look like JSON objects
+            - json:
+                expressions:
+                  _msg: message
+                  level: level_name
+                  channel: channel
+                  environment: extra.environment
+                  app: extra.app
+                  pod: extra.pod
+
+            # Only promote labels when we actually got a channel (i.e. it's a Laravel log line)
+            - labels:
+                level:
+                channel:
+                environment:
+                app:
+                pod:
+
+            # Use ISO timestamp from the log entry (more precise than Docker's)
+            - timestamp:
+                source: datetime
+                format: "2006-01-02T15:04:05.000000Z07:00"
+                fallback_formats:
+                  - "2006-01-02T15:04:05Z07:00"
+
+      # Step 3 — Drop health-check noise (only runs on JSON lines that have uri)
+      - match:
+          selector: '{job="tshirtslab", channel=~".+"}'
+          stages:
+            - json:
+                expressions:
+                  uri: extra.uri
+            - drop:
+                source: uri
+                expression: "^/api/health$"

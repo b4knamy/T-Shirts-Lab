@@ -1,5 +1,7 @@
 <?php
 
+use App\Logging\StructuredJsonFormatter;
+use App\Logging\StructuredJsonTap;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -24,11 +26,6 @@ return [
     |--------------------------------------------------------------------------
     | Deprecations Log Channel
     |--------------------------------------------------------------------------
-    |
-    | This option controls the log channel that should be used to log warnings
-    | regarding deprecated PHP and library features. This allows you to get
-    | your application ready for upcoming major versions of dependencies.
-    |
     */
 
     'deprecations' => [
@@ -41,23 +38,73 @@ return [
     | Log Channels
     |--------------------------------------------------------------------------
     |
-    | Here you may configure the log channels for your application. Laravel
-    | utilizes the Monolog PHP logging library, which includes a variety
-    | of powerful log handlers and formatters that you're free to use.
+    | Environments:
+    |   Local dev  → LOG_STACK=stdout,daily  (JSON on terminal + daily files)
+    |   Kubernetes → LOG_STACK=stdout        (JSON only — Promtail/Fluentd collects)
+    |   CI/Tests   → LOG_STACK=daily         (files only, no stdout noise)
     |
-    | Available drivers: "single", "daily", "slack", "syslog",
-    |                    "errorlog", "monolog", "custom", "stack"
+    | Domain channels (auth, security, payment…) all route through the
+    | default stack, so a single LOG_STACK change controls everything.
+    | In Loki/ELK you filter by the "channel" JSON field.
     |
     */
 
     'channels' => [
 
+        /*
+        |----------------------------------------------------------------------
+        | Stack — the entry point. Fans out to the channels listed in LOG_STACK.
+        |----------------------------------------------------------------------
+        */
         'stack' => [
             'driver' => 'stack',
-            'channels' => explode(',', (string) env('LOG_STACK', 'single')),
+            'name' => 'app',
+            'channels' => explode(',', (string) env('LOG_STACK', 'stdout,daily')),
             'ignore_exceptions' => false,
         ],
 
+        /*
+        |----------------------------------------------------------------------
+        | stdout — Kubernetes-native channel
+        |----------------------------------------------------------------------
+        | Writes one JSON object per line to php://stdout.
+        | `kubectl logs`, Promtail, Fluentd, Datadog Agent all read stdout.
+        | StructuredJsonFormatter enriches each line with: app, environment,
+        | version, pod, node, namespace, request_id.
+        |----------------------------------------------------------------------
+        */
+        'stdout' => [
+            'driver' => 'monolog',
+            'handler' => StreamHandler::class,
+            'formatter' => StructuredJsonFormatter::class,
+            'with' => [
+                'stream' => 'php://stdout',
+            ],
+            'level' => env('LOG_LEVEL', 'debug'),
+            'tap' => [StructuredJsonTap::class],
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | stderr — critical/emergency only (Kubernetes marks these as errors)
+        |----------------------------------------------------------------------
+        */
+        'stderr' => [
+            'driver' => 'monolog',
+            'handler' => StreamHandler::class,
+            'formatter' => StructuredJsonFormatter::class,
+            'with' => [
+                'stream' => 'php://stderr',
+            ],
+            'level' => 'critical',
+            'tap' => [StructuredJsonTap::class],
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | File-based channels — used in local dev as fallback / convenience
+        |----------------------------------------------------------------------
+        */
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
@@ -73,6 +120,64 @@ return [
             'replace_placeholders' => true,
         ],
 
+        /*
+        |----------------------------------------------------------------------
+        | Domain-specific channels
+        |----------------------------------------------------------------------
+        | Each domain channel fans out to the same LOG_STACK targets as the
+        | default stack. The Monolog "channel" field in every JSON line
+        | identifies the domain (auth, payment, security…), so Loki/ELK
+        | can filter with:  {channel="auth"} or {channel="payment"}
+        | without needing separate files.
+        |----------------------------------------------------------------------
+        */
+        'auth' => [
+            'driver' => 'stack',
+            'name' => 'auth',
+            'channels' => explode(',', (string) env('LOG_STACK', 'stdout,daily')),
+            'ignore_exceptions' => false,
+        ],
+
+        'security' => [
+            'driver' => 'stack',
+            'name' => 'security',
+            'channels' => explode(',', (string) env('LOG_STACK', 'stdout,daily')),
+            'ignore_exceptions' => false,
+        ],
+
+        'payment' => [
+            'driver' => 'stack',
+            'name' => 'payment',
+            'channels' => explode(',', (string) env('LOG_STACK', 'stdout,daily')),
+            'ignore_exceptions' => false,
+        ],
+
+        'request' => [
+            'driver' => 'stack',
+            'name' => 'request',
+            'channels' => explode(',', (string) env('LOG_STACK', 'stdout,daily')),
+            'ignore_exceptions' => false,
+        ],
+
+        'webhook' => [
+            'driver' => 'stack',
+            'name' => 'webhook',
+            'channels' => explode(',', (string) env('LOG_STACK', 'stdout,daily')),
+            'ignore_exceptions' => false,
+        ],
+
+        'order' => [
+            'driver' => 'stack',
+            'name' => 'order',
+            'channels' => explode(',', (string) env('LOG_STACK', 'stdout,daily')),
+            'ignore_exceptions' => false,
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Third-party integrations (optional)
+        |----------------------------------------------------------------------
+        */
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),
@@ -91,17 +196,6 @@ return [
                 'port' => env('PAPERTRAIL_PORT'),
                 'connectionString' => 'tls://'.env('PAPERTRAIL_URL').':'.env('PAPERTRAIL_PORT'),
             ],
-            'processors' => [PsrLogMessageProcessor::class],
-        ],
-
-        'stderr' => [
-            'driver' => 'monolog',
-            'level' => env('LOG_LEVEL', 'debug'),
-            'handler' => StreamHandler::class,
-            'handler_with' => [
-                'stream' => 'php://stderr',
-            ],
-            'formatter' => env('LOG_STDERR_FORMATTER'),
             'processors' => [PsrLogMessageProcessor::class],
         ],
 
@@ -124,6 +218,7 @@ return [
         ],
 
         'emergency' => [
+            'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
         ],
 

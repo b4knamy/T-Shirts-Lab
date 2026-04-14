@@ -3,6 +3,8 @@ FROM composer:2 AS vendor
 WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+COPY . .
+RUN composer dump-autoload --optimize --no-dev --classmap-authoritative --no-scripts
 
 # Stage 2: Application
 FROM php:8.4-fpm-alpine AS app
@@ -29,9 +31,9 @@ COPY docker/supervisord.conf /etc/supervisord.conf
 WORKDIR /var/www/html
 
 COPY --from=vendor /app/vendor ./vendor
+COPY --from=vendor /app/composer.json ./composer.json
+COPY --from=vendor /app/composer.lock ./composer.lock
 COPY . .
-
-RUN composer dump-autoload --optimize --no-dev
 
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache

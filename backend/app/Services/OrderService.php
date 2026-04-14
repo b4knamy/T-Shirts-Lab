@@ -7,6 +7,7 @@ use App\Models\CouponUsage;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderService
 {
@@ -63,7 +64,7 @@ class OrderService
 
     public function createOrder(array $data, string $userId): Order
     {
-        return DB::transaction(function () use ($data, $userId) {
+        $result = DB::transaction(function () use ($data, $userId) {
             $subtotal = 0;
             $orderItems = [];
 
@@ -146,6 +147,19 @@ class OrderService
 
             return $order->load(['items.product.images', 'items.design', 'payment', 'user']);
         });
+
+        Log::channel('order')->info('Order created', [
+            'order_id' => $result->id,
+            'order_number' => $result->order_number,
+            'user_id' => $userId,
+            'subtotal' => (float) $result->subtotal,
+            'discount' => (float) $result->discount_amount,
+            'total' => (float) $result->total,
+            'items_count' => $result->items->count(),
+            'coupon_code' => $data['coupon_code'] ?? null,
+        ]);
+
+        return $result;
     }
 
     public function updateStatus(string $id, string $status, ?string $adminNotes = null): Order
@@ -155,6 +169,8 @@ class OrderService
         if (! $order) {
             throw new \RuntimeException('Order not found', 404);
         }
+
+        $previousStatus = $order->status;
 
         if ($status === 'CANCELLED') {
             foreach ($order->items as $item) {
@@ -169,6 +185,14 @@ class OrderService
         }
 
         $order->update($updateData);
+
+        Log::channel('order')->info('Order status updated', [
+            'order_id' => $id,
+            'order_number' => $order->order_number,
+            'previous_status' => $previousStatus,
+            'new_status' => $status,
+            'admin_notes' => $adminNotes,
+        ]);
 
         return Order::with(['items.product', 'payment'])->findOrFail($id);
     }
