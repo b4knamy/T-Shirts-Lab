@@ -65,8 +65,13 @@
             "@php artisan pail --timeout=0"
         ],
         "test": [
+            "@test:env",
             "@php artisan config:clear --ansi",
+            "@php artisan migrate --env=testing --force --ansi",
             "@php artisan test"
+        ],
+        "test:env": [
+            "bash -c 'cd .. && docker compose -f docker-compose.yml up -d postgres redis 2>/dev/null; echo \"Waiting for postgres...\"; until docker compose -f docker-compose.yml exec -T postgres pg_isready -U ${POSTGRES_USER:-tshirtslab} -d ${POSTGRES_DB:-tshirtslab_db} > /dev/null 2>&1; do sleep 1; done; echo \"Postgres ready.\"'"
         ],
         "lint": [
             "vendor/bin/pint"
