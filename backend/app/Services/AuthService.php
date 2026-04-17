@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Logging\Logger;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -21,11 +22,7 @@ class AuthService
             'is_active' => true,
         ]);
 
-        Log::channel('auth')->info('User registered', [
-            'user_id' => $user->id,
-            'email' => $user->email,
-            'ip' => request()->ip(),
-        ]);
+        Logger::auth()->userRegistered($user);
 
         return $this->issueTokens($user);
     }
@@ -34,11 +31,8 @@ class AuthService
     {
         $user = User::where('email', $email)->first();
 
-        if (! $user) {
-            Log::channel('auth')->warning('Login failed: user not found', [
-                'email' => $email,
-                'ip' => request()->ip(),
-            ]);
+        if (!$user) {
+            Logger::auth()->loginFailed("User not found", $email);
 
             throw new InvalidArgumentException('Invalid credentials', 401);
         }
@@ -61,30 +55,18 @@ class AuthService
         }
 
         if (! $valid) {
-            Log::channel('auth')->warning('Login failed: invalid password', [
-                'user_id' => $user->id,
-                'email' => $email,
-                'ip' => request()->ip(),
-            ]);
+            Logger::auth()->loginFailed('Invalid password', $email, $user);
 
             throw new InvalidArgumentException('Invalid credentials', 401);
         }
 
         if (! $user->is_active) {
-            Log::channel('auth')->warning('Login failed: account disabled', [
-                'user_id' => $user->id,
-                'email' => $email,
-                'ip' => request()->ip(),
-            ]);
+            Logger::auth()->loginFailed('Account disabled', $email, $user);
 
             throw new InvalidArgumentException('Account is disabled', 403);
         }
 
-        Log::channel('auth')->info('User logged in', [
-            'user_id' => $user->id,
-            'email' => $user->email,
-            'ip' => request()->ip(),
-        ]);
+        Logger::auth()->loginSuccess($user);
 
         return $this->issueTokens($user);
     }
@@ -107,24 +89,15 @@ class AuthService
                 throw new InvalidArgumentException('Invalid refresh token', 401);
             }
 
-            Log::channel('auth')->info('Token refreshed', [
-                'user_id' => $user->id,
-                'ip' => request()->ip(),
-            ]);
-
+            Logger::auth()->refreshTokenSuccess($user);
             return $this->issueTokens($user);
         } catch (InvalidArgumentException $e) {
-            Log::channel('auth')->warning('Token refresh failed', [
-                'reason' => $e->getMessage(),
-                'ip' => request()->ip(),
-            ]);
 
+            Logger::auth()->refreshTokenFailed($e->getMessage());
             throw $e;
         } catch (JWTException) {
-            Log::channel('auth')->warning('Token refresh failed: invalid JWT', [
-                'ip' => request()->ip(),
-            ]);
 
+            Logger::auth()->refreshTokenFailed('Invalid JWT');
             throw new InvalidArgumentException('Invalid refresh token', 401);
         }
     }
@@ -139,10 +112,7 @@ class AuthService
             $user->update(['refresh_token' => null]);
         }
 
-        Log::channel('auth')->info('User logged out', [
-            'user_id' => $user->id,
-            'ip' => request()->ip(),
-        ]);
+        Logger::auth()->logout($user);
     }
 
     private function issueTokens(User $user): array
