@@ -12,13 +12,11 @@ class ProductImageService
 {
     public function getForProduct(string $productId): ?Collection
     {
-        $product = Product::find($productId);
-
-        if (! $product) {
+        if (! Product::where('id', $productId)->exists()) {
             return null;
         }
 
-        return $product->images()->orderBy('sort_order')->get();
+        return ProductImage::where('product_id', $productId)->orderBy('sort_order')->get();
     }
 
     /**

@@ -12,9 +12,9 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('email')->unique();
             $table->string('password_hash');
-            $table->string('first_name');
-            $table->string('last_name');
-            $table->string('phone')->nullable();
+            $table->string('first_name', length: 80);
+            $table->string('last_name', length: 80);
+            $table->string('phone', length: 40)->nullable();
             $table->enum('role', ['CUSTOMER', 'VENDOR', 'ADMIN', 'SUPER_ADMIN', 'MODERATOR'])->default('CUSTOMER');
             $table->boolean('is_active')->default(true);
             $table->string('profile_picture_url')->nullable();

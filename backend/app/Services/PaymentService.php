@@ -2,16 +2,16 @@
 
 namespace App\Services;
 
+use App\Logging\Loggers\PaymentLogger;
 use App\Models\Order;
 use App\Models\Payment;
-use Illuminate\Support\Facades\Log;
 use Stripe\PaymentIntent;
 use Stripe\Refund;
 use Stripe\Stripe;
 
 class PaymentService
 {
-    public function __construct()
+    public function __construct(private PaymentLogger $paymentLogger)
     {
         Stripe::setApiKey(config('services.stripe.secret'));
     }
@@ -20,13 +20,7 @@ class PaymentService
     {
         $amount = (int) round($order->total * 100);
 
-        Log::channel('payment')->info('Creating payment intent', [
-            'order_id' => $order->id,
-            'order_number' => $order->order_number,
-            'amount' => $order->total,
-            'currency' => $currency,
-            'user_id' => $order->user_id,
-        ]);
+        $this->paymentLogger->creatingIntent($order, $currency);
 
         $paymentIntent = PaymentIntent::create([
             'amount' => $amount,
@@ -52,11 +46,7 @@ class PaymentService
 
         $order->update(['payment_status' => 'PROCESSING']);
 
-        Log::channel('payment')->info('Payment intent created', [
-            'order_id' => $order->id,
-            'payment_intent_id' => $paymentIntent->id,
-            'stripe_status' => $paymentIntent->status,
-        ]);
+        $this->paymentLogger->intentCreated($order, $paymentIntent->id, $paymentIntent->status);
 
         return [
             'clientSecret' => $paymentIntent->client_secret,
@@ -85,12 +75,7 @@ class PaymentService
                 ]);
             }
 
-            Log::channel('payment')->info('Payment confirmed', [
-                'payment_intent_id' => $paymentIntentId,
-                'order_id' => $payment->order_id,
-                'status' => $status,
-                'stripe_status' => $paymentIntent->status,
-            ]);
+            $this->paymentLogger->confirmed($paymentIntentId, $payment->order_id, $status, $paymentIntent->status);
         }
 
         return [
@@ -127,12 +112,7 @@ class PaymentService
             throw new \InvalidArgumentException('Payment cannot be refunded');
         }
 
-        Log::channel('payment')->info('Processing refund', [
-            'payment_intent_id' => $paymentIntentId,
-            'order_id' => $payment->order_id,
-            'refund_amount' => $amount ?? (float) $payment->amount,
-            'reason' => $reason,
-        ]);
+        $this->paymentLogger->processingRefund($paymentIntentId, $payment->order_id, $amount ?? (float) $payment->amount, $reason);
 
         $refundData = ['payment_intent' => $paymentIntentId];
 
@@ -158,12 +138,7 @@ class PaymentService
             'status' => 'REFUNDED',
         ]);
 
-        Log::channel('payment')->info('Refund completed', [
-            'payment_intent_id' => $paymentIntentId,
-            'refund_id' => $refund->id,
-            'order_id' => $payment->order_id,
-            'refund_amount' => $refundAmount,
-        ]);
+        $this->paymentLogger->refundCompleted($paymentIntentId, $refund->id, $payment->order_id, $refundAmount);
 
         return [
             'refundId' => $refund->id,

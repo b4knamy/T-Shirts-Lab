@@ -4,8 +4,8 @@ use App\Http\Controllers\Api\V1\AuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->controller(AuthController::class)->group(function () {
-    Route::post('/register', 'register');
-    Route::post('/login', 'login');
-    Route::post('/refresh', 'refresh');
+    Route::post('/register', 'register')->middleware('throttle:register');
+    Route::post('/login', 'login')->middleware('throttle:login');
+    Route::post('/refresh', 'refresh')->middleware('throttle:refresh');
     Route::post('/logout', 'logout')->middleware('jwt.auth');
 });
