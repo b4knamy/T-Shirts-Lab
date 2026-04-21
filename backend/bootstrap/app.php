@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Middleware\AdminMiddleware;
-use App\Http\Middleware\JwtAuthenticate;
+use App\Http\Middleware\JwtAuthenticateMiddleware;
 use App\Http\Middleware\RequestLogMiddleware;
 use App\Http\Middleware\SecurityLogMiddleware;
 use Illuminate\Foundation\Application;
@@ -18,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'jwt.auth' => JwtAuthenticate::class,
+            'jwt.auth' => JwtAuthenticateMiddleware::class,
             'admin' => AdminMiddleware::class,
         ]);
 

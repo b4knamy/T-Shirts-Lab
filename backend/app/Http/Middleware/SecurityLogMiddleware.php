@@ -2,80 +2,49 @@
 
 namespace App\Http\Middleware;
 
+use App\Logging\Loggers\SecurityLogger;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class SecurityLogMiddleware
 {
-    /**
-     * Log security-relevant events: auth failures, forbidden access, rate limits.
-     */
+    public function __construct(private SecurityLogger $securityLogger) {}
+
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);
 
         $statusCode = $response->getStatusCode();
 
-        if ($statusCode === 401) {
-            $this->logAuthFailure($request, $response);
-        }
-
         if ($statusCode === 403) {
-            $this->logForbidden($request, $response);
+            $this->securityLogger->warning('security.access.forbidden', array_filter([
+                "message" => $this->extractMessage($response)
+            ]));
         }
 
         if ($statusCode === 429) {
-            $this->logRateLimited($request);
+            $this->securityLogger->warning('security.rate_limit.exceeded');
         }
 
         return $response;
     }
 
-    private function logAuthFailure(Request $request, Response $response): void
-    {
-        Log::channel('security')->warning('Authentication failure', [
-            'request_id' => $request->attributes->get('request_id'),
-            'ip' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'method' => $request->method(),
-            'path' => $request->path(),
-            'message' => $this->extractMessage($response),
-        ]);
-    }
-
-    private function logForbidden(Request $request, Response $response): void
-    {
-        Log::channel('security')->warning('Forbidden access attempt', [
-            'request_id' => $request->attributes->get('request_id'),
-            'ip' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'method' => $request->method(),
-            'path' => $request->path(),
-            'message' => $this->extractMessage($response),
-        ]);
-    }
-
-    private function logRateLimited(Request $request): void
-    {
-        Log::channel('security')->warning('Rate limit exceeded', [
-            'request_id' => $request->attributes->get('request_id'),
-            'ip' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'method' => $request->method(),
-            'path' => $request->path(),
-        ]);
-    }
-
     private function extractMessage(Response $response): ?string
     {
-        try {
-            $content = json_decode($response->getContent(), true);
+        $content = $response->getContent();
 
-            return $content['message'] ?? null;
-        } catch (\Throwable) {
+        if (!is_string($content)) {
             return null;
         }
+
+        $decoded = json_decode($content, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return null;
+        }
+
+        return $decoded['message'] ?? null;
     }
 }

@@ -2,14 +2,18 @@
 
 namespace App\Http\Middleware;
 
+use App\Logging\Loggers\RequestLogger;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class RequestLogMiddleware
 {
+    public function __construct(private RequestLogger $requestLogger) {}
+
     /**
      * Paths that should never have their bodies logged (contain sensitive data).
      */
@@ -43,71 +47,59 @@ class RequestLogMiddleware
         // Attach request ID for correlation across logs
         $request->attributes->set('request_id', $requestId);
 
-        $response = $next($request);
+        try {
+            $response = $next($request);
+        } catch (Throwable $e) {
+            $this->requestLogger->exception("request.failed_exception", $e);
+            throw $e;
+        }
 
-        $this->logRequest($request, $response, $startTime, $requestId);
+        $this->logRequest($request, $response, $startTime);
 
         return $response;
     }
 
-    private function logRequest(Request $request, Response $response, float $startTime, string $requestId): void
+    private function logRequest(Request $request, Response $response, float $startTime): void
     {
         $durationMs = round((microtime(true) - $startTime) * 1000, 2);
         $statusCode = $response->getStatusCode();
 
-        $userId = $this->resolveUserId($request);
-
-        $context = [
-            'request_id' => $requestId,
-            'method' => $request->method(),
-            'url' => $request->fullUrl(),
-            'path' => $request->path(),
-            'status' => $statusCode,
-            'duration_ms' => $durationMs,
-            'ip' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'user_id' => $userId,
-        ];
-
-        // Only log request body for non-sensitive paths
-        if (! $this->isSensitivePath($request->path())) {
-            $body = $this->sanitizeBody($request->all());
-            if (! empty($body)) {
-                $context['request_body'] = $body;
-            }
-        }
-
-        // Determine log level based on response status
-        $level = match (true) {
-            $statusCode >= 500 => 'error',
-            $statusCode >= 400 => 'warning',
-            default => 'info',
+        $shouldLog = match (true) {
+            $statusCode >= 500 => true,
+            $statusCode >= 400 => true,
+            default => false,
         };
 
-        $message = sprintf(
-            '%s %s %d %sms',
-            $request->method(),
-            $request->path(),
-            $statusCode,
-            $durationMs
-        );
+        if ($shouldLog) {
+            $context = [];
 
-        Log::channel('request')->{$level}($message, $context);
+            // Only log request body for non-sensitive paths
+            if (!$this->isSensitivePath($request->path())) {
+                $body = $this->sanitizeBody($request->all());
+
+                if (!empty($body)) {
+                    $context['request_body'] = $body;
+                }
+            }
+
+            $context["status"] = $statusCode;
+            $context["duration_ms"] = $durationMs;
+
+            // Determine log level based on response status
+            $level = match (true) {
+                $statusCode >= 500 => 'error',
+                $statusCode >= 400 => 'warning',
+                default => 'info',
+            };
+
+            $this->requestLogger->{$level}("request.failed", $context);
+        }
 
         // Also log slow requests (> 2 seconds) to the main log
         if ($durationMs > 2000) {
-            Log::warning('Slow request detected', $context);
-        }
-    }
-
-    private function resolveUserId(Request $request): ?string
-    {
-        try {
-            $user = JWTAuth::parseToken()->authenticate();
-
-            return $user?->id;
-        } catch (\Throwable) {
-            return null;
+            $this->requestLogger->warning('request.slow_request', [
+                "duration_ms" => $durationMs
+            ]);
         }
     }
 

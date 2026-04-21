@@ -2,27 +2,26 @@
 
 namespace App\Http\Middleware;
 
+use App\Logging\Loggers\SecurityLogger;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenExpiredException;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenInvalidException;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 use Symfony\Component\HttpFoundation\Response;
 
-class JwtAuthenticate
+class JwtAuthenticateMiddleware
 {
+    public function __construct(private SecurityLogger $securityLogger) {}
+
     public function handle(Request $request, Closure $next): Response
     {
         try {
             $user = JWTAuth::parseToken()->authenticate();
 
-            if (! $user) {
-                Log::channel('security')->warning('JWT auth: user not found for valid token', [
-                    'ip' => $request->ip(),
-                    'path' => $request->path(),
-                ]);
+            if (!$user) {
+                $this->securityLogger->warning('security.jwt.user_not_found');
 
                 return response()->json([
                     'success' => false,
@@ -30,12 +29,9 @@ class JwtAuthenticate
                 ], 401);
             }
 
-            if (! $user->is_active) {
-                Log::channel('security')->warning('JWT auth: disabled account access attempt', [
+            if (!$user->is_active) {
+                $this->securityLogger->warning('security.jwt.user_not_active', [
                     'user_id' => $user->id,
-                    'email' => $user->email,
-                    'ip' => $request->ip(),
-                    'path' => $request->path(),
                 ]);
 
                 return response()->json([
@@ -49,11 +45,7 @@ class JwtAuthenticate
                 'message' => 'Token expired',
             ], 401);
         } catch (TokenInvalidException $e) {
-            Log::channel('security')->warning('JWT auth: invalid token', [
-                'ip' => $request->ip(),
-                'path' => $request->path(),
-                'user_agent' => $request->userAgent(),
-            ]);
+            $this->securityLogger->warning('security.jwt.token_invalid');
 
             return response()->json([
                 'success' => false,
