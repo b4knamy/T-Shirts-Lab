@@ -6,7 +6,6 @@ use App\Logging\Loggers\SecurityLogger;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Throwable;
 
 class SecurityLogMiddleware
 {
@@ -20,7 +19,7 @@ class SecurityLogMiddleware
 
         if ($statusCode === 403) {
             $this->securityLogger->warning('security.access.forbidden', array_filter([
-                "message" => $this->extractMessage($response)
+                'message' => $this->extractMessage($response),
             ]));
         }
 
@@ -35,7 +34,7 @@ class SecurityLogMiddleware
     {
         $content = $response->getContent();
 
-        if (!is_string($content)) {
+        if (! is_string($content)) {
             return null;
         }
 

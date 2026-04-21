@@ -20,7 +20,7 @@ class JwtAuthenticateMiddleware
         try {
             $user = JWTAuth::parseToken()->authenticate();
 
-            if (!$user) {
+            if (! $user) {
                 $this->securityLogger->warning('security.jwt.user_not_found');
 
                 return response()->json([
@@ -29,7 +29,7 @@ class JwtAuthenticateMiddleware
                 ], 401);
             }
 
-            if (!$user->is_active) {
+            if (! $user->is_active) {
                 $this->securityLogger->warning('security.jwt.user_not_active', [
                     'user_id' => $user->id,
                 ]);

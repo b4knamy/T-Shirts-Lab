@@ -3,7 +3,6 @@
 namespace App\Logging\Loggers;
 
 use App\Models\Order;
-use App\Models\Payment;
 
 class PaymentLogger extends BaseLogger
 {

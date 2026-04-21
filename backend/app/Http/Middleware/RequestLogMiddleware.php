@@ -50,7 +50,7 @@ class RequestLogMiddleware
         try {
             $response = $next($request);
         } catch (Throwable $e) {
-            $this->requestLogger->exception("request.failed_exception", $e);
+            $this->requestLogger->exception('request.failed_exception', $e);
             throw $e;
         }
 
@@ -74,16 +74,16 @@ class RequestLogMiddleware
             $context = [];
 
             // Only log request body for non-sensitive paths
-            if (!$this->isSensitivePath($request->path())) {
+            if (! $this->isSensitivePath($request->path())) {
                 $body = $this->sanitizeBody($request->all());
 
-                if (!empty($body)) {
+                if (! empty($body)) {
                     $context['request_body'] = $body;
                 }
             }
 
-            $context["status"] = $statusCode;
-            $context["duration_ms"] = $durationMs;
+            $context['status'] = $statusCode;
+            $context['duration_ms'] = $durationMs;
 
             // Determine log level based on response status
             $level = match (true) {
@@ -92,13 +92,13 @@ class RequestLogMiddleware
                 default => 'info',
             };
 
-            $this->requestLogger->{$level}("request.failed", $context);
+            $this->requestLogger->{$level}('request.failed', $context);
         }
 
         // Also log slow requests (> 2 seconds) to the main log
         if ($durationMs > 2000) {
             $this->requestLogger->warning('request.slow_request', [
-                "duration_ms" => $durationMs
+                'duration_ms' => $durationMs,
             ]);
         }
     }

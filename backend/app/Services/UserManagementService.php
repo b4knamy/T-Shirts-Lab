@@ -14,6 +14,7 @@ class UserManagementService
         private AuthLogger $authLogger,
         private SecurityLogger $securityLogger,
     ) {}
+
     public function paginate(array $filters, int $perPage): LengthAwarePaginator
     {
         $query = User::query()->latest();

@@ -54,8 +54,8 @@ abstract class BaseLogger
         $this->error($title, array_merge([
             'exception_class' => $e::class,
             'message' => $e->getMessage(),
-            'file'      => $e->getFile(),
-            'line'      => $e->getLine(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
         ], $context));
     }
 
@@ -74,12 +74,12 @@ abstract class BaseLogger
         $request = request();
 
         return [
-            'request_id'           => $request->attributes->get('request_id'),
-            'ip'                   => $request->ip(),
-            'user_agent'           => $request->userAgent(),
+            'request_id' => $request->attributes->get('request_id'),
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
             'authenticated_user_id' => $request->user()?->id,
             'request_method' => $request->method(),
-            'request_path' => $request->path()
+            'request_path' => $request->path(),
         ];
     }
 }

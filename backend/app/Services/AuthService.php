@@ -32,8 +32,8 @@ class AuthService
     {
         $user = User::where('email', $email)->first();
 
-        if (!$user) {
-            $this->authLogger->loginFailed("User not found");
+        if (! $user) {
+            $this->authLogger->loginFailed('User not found');
 
             throw new InvalidArgumentException('Invalid credentials', 401);
         }
@@ -91,6 +91,7 @@ class AuthService
             }
 
             $this->authLogger->refreshTokenSuccess($user);
+
             return $this->issueTokens($user);
         } catch (InvalidArgumentException $e) {
 

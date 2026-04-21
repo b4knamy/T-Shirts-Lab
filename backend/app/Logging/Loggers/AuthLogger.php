@@ -18,7 +18,7 @@ class AuthLogger extends BaseLogger
         ]);
     }
 
-    public function loginFailed(string|null $reason, User|null $user = null)
+    public function loginFailed(?string $reason, ?User $user = null)
     {
         $this->warning('auth.login_failed', [
             'reason' => $reason ?? null,
@@ -37,7 +37,7 @@ class AuthLogger extends BaseLogger
     public function refreshTokenFailed(string $reason)
     {
         $this->warning('auth.refresh_token_failed', [
-            'reason' => $reason
+            'reason' => $reason,
         ]);
     }
 
