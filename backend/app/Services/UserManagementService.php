@@ -2,13 +2,18 @@
 
 namespace App\Services;
 
+use App\Logging\Loggers\AuthLogger;
+use App\Logging\Loggers\SecurityLogger;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 
 class UserManagementService
 {
+    public function __construct(
+        private AuthLogger $authLogger,
+        private SecurityLogger $securityLogger,
+    ) {}
     public function paginate(array $filters, int $perPage): LengthAwarePaginator
     {
         $query = User::query()->latest();
@@ -35,12 +40,7 @@ class UserManagementService
     public function createStaff(User $currentUser, array $data): User|string
     {
         if ($data['role'] === 'ADMIN' && $currentUser->role !== 'SUPER_ADMIN') {
-            Log::channel('security')->warning('Unauthorized attempt to create admin user', [
-                'actor_id' => $currentUser->id,
-                'actor_role' => $currentUser->role,
-                'target_role' => $data['role'],
-                'ip' => request()->ip(),
-            ]);
+            $this->securityLogger->unauthorizedAdminCreation($currentUser, $data['role']);
 
             return 'Only Super Admins can create Admin users';
         }
@@ -55,12 +55,7 @@ class UserManagementService
             'is_active' => true,
         ]);
 
-        Log::channel('auth')->info('Staff user created', [
-            'created_by' => $currentUser->id,
-            'new_user_id' => $user->id,
-            'email' => $user->email,
-            'role' => $user->role,
-        ]);
+        $this->authLogger->staffCreated($currentUser, $user);
 
         return $user;
     }
@@ -77,34 +72,19 @@ class UserManagementService
         }
 
         if ($targetUser->role === 'SUPER_ADMIN') {
-            Log::channel('security')->warning('Attempt to modify Super Admin', [
-                'actor_id' => $currentUser->id,
-                'actor_role' => $currentUser->role,
-                'target_id' => $targetUser->id,
-                'ip' => request()->ip(),
-            ]);
+            $this->securityLogger->superAdminModificationAttempt($currentUser, $targetUser);
 
             return 'Cannot modify Super Admin accounts';
         }
 
         if ($targetUser->role === 'ADMIN' && $currentUser->role !== 'SUPER_ADMIN') {
-            Log::channel('security')->warning('Unauthorized attempt to modify admin user', [
-                'actor_id' => $currentUser->id,
-                'actor_role' => $currentUser->role,
-                'target_id' => $targetUser->id,
-                'ip' => request()->ip(),
-            ]);
+            $this->securityLogger->unauthorizedAdminModification($currentUser, $targetUser);
 
             return 'Only Super Admins can modify Admin users';
         }
 
         if (isset($data['role']) && $data['role'] === 'ADMIN' && $currentUser->role !== 'SUPER_ADMIN') {
-            Log::channel('security')->warning('Unauthorized attempt to promote user to admin', [
-                'actor_id' => $currentUser->id,
-                'actor_role' => $currentUser->role,
-                'target_id' => $targetUser->id,
-                'ip' => request()->ip(),
-            ]);
+            $this->securityLogger->unauthorizedAdminPromotion($currentUser, $targetUser);
 
             return 'Only Super Admins can promote users to Admin';
         }
@@ -112,13 +92,12 @@ class UserManagementService
         $previousRole = $targetUser->role;
         $targetUser->update($data);
 
-        Log::channel('auth')->info('User account updated by admin', [
-            'updated_by' => $currentUser->id,
-            'target_id' => $targetUser->id,
-            'target_email' => $targetUser->email,
-            'changes' => array_keys($data),
-            'role_changed' => isset($data['role']) ? "{$previousRole} -> {$data['role']}" : null,
-        ]);
+        $this->authLogger->userUpdatedByAdmin(
+            $currentUser,
+            $targetUser,
+            array_keys($data),
+            isset($data['role']) ? "{$previousRole} -> {$data['role']}" : null,
+        );
 
         return $targetUser->fresh();
     }

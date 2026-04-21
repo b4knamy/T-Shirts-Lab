@@ -15,14 +15,12 @@ class AuthLogger extends BaseLogger
     {
         $this->info('auth.registered', [
             'user_id' => $user->id,
-            'email' => $user->email,
         ]);
     }
 
-    public function loginFailed(string|null $reason, string|null $email, User|null $user = null)
+    public function loginFailed(string|null $reason, User|null $user = null)
     {
         $this->warning('auth.login_failed', [
-            'email' => $email ?? null,
             'reason' => $reason ?? null,
             'user_id' => $user?->id ?? null,
         ]);
@@ -51,5 +49,26 @@ class AuthLogger extends BaseLogger
     public function logout(User $user)
     {
         $this->info('auth.logout', ['user_id' => $user->id]);
+    }
+
+    public function staffCreated(User $creator, User $newUser): void
+    {
+        $this->info('auth.staff_created', [
+            'created_by' => $creator->id,
+            'new_user_id' => $newUser->id,
+            'email' => $newUser->email,
+            'role' => $newUser->role,
+        ]);
+    }
+
+    public function userUpdatedByAdmin(User $admin, User $target, array $changedKeys, ?string $roleChanged): void
+    {
+        $this->info('auth.user_updated_by_admin', [
+            'updated_by' => $admin->id,
+            'target_id' => $target->id,
+            'target_email' => $target->email,
+            'changes' => $changedKeys,
+            'role_changed' => $roleChanged,
+        ]);
     }
 }

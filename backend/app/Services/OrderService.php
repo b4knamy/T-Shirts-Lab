@@ -2,15 +2,17 @@
 
 namespace App\Services;
 
+use App\Logging\Loggers\OrderLogger;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class OrderService
 {
+    public function __construct(private OrderLogger $orderLogger) {}
+
     public function paginateAll(array $filters, int $page, int $limit): array
     {
         $query = Order::with(['items.product', 'payment', 'user'])
@@ -148,16 +150,7 @@ class OrderService
             return $order->load(['items.product.images', 'items.design', 'payment', 'user']);
         });
 
-        Log::channel('order')->info('Order created', [
-            'order_id' => $result->id,
-            'order_number' => $result->order_number,
-            'user_id' => $userId,
-            'subtotal' => (float) $result->subtotal,
-            'discount' => (float) $result->discount_amount,
-            'total' => (float) $result->total,
-            'items_count' => $result->items->count(),
-            'coupon_code' => $data['coupon_code'] ?? null,
-        ]);
+        $this->orderLogger->created($result, $userId, $data['coupon_code'] ?? null);
 
         return $result;
     }
@@ -186,13 +179,7 @@ class OrderService
 
         $order->update($updateData);
 
-        Log::channel('order')->info('Order status updated', [
-            'order_id' => $id,
-            'order_number' => $order->order_number,
-            'previous_status' => $previousStatus,
-            'new_status' => $status,
-            'admin_notes' => $adminNotes,
-        ]);
+        $this->orderLogger->statusUpdated($id, $order->order_number, $previousStatus, $status, $adminNotes);
 
         return Order::with(['items.product', 'payment'])->findOrFail($id);
     }

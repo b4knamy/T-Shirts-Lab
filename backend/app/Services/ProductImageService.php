@@ -10,15 +10,9 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductImageService
 {
-    public function getForProduct(string $productId): ?Collection
+    public function getForProduct(string $productId): Collection
     {
-        $product = Product::find($productId);
-
-        if (! $product) {
-            return null;
-        }
-
-        return $product->images()->orderBy('sort_order')->get();
+        return ProductImage::where('product_id', $productId)->orderBy('sort_order')->get();
     }
 
     /**
@@ -57,7 +51,7 @@ class ProductImageService
             return 'product_not_found';
         }
 
-        $path = $file->store('products/'.$productId, 'public');
+        $path = $file->store('products/' . $productId, 'public');
 
         if (! empty($data['is_primary'])) {
             $product->images()->update(['is_primary' => false]);
