@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\Log;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        api: __DIR__ . '/../routes/api.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -30,14 +30,24 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 
+        // Don't report expected business-logic exceptions (they're handled at the controller layer)
+        $exceptions->dontReport([
+            \InvalidArgumentException::class,
+        ]);
+
         $exceptions->report(function (Throwable $e) {
+            // NOTE: Do NOT include the raw exception object or full trace string in context.
+            // LineFormatter (used by the `daily` channel) json_encodes the entire context
+            // array, and a full trace for a deep Laravel call stack can be megabytes,
+            // causing OOM (attempted allocation of 100MB+) inside json_encode.
+            $traceLines = explode("\n", $e->getTraceAsString());
             $context = [
                 'message' => $e->getMessage(),
                 'exception' => get_class($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'code' => $e->getCode(),
-                'trace' => $e->getTraceAsString(),
+                'trace_summary' => implode("\n", array_slice($traceLines, 0, 10)),
             ];
 
             // Add request context when available
@@ -61,6 +71,11 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             Log::error('Application Error', $context);
+
+            // Return false to stop Laravel's default reporter from also running.
+            // The default reporter passes the raw exception object to Monolog,
+            // which causes OOM when json_encode walks circular object references.
+            return false;
         });
 
         $exceptions->shouldRenderJsonWhen(function ($request) {
