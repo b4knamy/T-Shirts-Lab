@@ -22,11 +22,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => AdminMiddleware::class,
         ]);
 
-        // Global middleware for API request/security logging
-        $middleware->api(prepend: [
-            RequestLogMiddleware::class,
-            SecurityLogMiddleware::class,
-        ]);
+        if (env('APP_ENV') !== 'testing') {
+            // Request/security logging is useful in runtime environments but
+            // adds unnecessary I/O and JSON formatting overhead in the test suite.
+            $middleware->api(prepend: [
+                RequestLogMiddleware::class,
+                SecurityLogMiddleware::class,
+            ]);
+        }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 
