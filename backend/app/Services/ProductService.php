@@ -79,15 +79,18 @@ class ProductService
 
     public function getFeatured(int $limit): Collection
     {
-        return Cache::remember("products:featured:{$limit}", 3600, function () use ($limit) {
+        $rows = Cache::remember("products:featured:{$limit}", 3600, function () use ($limit) {
             return Product::with(['category', 'images', 'designs'])
                 ->withAvg('reviews', 'rating')
                 ->withCount('reviews')
                 ->where('is_featured', true)
                 ->where('status', 'ACTIVE')
                 ->limit($limit)
-                ->get();
+                ->get()
+                ->toArray();  // store plain arrays — never serialize Eloquent objects into cache
         });
+
+        return Product::hydrate($rows);
     }
 
     public function getCategories(): Collection
@@ -103,8 +106,8 @@ class ProductService
     {
         $product = Product::create([
             'name' => $data['name'],
-            'slug' => Str::slug($data['name']).'-'.Str::random(6),
-            'sku' => $data['sku'] ?? strtoupper('TSL-'.Str::random(8)),
+            'slug' => Str::slug($data['name']) . '-' . Str::random(6),
+            'sku' => $data['sku'] ?? strtoupper('TSL-' . Str::random(8)),
             'description' => $data['description'],
             'long_description' => $data['long_description'] ?? null,
             'category_id' => $data['category_id'],
@@ -132,7 +135,7 @@ class ProductService
 
         if (isset($data['name'])) {
             $updateData['name'] = $data['name'];
-            $updateData['slug'] = Str::slug($data['name']).'-'.Str::random(6);
+            $updateData['slug'] = Str::slug($data['name']) . '-' . Str::random(6);
         }
 
         foreach (
