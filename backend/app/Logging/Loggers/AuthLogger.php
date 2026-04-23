@@ -71,4 +71,28 @@ class AuthLogger extends BaseLogger
             'role_changed' => $roleChanged,
         ]);
     }
+
+    public function passwordResetRequested(string $email, bool $found): void
+    {
+        $this->info('auth.password_reset_requested', [
+            'email' => $email,
+            'user_found' => $found,
+        ]);
+    }
+
+    public function passwordReset(User $user): void
+    {
+        $this->info('auth.password_reset', [
+            'user_id' => $user->id,
+            'email' => $user->email,
+        ]);
+    }
+
+    public function passwordChanged(User $user): void
+    {
+        $this->info('auth.password_changed', [
+            'user_id' => $user->id,
+            'email' => $user->email,
+        ]);
+    }
 }
