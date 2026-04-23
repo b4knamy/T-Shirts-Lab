@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Auth\ChangePasswordRequest;
 use App\Http\Requests\Api\V1\User\StoreAddressRequest;
 use App\Http\Requests\Api\V1\User\UpdateAddressRequest;
 use App\Http\Requests\Api\V1\User\UpdateProfileRequest;
 use App\Http\Requests\Api\V1\User\UploadAvatarRequest;
 use App\Http\Resources\Api\V1\UserResource;
+use App\Services\AuthService;
 use App\Services\UserService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +20,8 @@ class UserController extends Controller
     use ApiResponse;
 
     public function __construct(
-        private readonly UserService $userService
+        private readonly UserService $userService,
+        private readonly AuthService $authService,
     ) {}
 
     public function me(): JsonResponse
@@ -45,6 +48,24 @@ class UserController extends Controller
         $updated = $this->userService->uploadAvatar($user, $request->file('avatar'));
 
         return $this->success(new UserResource($updated), 'Avatar uploaded');
+    }
+
+    /* ── Change password ─────────────────────────────────────────────── */
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+
+        try {
+            $this->authService->changePassword(
+                user: $user,
+                currentPassword: $request->validated('current_password'),
+                newPassword: $request->validated('password'),
+            );
+        } catch (\InvalidArgumentException $e) {
+            return $this->error($e->getMessage(), 422);
+        }
+
+        return $this->success(null, 'Password changed successfully. Please log in again.');
     }
 
     /* ── Address CRUD ───────────────────────────────────────────────── */

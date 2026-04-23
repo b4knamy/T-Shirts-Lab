@@ -9,6 +9,7 @@ Route::middleware('jwt.auth')->controller(UserController::class)->group(function
     Route::get('/users/me', 'me');
     Route::patch('/users/me', 'updateProfile');
     Route::post('/users/me/avatar', 'uploadAvatar');
+    Route::post('/users/me/password', 'changePassword');
     Route::get('/users/me/addresses', 'addresses');
     Route::post('/users/me/addresses', 'storeAddress');
     Route::patch('/users/me/addresses/{id}', 'updateAddress');
