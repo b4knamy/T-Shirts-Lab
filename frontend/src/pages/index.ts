@@ -3,6 +3,8 @@ export { ProductsPage } from './ProductsPage';
 export { ProductDetailPage } from './ProductDetailPage';
 export { LoginPage } from './LoginPage';
 export { RegisterPage } from './RegisterPage';
+export { ForgotPasswordPage } from './ForgotPasswordPage';
+export { ResetPasswordPage } from './ResetPasswordPage';
 export { ProfilePage } from './ProfilePage';
 export { OrdersPage } from './OrdersPage';
 export { OrderDetailPage } from './OrderDetailPage';

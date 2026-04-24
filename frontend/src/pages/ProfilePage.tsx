@@ -1,21 +1,32 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   User as UserIcon, Package, LogOut, Mail, Phone, Calendar,
-  Edit3, Save, X, Camera, MapPin, Plus, Trash2, Check,
+  Edit3, Save, X, Camera, MapPin, Plus, Trash2, Check, Eye, EyeOff, Shield,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useAppDispatch } from '../store';
 import { setUser } from '../store/slices/authSlice';
-import { userApi, type UpdateProfileData, type AddressData } from '../services/api/user';
+import { userApi, type UpdateProfileData, type AddressData, type ChangePasswordData } from '../services/api/user';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import type { UserAddress } from '../types';
+
+function getApiMessage(error: unknown, fallback: string) {
+  const maybeError = error as { response?: { data?: { message?: string } } };
+  return maybeError.response?.data?.message || fallback;
+}
+
+const emptyPasswordForm: ChangePasswordData = {
+  current_password: '',
+  password: '',
+  password_confirmation: '',
+};
 
 export function ProfilePage() {
   const { user, isLoading, loadProfile, signOut } = useAuth();
   const dispatch = useAppDispatch();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'addresses'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'addresses'>('profile');
 
   useEffect(() => {
     if (!user) {
@@ -42,6 +53,14 @@ export function ProfilePage() {
             <UserIcon className="w-5 h-5" /> Profile
           </button>
           <button
+            onClick={() => setActiveTab('security')}
+            className={`w-full flex items-center gap-3 p-3 rounded-lg font-medium transition-colors ${
+              activeTab === 'security' ? 'bg-accent/10 text-accent' : 'hover:bg-gray-100'
+            }`}
+          >
+            <Shield className="w-5 h-5" /> Password & Security
+          </button>
+          <button
             onClick={() => setActiveTab('addresses')}
             className={`w-full flex items-center gap-3 p-3 rounded-lg font-medium transition-colors ${
               activeTab === 'addresses' ? 'bg-accent/10 text-accent' : 'hover:bg-gray-100'
@@ -59,7 +78,8 @@ export function ProfilePage() {
 
         {/* Content */}
         <div className="md:col-span-3">
-          {activeTab === 'profile' && <ProfileSection user={user} dispatch={dispatch} />}
+          {activeTab === 'profile' && <ProfileSection user={user} dispatch={dispatch} onOpenSecurity={() => setActiveTab('security')} />}
+          {activeTab === 'security' && <SecuritySection />}
           {activeTab === 'addresses' && <AddressSection />}
         </div>
       </div>
@@ -69,7 +89,15 @@ export function ProfilePage() {
 
 /* ── Profile Section ─────────────────────────────────────────────── */
 
-function ProfileSection({ user, dispatch }: { user: NonNullable<ReturnType<typeof useAuth>['user']>; dispatch: ReturnType<typeof useAppDispatch> }) {
+function ProfileSection({
+  user,
+  dispatch,
+  onOpenSecurity,
+}: {
+  user: NonNullable<ReturnType<typeof useAuth>['user']>;
+  dispatch: ReturnType<typeof useAppDispatch>;
+  onOpenSecurity: () => void;
+}) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -226,6 +254,185 @@ function ProfileSection({ user, dispatch }: { user: NonNullable<ReturnType<typeo
           </div>
         )}
       </div>
+
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-semibold text-lg flex items-center gap-2">
+              <Shield className="w-5 h-5 text-accent" /> Password & Security
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">Change your password from a dedicated security screen.</p>
+          </div>
+          <button
+            onClick={onOpenSecurity}
+            className="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent/90"
+          >
+            Open Security Settings
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SecuritySection() {
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [passwordForm, setPasswordForm] = useState<ChangePasswordData>(emptyPasswordForm);
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    next: false,
+    confirm: false,
+  });
+
+  const showMsg = (text: string, type: 'success' | 'error') => {
+    setMessage({ text, type });
+    setTimeout(() => setMessage(null), 3000);
+  };
+
+  const handleChangePassword = async () => {
+    if (!passwordForm.current_password || !passwordForm.password || !passwordForm.password_confirmation) {
+      showMsg('Fill in all password fields.', 'error');
+      return;
+    }
+
+    if (passwordForm.password.length < 8) {
+      showMsg('Your new password must be at least 8 characters.', 'error');
+      return;
+    }
+
+    if (passwordForm.password !== passwordForm.password_confirmation) {
+      showMsg('Password confirmation does not match.', 'error');
+      return;
+    }
+
+    setChangingPassword(true);
+
+    try {
+      const response = await userApi.changePassword(passwordForm);
+      setPasswordForm(emptyPasswordForm);
+      navigate('/login', {
+        replace: true,
+        state: {
+          message: response.data.message || 'Password changed successfully. Please sign in again.',
+        },
+      });
+      signOut();
+    } catch (error) {
+      showMsg(getApiMessage(error, 'Failed to change password.'), 'error');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {message && (
+        <div className={`p-3 rounded-lg text-sm font-medium ${
+          message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+        }`}>
+          {message.text}
+        </div>
+      )}
+
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <div>
+            <h2 className="font-semibold text-lg flex items-center gap-2">
+              <Shield className="w-5 h-5 text-accent" /> Security
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">Update your password. You will need to sign in again after saving it.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4">
+          <PasswordInput
+            id="currentPassword"
+            label="Current Password"
+            value={passwordForm.current_password}
+            visible={showPasswords.current}
+            onToggle={() => setShowPasswords((state) => ({ ...state, current: !state.current }))}
+            onChange={(value) => setPasswordForm((state) => ({ ...state, current_password: value }))}
+          />
+          <PasswordInput
+            id="newPassword"
+            label="New Password"
+            hint="Use at least 8 characters."
+            value={passwordForm.password}
+            visible={showPasswords.next}
+            onToggle={() => setShowPasswords((state) => ({ ...state, next: !state.next }))}
+            onChange={(value) => setPasswordForm((state) => ({ ...state, password: value }))}
+          />
+          <PasswordInput
+            id="confirmNewPassword"
+            label="Confirm New Password"
+            value={passwordForm.password_confirmation}
+            visible={showPasswords.confirm}
+            onToggle={() => setShowPasswords((state) => ({ ...state, confirm: !state.confirm }))}
+            onChange={(value) => setPasswordForm((state) => ({ ...state, password_confirmation: value }))}
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 mt-6">
+          <button
+            onClick={handleChangePassword}
+            disabled={changingPassword}
+            className="flex items-center gap-2 bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent/90 disabled:opacity-50"
+          >
+            <Save className="w-4 h-4" /> {changingPassword ? 'Updating...' : 'Change Password'}
+          </button>
+          <button
+            onClick={() => setPasswordForm(emptyPasswordForm)}
+            disabled={changingPassword}
+            className="flex items-center gap-2 text-gray-500 hover:text-gray-700 px-1 py-2 disabled:opacity-50"
+          >
+            <X className="w-4 h-4" /> Clear
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PasswordInput({
+  id,
+  label,
+  value,
+  visible,
+  onToggle,
+  onChange,
+  hint,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  visible: boolean;
+  onToggle: () => void;
+  onChange: (value: string) => void;
+  hint?: string;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className="block text-sm text-gray-500 mb-1">{label}</label>
+      <div className="relative">
+        <input
+          id={id}
+          type={visible ? 'text' : 'password'}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none pr-12"
+        />
+        <button
+          type="button"
+          onClick={onToggle}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+        >
+          {visible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+        </button>
+      </div>
+      {hint && <p className="text-xs text-gray-500 mt-1">{hint}</p>}
     </div>
   );
 }

@@ -10,6 +10,8 @@ import {
   ProductDetailPage,
   LoginPage,
   RegisterPage,
+  ForgotPasswordPage,
+  ResetPasswordPage,
   ProfilePage,
   OrdersPage,
   OrderDetailPage,
@@ -27,6 +29,8 @@ function App() {
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
           </Route>
 
           {/* Main Layout */}

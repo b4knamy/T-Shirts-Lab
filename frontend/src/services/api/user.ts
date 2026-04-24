@@ -1,6 +1,12 @@
 import apiClient from './client';
 import type { User, UserAddress } from '../../types';
 
+interface MessageResponse {
+  success: boolean;
+  data: null;
+  message: string;
+}
+
 export interface UpdateProfileData {
   first_name?: string;
   last_name?: string;
@@ -20,12 +26,21 @@ export interface AddressData {
   is_default?: boolean;
 }
 
+export interface ChangePasswordData {
+  current_password: string;
+  password: string;
+  password_confirmation: string;
+}
+
 export const userApi = {
   getProfile: () =>
     apiClient.get<{ data: User }>('/api/v1/users/me'),
 
   updateProfile: (data: UpdateProfileData) =>
     apiClient.patch<{ data: User }>('/api/v1/users/me', data),
+
+  changePassword: (data: ChangePasswordData) =>
+    apiClient.post<MessageResponse>('/api/v1/users/me/password', data),
 
   uploadAvatar: (file: File) => {
     const formData = new FormData();
