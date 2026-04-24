@@ -7,6 +7,15 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
 use Monolog\Processor\PsrLogMessageProcessor;
 
+$stackChannels = array_values(array_filter(
+    explode(',', (string) env('LOG_STACK', 'stdout,daily')),
+    static fn (string $channel): bool => $channel !== ''
+));
+
+if ($stackChannels === []) {
+    $stackChannels = ['null'];
+}
+
 return [
 
     /*
@@ -59,7 +68,7 @@ return [
         'stack' => [
             'driver' => 'stack',
             'name' => 'app',
-            'channels' => explode(',', (string) env('LOG_STACK', 'stdout,daily')),
+            'channels' => $stackChannels,
             'ignore_exceptions' => false,
         ],
 
@@ -136,42 +145,42 @@ return [
         'auth' => [
             'driver' => 'stack',
             'name' => 'auth',
-            'channels' => explode(',', (string) env('LOG_STACK', 'stdout,daily')),
+            'channels' => $stackChannels,
             'ignore_exceptions' => false,
         ],
 
         'security' => [
             'driver' => 'stack',
             'name' => 'security',
-            'channels' => explode(',', (string) env('LOG_STACK', 'stdout,daily')),
+            'channels' => $stackChannels,
             'ignore_exceptions' => false,
         ],
 
         'payment' => [
             'driver' => 'stack',
             'name' => 'payment',
-            'channels' => explode(',', (string) env('LOG_STACK', 'stdout,daily')),
+            'channels' => $stackChannels,
             'ignore_exceptions' => false,
         ],
 
         'request' => [
             'driver' => 'stack',
             'name' => 'request',
-            'channels' => explode(',', (string) env('LOG_STACK', 'stdout,daily')),
+            'channels' => $stackChannels,
             'ignore_exceptions' => false,
         ],
 
         'webhook' => [
             'driver' => 'stack',
             'name' => 'webhook',
-            'channels' => explode(',', (string) env('LOG_STACK', 'stdout,daily')),
+            'channels' => $stackChannels,
             'ignore_exceptions' => false,
         ],
 
         'order' => [
             'driver' => 'stack',
             'name' => 'order',
-            'channels' => explode(',', (string) env('LOG_STACK', 'stdout,daily')),
+            'channels' => $stackChannels,
             'ignore_exceptions' => false,
         ],
 
