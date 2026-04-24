@@ -10,7 +10,7 @@ use App\Services\UserManagementService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Auth;
 
 class UserManagementController extends Controller
 {
@@ -46,7 +46,8 @@ class UserManagementController extends Controller
      */
     public function store(StoreStaffRequest $request): JsonResponse
     {
-        $currentUser = JWTAuth::parseToken()->authenticate();
+        /** @var \App\Models\User $currentUser */
+        $currentUser = Auth::user();
 
         $data = $request->validated();
 
@@ -64,7 +65,8 @@ class UserManagementController extends Controller
      */
     public function update(UpdateUserRequest $request, string $id): JsonResponse
     {
-        $currentUser = JWTAuth::parseToken()->authenticate();
+        /** @var \App\Models\User $currentUser */
+        $currentUser = Auth::user();
 
         $data = $request->validated();
 

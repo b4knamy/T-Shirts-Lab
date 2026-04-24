@@ -11,8 +11,8 @@ use App\Http\Requests\Api\V1\Auth\ResetPasswordRequest;
 use App\Http\Resources\Api\V1\UserResource;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
-use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -69,7 +69,8 @@ class AuthController extends Controller
 
     public function logout()
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
         $this->authService->logout($user);
 
         return response()->noContent();

@@ -8,12 +8,12 @@ Route::controller(CouponController::class)->group(function () {
     Route::get('/coupons/active', 'publicActive');
 
     // Authenticated — validate coupon at checkout
-    Route::middleware('jwt.auth')->group(function () {
+    Route::middleware(['jwt.auth', 'jwt.password'])->group(function () {
         Route::post('/coupons/validate', 'validate');
     });
 
     // Admin — coupon management
-    Route::middleware(['jwt.auth', 'admin'])->prefix('coupons')->group(function () {
+    Route::middleware(['jwt.auth', 'jwt.password', 'admin'])->prefix('coupons')->group(function () {
         Route::get('/', 'index');
         Route::get('/{id}', 'show');
         Route::post('/', 'store');

@@ -11,7 +11,7 @@ use App\Models\Order;
 use App\Services\PaymentService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
-use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Auth;
 use Stripe\Exception\ApiErrorException;
 
 class PaymentController extends Controller
@@ -24,7 +24,8 @@ class PaymentController extends Controller
 
     public function createIntent(CreatePaymentIntentRequest $request): JsonResponse
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
         $order = Order::find($request->validated('order_id'));
 
         if (! $order || $order->user_id !== $user->id) {

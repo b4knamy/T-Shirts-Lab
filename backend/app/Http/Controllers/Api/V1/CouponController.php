@@ -11,7 +11,7 @@ use App\Services\CouponService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Auth;
 
 class CouponController extends Controller
 {
@@ -32,7 +32,8 @@ class CouponController extends Controller
     /* ── Authenticated: validate a coupon code ──────────────────────── */
     public function validate(ValidateCouponRequest $request): JsonResponse
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
         $result = $this->couponService->validate(
             $request->validated('code'),
             (float) $request->validated('subtotal'),

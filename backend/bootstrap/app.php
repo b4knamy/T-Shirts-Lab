@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\EnsureJwtPasswordVersionIsValid;
 use App\Http\Middleware\JwtAuthenticateMiddleware;
 use App\Http\Middleware\RequestLogMiddleware;
 use App\Http\Middleware\SecurityLogMiddleware;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'jwt.auth' => JwtAuthenticateMiddleware::class,
+            'jwt.password' => EnsureJwtPasswordVersionIsValid::class,
             'admin' => AdminMiddleware::class,
         ]);
 

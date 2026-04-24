@@ -10,7 +10,7 @@ use App\Services\OrderService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
@@ -22,7 +22,8 @@ class OrderController extends Controller
 
     public function store(StoreOrderRequest $request): JsonResponse
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
         try {
             $order = $this->orderService->createOrder($request->validated(), $user->id);
@@ -35,7 +36,8 @@ class OrderController extends Controller
 
     public function myOrders(Request $request): JsonResponse
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
         $page = (int) $request->get('page', 1);
         $limit = min((int) $request->get('limit', 20), 100);
 
@@ -46,7 +48,8 @@ class OrderController extends Controller
 
     public function show(string $id): JsonResponse
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
         $order = $this->orderService->findById($id);
 
         if (! $order) {

@@ -49,7 +49,13 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email' => $this->email,
             'role' => $this->role,
+            'pwdv' => $this->passwordTokenVersion(),
         ];
+    }
+
+    public function passwordTokenVersion(): string
+    {
+        return hash('sha256', $this->password_hash);
     }
 
     // Laravel expects 'password' for auth

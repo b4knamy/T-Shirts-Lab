@@ -4,7 +4,7 @@ use App\Http\Controllers\Api\V1\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 // Admin — category management
-Route::middleware(['jwt.auth', 'admin'])
+Route::middleware(['jwt.auth', 'jwt.password', 'admin'])
     ->controller(CategoryController::class)
     ->group(function () {
         Route::get('/categories', 'index');
