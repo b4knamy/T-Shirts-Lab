@@ -59,7 +59,7 @@ class ChangePasswordTest extends TestCase
     public function test_refresh_token_is_invalidated_after_password_change(): void
     {
         $user = $this->makeUser();
-        $token = $this->loginAs($user);
+        ['access_token' => $token] = $this->loginTokens($user);
 
         $this->postJson($this->endpoint, [
             'current_password'      => 'OldPass@123',
@@ -71,12 +71,48 @@ class ChangePasswordTest extends TestCase
         $this->assertNull($user->refresh_token);
     }
 
+    public function test_old_access_token_becomes_invalid_after_password_change(): void
+    {
+        $user = $this->makeUser();
+        ['access_token' => $token] = $this->loginTokens($user);
+
+        $this->postJson($this->endpoint, [
+            'current_password'      => 'OldPass@123',
+            'password'              => 'NewPass@456',
+            'password_confirmation' => 'NewPass@456',
+        ], ['Authorization' => "Bearer {$token}"])->assertOk();
+
+        $this->getJson('/api/v1/users/me', [
+            'Authorization' => "Bearer {$token}",
+        ])->assertStatus(401);
+    }
+
+    public function test_old_refresh_token_becomes_invalid_after_password_change(): void
+    {
+        $user = $this->makeUser();
+        ['access_token' => $accessToken, 'refresh_token' => $refreshToken] = $this->loginTokens($user);
+
+        $this->postJson($this->endpoint, [
+            'current_password'      => 'OldPass@123',
+            'password'              => 'NewPass@456',
+            'password_confirmation' => 'NewPass@456',
+        ], ['Authorization' => "Bearer {$accessToken}"])->assertOk();
+
+        $this->postJson('/api/v1/auth/refresh', [
+            'refresh_token' => $refreshToken,
+        ])->assertStatus(401)
+            ->assertJson([
+                'success' => false,
+                'message' => 'Invalid refresh token',
+            ]);
+    }
+
     /* ── Validation errors ───────────────────────────────────────── */
 
     public function test_rejects_wrong_current_password(): void
     {
         $user = $this->makeUser();
-        $token = $this->loginAs($user);
+        ['access_token' => $token, 'refresh_token' => $refreshToken] = $this->loginTokens($user);
 
         $response = $this->postJson($this->endpoint, [
             'current_password'      => 'WrongPass@999',
@@ -89,6 +125,10 @@ class ChangePasswordTest extends TestCase
                 'success' => false,
                 'message' => 'Current password is incorrect.',
             ]);
+
+        $user->refresh();
+        $this->assertTrue(Hash::check('OldPass@123', $user->password_hash));
+        $this->assertSame($refreshToken, $user->refresh_token);
     }
 
     public function test_rejects_mismatched_password_confirmation(): void
@@ -103,6 +143,8 @@ class ChangePasswordTest extends TestCase
         ], ['Authorization' => "Bearer {$token}"]);
 
         $response->assertStatus(422)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'Validation error')
             ->assertJsonValidationErrors(['password']);
     }
 
@@ -118,6 +160,8 @@ class ChangePasswordTest extends TestCase
         ], ['Authorization' => "Bearer {$token}"]);
 
         $response->assertStatus(422)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'Validation error')
             ->assertJsonValidationErrors(['password']);
     }
 
@@ -132,7 +176,25 @@ class ChangePasswordTest extends TestCase
         ], ['Authorization' => "Bearer {$token}"]);
 
         $response->assertStatus(422)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'Validation error')
             ->assertJsonValidationErrors(['current_password']);
+    }
+
+    public function test_requires_password_confirmation_field(): void
+    {
+        $user = $this->makeUser();
+        ['access_token' => $token] = $this->loginTokens($user);
+
+        $response = $this->postJson($this->endpoint, [
+            'current_password' => 'OldPass@123',
+            'password' => 'NewPass@456',
+        ], ['Authorization' => "Bearer {$token}"]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'Validation error')
+            ->assertJsonValidationErrors(['password_confirmation']);
     }
 
     /* ── Auth guard ──────────────────────────────────────────────── */
@@ -152,11 +214,19 @@ class ChangePasswordTest extends TestCase
 
     private function loginAs(User $user): string
     {
+        return $this->loginTokens($user)['access_token'];
+    }
+
+    private function loginTokens(User $user): array
+    {
         $response = $this->postJson('/api/v1/auth/login', [
             'email'    => $user->email,
             'password' => 'OldPass@123',
         ]);
 
-        return $response->json('data.access_token');
+        return [
+            'access_token' => $response->json('data.access_token'),
+            'refresh_token' => $response->json('data.refresh_token'),
+        ];
     }
 }

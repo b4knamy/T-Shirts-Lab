@@ -165,8 +165,9 @@ class AuthService
         }
 
         $expiresInMinutes = config('auth.passwords.users.expire', 60);
+        $expiresAt = Carbon::parse($record->created_at)->addMinutes($expiresInMinutes);
 
-        if (abs(now()->diffInMinutes(Carbon::parse($record->created_at))) > $expiresInMinutes) {
+        if (now()->greaterThan($expiresAt)) {
             DB::table('password_reset_tokens')->where('email', $email)->delete();
             throw new InvalidArgumentException('Invalid or expired reset token.', 422);
         }
