@@ -9,6 +9,7 @@ use App\Http\Requests\Api\V1\User\UpdateAddressRequest;
 use App\Http\Requests\Api\V1\User\UpdateProfileRequest;
 use App\Http\Requests\Api\V1\User\UploadAvatarRequest;
 use App\Http\Resources\Api\V1\UserResource;
+use App\Models\User;
 use App\Services\AuthService;
 use App\Services\UserService;
 use App\Traits\ApiResponse;
@@ -26,7 +27,7 @@ class UserController extends Controller
 
     public function me(): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         return $this->success(new UserResource($this->userService->getProfile($user)));
@@ -34,7 +35,7 @@ class UserController extends Controller
 
     public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         $updated = $this->userService->updateProfile($user, $request->validated());
@@ -45,7 +46,7 @@ class UserController extends Controller
     /* ── Upload avatar ──────────────────────────────────────────────── */
     public function uploadAvatar(UploadAvatarRequest $request): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         $updated = $this->userService->uploadAvatar($user, $request->file('avatar'));
@@ -56,7 +57,7 @@ class UserController extends Controller
     /* ── Change password ─────────────────────────────────────────────── */
     public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         try {
@@ -75,7 +76,7 @@ class UserController extends Controller
     /* ── Address CRUD ───────────────────────────────────────────────── */
     public function addresses(): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         return $this->success($this->userService->getAddresses($user));
@@ -83,7 +84,7 @@ class UserController extends Controller
 
     public function storeAddress(StoreAddressRequest $request): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         $address = $this->userService->addAddress($user, $request->validated());
@@ -93,7 +94,7 @@ class UserController extends Controller
 
     public function updateAddress(UpdateAddressRequest $request, string $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         $address = $this->userService->updateAddress($user, $id, $request->validated());
@@ -107,7 +108,7 @@ class UserController extends Controller
 
     public function destroyAddress(string $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         $address = $this->userService->deleteAddress($user, $id);

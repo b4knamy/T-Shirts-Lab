@@ -29,8 +29,8 @@ class ChangePasswordTest extends TestCase
         $token = $this->loginAs($user);
 
         $response = $this->postJson($this->endpoint, [
-            'current_password'      => 'OldPass@123',
-            'password'              => 'NewPass@456',
+            'current_password' => 'OldPass@123',
+            'password' => 'NewPass@456',
             'password_confirmation' => 'NewPass@456',
         ], ['Authorization' => "Bearer {$token}"]);
 
@@ -47,8 +47,8 @@ class ChangePasswordTest extends TestCase
         $token = $this->loginAs($user);
 
         $this->postJson($this->endpoint, [
-            'current_password'      => 'OldPass@123',
-            'password'              => 'NewPass@456',
+            'current_password' => 'OldPass@123',
+            'password' => 'NewPass@456',
             'password_confirmation' => 'NewPass@456',
         ], ['Authorization' => "Bearer {$token}"]);
 
@@ -62,8 +62,8 @@ class ChangePasswordTest extends TestCase
         ['access_token' => $token] = $this->loginTokens($user);
 
         $this->postJson($this->endpoint, [
-            'current_password'      => 'OldPass@123',
-            'password'              => 'NewPass@456',
+            'current_password' => 'OldPass@123',
+            'password' => 'NewPass@456',
             'password_confirmation' => 'NewPass@456',
         ], ['Authorization' => "Bearer {$token}"]);
 
@@ -77,8 +77,8 @@ class ChangePasswordTest extends TestCase
         ['access_token' => $token] = $this->loginTokens($user);
 
         $this->postJson($this->endpoint, [
-            'current_password'      => 'OldPass@123',
-            'password'              => 'NewPass@456',
+            'current_password' => 'OldPass@123',
+            'password' => 'NewPass@456',
             'password_confirmation' => 'NewPass@456',
         ], ['Authorization' => "Bearer {$token}"])->assertOk();
 
@@ -93,8 +93,8 @@ class ChangePasswordTest extends TestCase
         ['access_token' => $accessToken, 'refresh_token' => $refreshToken] = $this->loginTokens($user);
 
         $this->postJson($this->endpoint, [
-            'current_password'      => 'OldPass@123',
-            'password'              => 'NewPass@456',
+            'current_password' => 'OldPass@123',
+            'password' => 'NewPass@456',
             'password_confirmation' => 'NewPass@456',
         ], ['Authorization' => "Bearer {$accessToken}"])->assertOk();
 
@@ -115,8 +115,8 @@ class ChangePasswordTest extends TestCase
         ['access_token' => $token, 'refresh_token' => $refreshToken] = $this->loginTokens($user);
 
         $response = $this->postJson($this->endpoint, [
-            'current_password'      => 'WrongPass@999',
-            'password'              => 'NewPass@456',
+            'current_password' => 'WrongPass@999',
+            'password' => 'NewPass@456',
             'password_confirmation' => 'NewPass@456',
         ], ['Authorization' => "Bearer {$token}"]);
 
@@ -137,8 +137,8 @@ class ChangePasswordTest extends TestCase
         $token = $this->loginAs($user);
 
         $response = $this->postJson($this->endpoint, [
-            'current_password'      => 'OldPass@123',
-            'password'              => 'NewPass@456',
+            'current_password' => 'OldPass@123',
+            'password' => 'NewPass@456',
             'password_confirmation' => 'Different@999',
         ], ['Authorization' => "Bearer {$token}"]);
 
@@ -154,8 +154,8 @@ class ChangePasswordTest extends TestCase
         $token = $this->loginAs($user);
 
         $response = $this->postJson($this->endpoint, [
-            'current_password'      => 'OldPass@123',
-            'password'              => 'Short1',
+            'current_password' => 'OldPass@123',
+            'password' => 'Short1',
             'password_confirmation' => 'Short1',
         ], ['Authorization' => "Bearer {$token}"]);
 
@@ -171,7 +171,7 @@ class ChangePasswordTest extends TestCase
         $token = $this->loginAs($user);
 
         $response = $this->postJson($this->endpoint, [
-            'password'              => 'NewPass@456',
+            'password' => 'NewPass@456',
             'password_confirmation' => 'NewPass@456',
         ], ['Authorization' => "Bearer {$token}"]);
 
@@ -202,8 +202,8 @@ class ChangePasswordTest extends TestCase
     public function test_requires_authentication(): void
     {
         $response = $this->postJson($this->endpoint, [
-            'current_password'      => 'OldPass@123',
-            'password'              => 'NewPass@456',
+            'current_password' => 'OldPass@123',
+            'password' => 'NewPass@456',
             'password_confirmation' => 'NewPass@456',
         ]);
 
@@ -220,7 +220,7 @@ class ChangePasswordTest extends TestCase
     private function loginTokens(User $user): array
     {
         $response = $this->postJson('/api/v1/auth/login', [
-            'email'    => $user->email,
+            'email' => $user->email,
             'password' => 'OldPass@123',
         ]);
 

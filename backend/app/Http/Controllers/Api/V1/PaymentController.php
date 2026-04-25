@@ -8,6 +8,7 @@ use App\Http\Requests\Api\V1\Payment\CreatePaymentIntentRequest;
 use App\Http\Requests\Api\V1\Payment\RefundPaymentRequest;
 use App\Http\Resources\Api\V1\PaymentResource;
 use App\Models\Order;
+use App\Models\User;
 use App\Services\PaymentService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -24,7 +25,7 @@ class PaymentController extends Controller
 
     public function createIntent(CreatePaymentIntentRequest $request): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         $order = Order::find($request->validated('order_id'));
 

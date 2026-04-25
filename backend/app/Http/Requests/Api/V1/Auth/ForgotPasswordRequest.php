@@ -6,23 +6,23 @@ use App\Http\Requests\Api\V1\CustomFormRequest;
 
 class ForgotPasswordRequest extends CustomFormRequest
 {
-  public function authorize(): bool
-  {
-    return true;
-  }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
-  public function rules(): array
-  {
-    return [
-      'email' => 'required|email',
-    ];
-  }
+    public function rules(): array
+    {
+        return [
+            'email' => 'required|email',
+        ];
+    }
 
-  public function messages(): array
-  {
-    return [
-      'email.required' => 'O e-mail é obrigatório.',
-      'email.email'    => 'Informe um e-mail válido.',
-    ];
-  }
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'O e-mail é obrigatório.',
+            'email.email' => 'Informe um e-mail válido.',
+        ];
+    }
 }

@@ -7,6 +7,7 @@ use App\Http\Requests\Api\V1\ProductReview\AdminReplyReviewRequest;
 use App\Http\Requests\Api\V1\ProductReview\StoreProductReviewRequest;
 use App\Http\Requests\Api\V1\ProductReview\UpdateProductReviewRequest;
 use App\Http\Resources\Api\V1\ProductReviewResource;
+use App\Models\User;
 use App\Services\ProductReviewService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -46,7 +47,7 @@ class ProductReviewController extends Controller
      */
     public function store(StoreProductReviewRequest $request, string $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         $data = $request->validated();
@@ -65,7 +66,7 @@ class ProductReviewController extends Controller
      */
     public function update(UpdateProductReviewRequest $request, string $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         $data = $request->validated();

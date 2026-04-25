@@ -129,6 +129,7 @@ class AuthService
 
         if (! $user) {
             $this->authLogger->passwordResetRequested($email, found: false);
+
             return;
         }
 
@@ -137,15 +138,15 @@ class AuthService
 
         DB::table('password_reset_tokens')->upsert(
             [
-                'email'      => $email,
-                'token'      => Hash::make($token),
+                'email' => $email,
+                'token' => Hash::make($token),
                 'created_at' => now(),
             ],
             uniqueBy: ['email'],
             update: ['token', 'created_at'],
         );
 
-        $resetUrl = rtrim(config('app.frontend_url'), '/') . '/reset-password?token=' . $token . '&email=' . urlencode($email);
+        $resetUrl = rtrim(config('app.frontend_url'), '/').'/reset-password?token='.$token.'&email='.urlencode($email);
 
         Mail::to($user->email)->send(new ResetPasswordMail(
             resetUrl: $resetUrl,
@@ -183,8 +184,8 @@ class AuthService
         }
 
         $user->update([
-            'password_hash'  => Hash::make($newPassword),
-            'refresh_token'  => null,   // invalidate all active sessions
+            'password_hash' => Hash::make($newPassword),
+            'refresh_token' => null,   // invalidate all active sessions
         ]);
 
         DB::table('password_reset_tokens')->where('email', $email)->delete();

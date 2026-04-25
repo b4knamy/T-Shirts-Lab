@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Order\StoreOrderRequest;
 use App\Http\Requests\Api\V1\Order\UpdateOrderStatusRequest;
 use App\Http\Resources\Api\V1\OrderResource;
+use App\Models\User;
 use App\Services\OrderService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -22,7 +23,7 @@ class OrderController extends Controller
 
     public function store(StoreOrderRequest $request): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         try {
@@ -36,7 +37,7 @@ class OrderController extends Controller
 
     public function myOrders(Request $request): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         $page = (int) $request->get('page', 1);
         $limit = min((int) $request->get('limit', 20), 100);
@@ -48,7 +49,7 @@ class OrderController extends Controller
 
     public function show(string $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         $order = $this->orderService->findById($id);
 
