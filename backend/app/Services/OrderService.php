@@ -11,7 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
-    public function __construct(private OrderLogger $orderLogger) {}
+    public function __construct(
+        private OrderLogger $orderLogger,
+        private OrderNotificationService $orderNotificationService,
+    ) {}
 
     public function paginateAll(array $filters, int $page, int $limit): array
     {
@@ -151,6 +154,7 @@ class OrderService
         });
 
         $this->orderLogger->created($result, $userId, $data['coupon_code'] ?? null);
+        $this->orderNotificationService->sendCreated($result);
 
         return $result;
     }
@@ -181,6 +185,15 @@ class OrderService
 
         $this->orderLogger->statusUpdated($id, $order->order_number, $previousStatus, $status, $adminNotes);
 
-        return Order::with(['items.product', 'payment'])->findOrFail($id);
+        $updatedOrder = Order::with(['items.product', 'payment', 'user'])->findOrFail($id);
+
+        $this->orderNotificationService->sendStatusUpdate(
+            $updatedOrder,
+            newStatus: $status,
+            previousStatus: $previousStatus,
+            adminNotes: $adminNotes,
+        );
+
+        return $updatedOrder;
     }
 }

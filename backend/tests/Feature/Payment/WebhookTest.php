@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Payment;
 
+use App\Mail\OrderStatusMail;
+use App\Mail\PaymentFailedMail;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
@@ -9,6 +11,7 @@ use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Mockery;
 use Stripe\Exception\SignatureVerificationException;
 use Tests\TestCase;
@@ -18,6 +21,13 @@ class WebhookTest extends TestCase
     use RefreshDatabase;
 
     private string $endpoint = '/api/webhooks/stripe';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Mail::fake();
+    }
 
     /* ── payment_intent.succeeded ────────────────────────────────── */
 
@@ -55,6 +65,13 @@ class WebhookTest extends TestCase
         $order->refresh();
         $this->assertEquals('COMPLETED', $order->payment_status);
         $this->assertEquals('CONFIRMED', $order->status);
+
+        Mail::assertSent(OrderStatusMail::class, function ($mail) use ($order, $user) {
+            return $mail->hasTo($user->email)
+                && $mail->orderNumber === $order->order_number
+                && $mail->currentStatus === 'CONFIRMED'
+                && $mail->previousStatus === 'PENDING';
+        });
     }
 
     /* ── payment_intent.payment_failed ──────────────────────────── */
@@ -107,6 +124,14 @@ class WebhookTest extends TestCase
         $product->refresh();
         $this->assertEquals(10, $product->stock_quantity);
         $this->assertEquals(0, $product->reserved_quantity);
+
+        Mail::assertNotSent(OrderStatusMail::class);
+
+        Mail::assertSent(PaymentFailedMail::class, function ($mail) use ($order, $user) {
+            return $mail->hasTo($user->email)
+                && $mail->orderNumber === $order->order_number
+                && $mail->failureReason === 'Card declined';
+        });
     }
 
     /* ── Graceful handling when no payment found ────────────────── */

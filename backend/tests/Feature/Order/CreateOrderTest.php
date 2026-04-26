@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\Order;
 
+use App\Mail\OrderStatusMail;
 use App\Models\Coupon;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class CreateOrderTest extends TestCase
@@ -14,6 +16,13 @@ class CreateOrderTest extends TestCase
     use RefreshDatabase;
 
     private string $endpoint = '/api/v1/orders';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Mail::fake();
+    }
 
     private function authUser(): array
     {
@@ -47,7 +56,9 @@ class CreateOrderTest extends TestCase
             'stock_quantity' => 10,
             'status' => 'ACTIVE',
         ]);
-        $headers = $this->authUser();
+        $auth = $this->authUserWithModel();
+        $headers = $auth['headers'];
+        $user = $auth['user'];
 
         $response = $this->postJson($this->endpoint, [
             'items' => [
@@ -71,6 +82,11 @@ class CreateOrderTest extends TestCase
                     'items',
                 ],
             ]);
+
+        Mail::assertSent(OrderStatusMail::class, function ($mail) use ($user) {
+            return $mail->hasTo($user->email)
+                && $mail->currentStatus === 'PENDING';
+        });
     }
 
     public function test_order_has_correct_calculations(): void
