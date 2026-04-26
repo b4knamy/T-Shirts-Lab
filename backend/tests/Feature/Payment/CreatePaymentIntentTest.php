@@ -34,8 +34,8 @@ class CreatePaymentIntentTest extends TestCase
         $mock->shouldReceive('createIntent')
             ->once()
             ->andReturn([
-                'clientSecret' => 'pi_test_secret',
-                'paymentIntentId' => 'pi_test_123',
+                'checkoutUrl' => 'https://checkout.stripe.com/c/pay/cs_test_123',
+                'checkoutSessionId' => 'cs_test_123',
             ]);
         $this->app->instance(PaymentService::class, $mock);
 
@@ -46,10 +46,10 @@ class CreatePaymentIntentTest extends TestCase
         $response->assertOk()
             ->assertJson([
                 'success' => true,
-                'message' => 'Payment intent created',
+                'message' => 'Checkout session created',
                 'data' => [
-                    'clientSecret' => 'pi_test_secret',
-                    'paymentIntentId' => 'pi_test_123',
+                    'checkoutUrl' => 'https://checkout.stripe.com/c/pay/cs_test_123',
+                    'checkoutSessionId' => 'cs_test_123',
                 ],
             ]);
     }
@@ -66,8 +66,8 @@ class CreatePaymentIntentTest extends TestCase
                 return $currency === 'usd';
             })
             ->andReturn([
-                'clientSecret' => 'pi_test_secret',
-                'paymentIntentId' => 'pi_test_123',
+                'checkoutUrl' => 'https://checkout.stripe.com/c/pay/cs_test_123',
+                'checkoutSessionId' => 'cs_test_123',
             ]);
         $this->app->instance(PaymentService::class, $mock);
 

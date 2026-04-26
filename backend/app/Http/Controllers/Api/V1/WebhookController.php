@@ -43,6 +43,9 @@ class WebhookController extends Controller
         $this->webhookLogger->received($event->type, $event->id ?? null, $request->ip());
 
         switch ($event->type) {
+            case 'checkout.session.completed':
+                $this->webhookService->handleCheckoutSessionCompleted($event->data->object);
+                break;
             case 'payment_intent.succeeded':
                 $this->webhookService->handlePaymentSucceeded($event->data->object);
                 break;

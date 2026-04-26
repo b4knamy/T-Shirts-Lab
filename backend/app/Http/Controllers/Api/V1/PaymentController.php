@@ -39,11 +39,13 @@ class PaymentController extends Controller
 
         try {
             $result = $this->paymentService->createIntent($order, $request->validated('currency') ?? 'brl');
+        } catch (\InvalidArgumentException $e) {
+            return $this->error($e->getMessage(), 400);
         } catch (ApiErrorException $e) {
             return $this->error('Payment processing error: '.$e->getMessage(), 500);
         }
 
-        return $this->success($result, 'Payment intent created');
+        return $this->success($result, 'Checkout session created');
     }
 
     public function confirm(ConfirmPaymentRequest $request): JsonResponse

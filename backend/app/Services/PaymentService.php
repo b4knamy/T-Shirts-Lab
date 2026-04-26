@@ -6,6 +6,7 @@ use App\Logging\Loggers\PaymentLogger;
 use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
+use Stripe\Checkout\Session;
 use Stripe\PaymentIntent;
 use Stripe\Refund;
 use Stripe\Stripe;
@@ -21,40 +22,114 @@ class PaymentService
 
     public function createIntent(Order $order, string $currency = 'brl'): array
     {
-        $amount = (int) round($order->total * 100);
+        $currency = strtolower($currency);
+        $order->loadMissing('user');
+
+        if ((float) $order->total <= 0) {
+            throw new \InvalidArgumentException('Order total must be greater than zero');
+        }
 
         $this->paymentLogger->creatingIntent($order, $currency);
 
-        $paymentIntent = PaymentIntent::create([
-            'amount' => $amount,
-            'currency' => $currency,
+        ['successUrl' => $successUrl, 'cancelUrl' => $cancelUrl] = $this->buildCheckoutUrls($order);
+
+        $session = Session::create([
+            'mode' => Session::MODE_PAYMENT,
+            'line_items' => $this->buildCheckoutLineItems($order, $currency),
+            'billing_address_collection' => Session::BILLING_ADDRESS_COLLECTION_REQUIRED,
+            'customer_creation' => Session::CUSTOMER_CREATION_IF_REQUIRED,
+            'client_reference_id' => $order->id,
+            'customer_email' => $order->user?->email,
             'metadata' => [
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,
                 'user_id' => $order->user_id,
             ],
-            'automatic_payment_methods' => ['enabled' => true],
+            'payment_intent_data' => [
+                'metadata' => [
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'user_id' => $order->user_id,
+                ],
+            ],
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
         ]);
 
         Payment::updateOrCreate(
             ['order_id' => $order->id],
             [
-                'stripe_payment_intent_id' => $paymentIntent->id,
+                'stripe_payment_intent_id' => null,
                 'amount' => $order->total,
                 'currency' => $currency,
                 'status' => 'PROCESSING',
-                'metadata' => ['stripe_status' => $paymentIntent->status],
+                'metadata' => [
+                    'stripe_status' => $session->status,
+                    'checkout_session_id' => $session->id,
+                ],
             ]
         );
 
         $order->update(['payment_status' => 'PROCESSING']);
 
-        $this->paymentLogger->intentCreated($order, $paymentIntent->id, $paymentIntent->status);
+        $this->paymentLogger->intentCreated($order, $session->id, $session->status ?? 'open');
 
         return [
-            'clientSecret' => $paymentIntent->client_secret,
-            'paymentIntentId' => $paymentIntent->id,
+            'checkoutUrl' => $session->url,
+            'checkoutSessionId' => $session->id,
         ];
+    }
+
+    private function buildCheckoutUrls(Order $order): array
+    {
+        $frontendUrl = rtrim((string) config('app.frontend_url'), '/');
+        if ($frontendUrl === '') {
+            $frontendUrl = rtrim((string) config('app.url'), '/');
+        }
+
+        return [
+            'successUrl' => "{$frontendUrl}/orders/{$order->id}?checkout=success&session_id={CHECKOUT_SESSION_ID}",
+            'cancelUrl' => "{$frontendUrl}/checkout?checkout=cancelled&order_id={$order->id}",
+        ];
+    }
+
+    private function buildCheckoutLineItems(Order $order, string $currency): array
+    {
+        $lineItems = [];
+
+        $itemsAmount = max(0, round((float) $order->subtotal - (float) $order->discount_amount, 2));
+        if ($itemsAmount > 0) {
+            $lineItems[] = [
+                'quantity' => 1,
+                'price_data' => [
+                    'currency' => $currency,
+                    'unit_amount' => (int) round($itemsAmount * 100),
+                    'product_data' => [
+                        'name' => "Order {$order->order_number}",
+                        'description' => 'T-Shirts Lab order items',
+                    ],
+                ],
+            ];
+        }
+
+        if ((float) $order->shipping_cost > 0) {
+            $lineItems[] = [
+                'quantity' => 1,
+                'price_data' => [
+                    'currency' => $currency,
+                    'unit_amount' => (int) round((float) $order->shipping_cost * 100),
+                    'product_data' => [
+                        'name' => 'Shipping',
+                    ],
+                ],
+            ];
+        }
+
+        if (empty($lineItems)) {
+            throw new \InvalidArgumentException('Order total must be greater than zero');
+        }
+
+        return $lineItems;
     }
 
     public function confirm(string $paymentIntentId, string $paymentMethodId): array
