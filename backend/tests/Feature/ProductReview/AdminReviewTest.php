@@ -133,6 +133,32 @@ class AdminReviewTest extends TestCase
         });
     }
 
+    public function test_admin_reply_is_idempotent_for_same_message(): void
+    {
+        $review = ProductReview::factory()->create([
+            'comment' => 'Loved this shirt!',
+        ]);
+        $review->load(['user', 'product']);
+        $headers = $this->authAdmin();
+
+        $this->postJson("/api/v1/reviews/{$review->id}/reply", [
+            'admin_reply' => 'Thanks for your review!',
+        ], $headers)->assertOk();
+
+        $this->postJson("/api/v1/reviews/{$review->id}/reply", [
+            'admin_reply' => 'Thanks for your review!',
+        ], $headers)->assertOk();
+
+        $review->refresh();
+        $this->assertEquals('Thanks for your review!', $review->admin_reply);
+
+        Mail::assertSent(ProductReviewAdminReplyMail::class, function ($mail) use ($review) {
+            return $mail->hasTo($review->user->email)
+                && $mail->adminReply === 'Thanks for your review!';
+        });
+        Mail::assertSentCount(1);
+    }
+
     public function test_admin_reply_fails_without_text(): void
     {
         $review = ProductReview::factory()->create();

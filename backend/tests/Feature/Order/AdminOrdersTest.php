@@ -144,6 +144,42 @@ class AdminOrdersTest extends TestCase
         $this->assertEquals(0, $product->reserved_quantity);
     }
 
+    public function test_cancel_order_is_idempotent_for_stock_release(): void
+    {
+        $product = Product::factory()->create([
+            'price' => 50.00,
+            'stock_quantity' => 7,
+            'reserved_quantity' => 3,
+            'status' => 'ACTIVE',
+        ]);
+        $order = Order::factory()->pending()->create();
+        OrderItem::factory()->create([
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'quantity' => 3,
+        ]);
+        $order->load('user');
+        $headers = $this->authAdmin();
+
+        $this->patchJson("/api/v1/orders/{$order->id}/status", [
+            'status' => 'CANCELLED',
+        ], $headers)->assertOk();
+
+        $this->patchJson("/api/v1/orders/{$order->id}/status", [
+            'status' => 'CANCELLED',
+        ], $headers)->assertOk();
+
+        $product->refresh();
+        $this->assertEquals(10, $product->stock_quantity);
+        $this->assertEquals(0, $product->reserved_quantity);
+
+        Mail::assertSent(OrderStatusMail::class, function ($mail) use ($order) {
+            return $mail->hasTo($order->user->email)
+                && $mail->currentStatus === 'CANCELLED';
+        });
+        Mail::assertSentCount(1);
+    }
+
     public function test_update_status_nonexistent_order(): void
     {
         $headers = $this->authAdmin();
