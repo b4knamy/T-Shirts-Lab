@@ -32,6 +32,10 @@ export interface ChangePasswordData {
   password_confirmation: string;
 }
 
+export interface DeleteAccountData {
+  current_password: string;
+}
+
 export const userApi = {
   getProfile: () =>
     apiClient.get<{ data: User }>('/api/v1/users/me'),
@@ -41,6 +45,9 @@ export const userApi = {
 
   changePassword: (data: ChangePasswordData) =>
     apiClient.post<MessageResponse>('/api/v1/users/me/password', data),
+
+  deleteAccount: (data: DeleteAccountData) =>
+    apiClient.delete<MessageResponse>('/api/v1/users/me', { data }),
 
   uploadAvatar: (file: File) => {
     const formData = new FormData();

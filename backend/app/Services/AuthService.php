@@ -3,17 +3,21 @@
 namespace App\Services;
 
 use App\Logging\Loggers\AuthLogger;
+use App\Mail\AccountDeletedMail;
 use App\Mail\ResetPasswordMail;
+use App\Mail\WelcomeAccountMail;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 use RuntimeException;
+use Throwable;
 
 class AuthService
 {
@@ -29,6 +33,17 @@ class AuthService
         ]);
 
         $this->authLogger->userRegistered($user);
+
+        try {
+            Mail::to($user->email)->send(new WelcomeAccountMail(
+                firstName: $user->first_name,
+            ));
+        } catch (Throwable $e) {
+            $this->authLogger->exception('auth.welcome_email_failed', $e, [
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
+        }
 
         return $this->issueTokens($user);
     }
@@ -205,6 +220,39 @@ class AuthService
         ]);
 
         $this->authLogger->passwordChanged($user);
+    }
+
+    public function deleteAccount(User $user, string $currentPassword): void
+    {
+        if (! Hash::check($currentPassword, $user->password_hash)) {
+            throw new InvalidArgumentException('Current password is incorrect.', 422);
+        }
+
+        if ($user->profile_picture_url && str_contains($user->profile_picture_url, '/storage/avatars/')) {
+            $oldPath = str_replace(url('storage').'/', '', $user->profile_picture_url);
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        $userId = $user->id;
+        $email = $user->email;
+        $firstName = $user->first_name;
+
+        DB::transaction(function () use ($user): void {
+            $user->delete();
+        });
+
+        $this->authLogger->accountDeleted($userId, $email);
+
+        try {
+            Mail::to($email)->send(new AccountDeletedMail(
+                firstName: $firstName,
+            ));
+        } catch (Throwable $e) {
+            $this->authLogger->exception('auth.account_deleted_email_failed', $e, [
+                'user_id' => $userId,
+                'email' => $email,
+            ]);
+        }
     }
 
     private function issueTokens(User $user): array

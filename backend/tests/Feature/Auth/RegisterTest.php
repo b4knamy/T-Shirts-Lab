@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Mail\WelcomeAccountMail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class RegisterTest extends TestCase
@@ -11,6 +13,13 @@ class RegisterTest extends TestCase
     use RefreshDatabase;
 
     private string $endpoint = '/api/v1/auth/register';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Mail::fake();
+    }
 
     /* ── Success ─────────────────────────────────────────────────── */
 
@@ -56,6 +65,10 @@ class RegisterTest extends TestCase
             'role' => 'CUSTOMER',
             'is_active' => true,
         ]);
+
+        Mail::assertSent(WelcomeAccountMail::class, function ($mail) {
+            return $mail->hasTo('newuser@example.com');
+        });
     }
 
     public function test_register_without_optional_phone(): void

@@ -95,4 +95,12 @@ class AuthLogger extends BaseLogger
             'email' => $user->email,
         ]);
     }
+
+    public function accountDeleted(string $userId, string $email): void
+    {
+        $this->warning('auth.account_deleted', [
+            'user_id' => $userId,
+            'email' => $email,
+        ]);
+    }
 }

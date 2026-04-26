@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Auth\ChangePasswordRequest;
+use App\Http\Requests\Api\V1\User\DeleteAccountRequest;
 use App\Http\Requests\Api\V1\User\StoreAddressRequest;
 use App\Http\Requests\Api\V1\User\UpdateAddressRequest;
 use App\Http\Requests\Api\V1\User\UpdateProfileRequest;
@@ -71,6 +72,23 @@ class UserController extends Controller
         }
 
         return $this->success(null, 'Password changed successfully. Please log in again.');
+    }
+
+    public function destroy(DeleteAccountRequest $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        try {
+            $this->authService->deleteAccount(
+                user: $user,
+                currentPassword: $request->validated('current_password'),
+            );
+        } catch (\InvalidArgumentException $e) {
+            return $this->error($e->getMessage(), 422);
+        }
+
+        return $this->success(null, 'Account deleted successfully.');
     }
 
     /* ── Address CRUD ───────────────────────────────────────────────── */
