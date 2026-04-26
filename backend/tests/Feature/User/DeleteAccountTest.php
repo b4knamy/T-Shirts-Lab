@@ -2,9 +2,11 @@
 
 namespace Tests\Feature\User;
 
+use App\Mail\AccountDeletedMail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class DeleteAccountTest extends TestCase
@@ -34,6 +36,13 @@ class DeleteAccountTest extends TestCase
         ];
     }
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Mail::fake();
+    }
+
     public function test_deletes_account_with_correct_current_password(): void
     {
         $user = $this->makeUser();
@@ -59,6 +68,10 @@ class DeleteAccountTest extends TestCase
 
         $this->assertDatabaseMissing('users', ['id' => $user->id]);
         $this->assertDatabaseMissing('user_addresses', ['user_id' => $user->id]);
+
+        Mail::assertSent(AccountDeletedMail::class, function ($mail) use ($user) {
+            return $mail->hasTo($user->email);
+        });
     }
 
     public function test_old_access_token_becomes_invalid_after_account_deletion(): void
