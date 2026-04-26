@@ -76,7 +76,7 @@ class UserController extends Controller
 
     public function destroy(DeleteAccountRequest $request): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         try {
