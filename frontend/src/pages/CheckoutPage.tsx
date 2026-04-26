@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -25,7 +25,6 @@ const checkoutSchema = z.object({
 type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
 export function CheckoutPage() {
-  const navigate = useNavigate();
   const { items, total, clear } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,14 +93,19 @@ export function CheckoutPage() {
 
       const order = orderResponse.data.data;
 
-      // Create payment intent
-      await paymentsApi.createIntent(order.id, 'brl');
+      // Create checkout session and redirect customer to Stripe Checkout
+      const checkoutResponse = await paymentsApi.createIntent(order.id, 'brl');
+      const checkoutUrl = checkoutResponse.data.data.checkoutUrl;
+
+      if (!checkoutUrl) {
+        throw new Error('Checkout URL is missing');
+      }
 
       clear();
-      navigate(`/orders/${order.id}`, { state: { justCreated: true } });
+      window.location.href = checkoutUrl;
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { error?: { message?: string } } } };
-      setError(e.response?.data?.error?.message || 'Failed to process order. Please try again.');
+      const e = err as { response?: { data?: { message?: string; error?: { message?: string } } }; message?: string };
+      setError(e.response?.data?.message || e.response?.data?.error?.message || e.message || 'Failed to process order. Please try again.');
     } finally {
       setIsProcessing(false);
     }
