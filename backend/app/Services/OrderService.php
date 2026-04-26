@@ -74,7 +74,9 @@ class OrderService
             $orderItems = [];
 
             foreach ($data['items'] as $item) {
-                $product = Product::findOrFail($item['product_id']);
+                $product = Product::whereKey($item['product_id'])
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
                 if ($product->stock_quantity < $item['quantity']) {
                     throw new \RuntimeException(
@@ -95,8 +97,10 @@ class OrderService
                     'customization_data' => $item['customization_data'] ?? null,
                 ];
 
-                $product->decrement('stock_quantity', $item['quantity']);
-                $product->increment('reserved_quantity', $item['quantity']);
+                $product->update([
+                    'stock_quantity' => $product->stock_quantity - $item['quantity'],
+                    'reserved_quantity' => $product->reserved_quantity + $item['quantity'],
+                ]);
             }
 
             $discountAmount = 0;
@@ -104,7 +108,9 @@ class OrderService
             $couponCode = $data['coupon_code'] ?? null;
 
             if ($couponCode) {
-                $coupon = Coupon::where('code', strtoupper($couponCode))->first();
+                $coupon = Coupon::where('code', strtoupper($couponCode))
+                    ->lockForUpdate()
+                    ->first();
 
                 if (! $coupon || ! $coupon->isValid()) {
                     throw new \RuntimeException('Invalid or expired coupon');
@@ -161,31 +167,40 @@ class OrderService
 
     public function updateStatus(string $id, string $status, ?string $adminNotes = null): Order
     {
-        $order = $this->findById($id);
+        ['order' => $updatedOrder, 'previousStatus' => $previousStatus] = DB::transaction(function () use ($id, $status, $adminNotes) {
+            $order = Order::whereKey($id)
+                ->lockForUpdate()
+                ->first();
 
-        if (! $order) {
-            throw new \RuntimeException('Order not found', 404);
-        }
-
-        $previousStatus = $order->status;
-
-        if ($status === 'CANCELLED') {
-            foreach ($order->items as $item) {
-                $item->product->increment('stock_quantity', $item->quantity);
-                $item->product->decrement('reserved_quantity', $item->quantity);
+            if (! $order) {
+                throw new \RuntimeException('Order not found', 404);
             }
-        }
 
-        $updateData = ['status' => $status];
-        if ($adminNotes !== null) {
-            $updateData['admin_notes'] = $adminNotes;
-        }
+            $order->load(['items.product', 'payment', 'user']);
 
-        $order->update($updateData);
+            $previousStatus = $order->status;
 
-        $this->orderLogger->statusUpdated($id, $order->order_number, $previousStatus, $status, $adminNotes);
+            if ($status === 'CANCELLED' && $previousStatus !== 'CANCELLED') {
+                $this->releaseReservedStock($order);
+            }
 
-        $updatedOrder = Order::with(['items.product', 'payment', 'user'])->findOrFail($id);
+            $updateData = ['status' => $status];
+            if ($adminNotes !== null) {
+                $updateData['admin_notes'] = $adminNotes;
+            }
+
+            $order->fill($updateData);
+            if ($order->isDirty()) {
+                $order->save();
+            }
+
+            return [
+                'order' => $order->fresh(['items.product', 'payment', 'user']),
+                'previousStatus' => $previousStatus,
+            ];
+        });
+
+        $this->orderLogger->statusUpdated($id, $updatedOrder->order_number, $previousStatus, $status, $adminNotes);
 
         $this->orderNotificationService->sendStatusUpdate(
             $updatedOrder,
@@ -195,5 +210,23 @@ class OrderService
         );
 
         return $updatedOrder;
+    }
+
+    private function releaseReservedStock(Order $order): void
+    {
+        foreach ($order->items as $item) {
+            $product = Product::whereKey($item->product_id)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $product) {
+                continue;
+            }
+
+            $product->update([
+                'stock_quantity' => $product->stock_quantity + $item->quantity,
+                'reserved_quantity' => max(0, $product->reserved_quantity - $item->quantity),
+            ]);
+        }
     }
 }

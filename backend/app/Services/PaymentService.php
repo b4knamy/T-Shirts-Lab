@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Logging\Loggers\PaymentLogger;
 use App\Models\Order;
 use App\Models\Payment;
+use Illuminate\Support\Facades\DB;
 use Stripe\PaymentIntent;
 use Stripe\Refund;
 use Stripe\Stripe;
@@ -61,13 +62,23 @@ class PaymentService
         $paymentIntent = PaymentIntent::retrieve($paymentIntentId);
         $paymentIntent->confirm(['payment_method' => $paymentMethodId]);
 
-        $payment = Payment::where('stripe_payment_intent_id', $paymentIntentId)->first();
+        $status = $paymentIntent->status === 'succeeded' ? 'COMPLETED' : 'PROCESSING';
 
-        if ($payment) {
-            $order = $payment->order;
+        $notificationPayload = DB::transaction(function () use ($paymentIntentId, $paymentMethodId, $status, $paymentIntent) {
+            $payment = Payment::where('stripe_payment_intent_id', $paymentIntentId)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $payment) {
+                return null;
+            }
+
+            $order = Order::whereKey($payment->order_id)
+                ->lockForUpdate()
+                ->first();
+
             $previousStatus = $order?->status;
 
-            $status = $paymentIntent->status === 'succeeded' ? 'COMPLETED' : 'PROCESSING';
             $payment->update([
                 'status' => $status,
                 'payment_method' => $paymentMethodId,
@@ -78,15 +89,26 @@ class PaymentService
                     'payment_status' => 'COMPLETED',
                     'status' => 'CONFIRMED',
                 ]);
-
-                $this->orderNotificationService->sendStatusUpdate(
-                    $order->fresh(['user']),
-                    newStatus: 'CONFIRMED',
-                    previousStatus: $previousStatus,
-                );
             }
 
             $this->paymentLogger->confirmed($paymentIntentId, $payment->order_id, $status, $paymentIntent->status);
+
+            if ($status !== 'COMPLETED' || ! $order) {
+                return null;
+            }
+
+            return [
+                'order' => $order->fresh(['user']),
+                'previousStatus' => $previousStatus,
+            ];
+        });
+
+        if ($notificationPayload) {
+            $this->orderNotificationService->sendStatusUpdate(
+                $notificationPayload['order'],
+                newStatus: 'CONFIRMED',
+                previousStatus: $notificationPayload['previousStatus'],
+            );
         }
 
         return [
@@ -113,58 +135,76 @@ class PaymentService
 
     public function refund(string $paymentIntentId, ?float $amount = null, ?string $reason = null): array
     {
-        $payment = Payment::where('stripe_payment_intent_id', $paymentIntentId)->first();
+        $result = DB::transaction(function () use ($paymentIntentId, $amount, $reason) {
+            $payment = Payment::where('stripe_payment_intent_id', $paymentIntentId)
+                ->lockForUpdate()
+                ->first();
 
-        if (! $payment) {
-            throw new \RuntimeException('Payment not found', 404);
-        }
+            if (! $payment) {
+                throw new \RuntimeException('Payment not found', 404);
+            }
 
-        if ($payment->status !== 'COMPLETED') {
-            throw new \InvalidArgumentException('Payment cannot be refunded');
-        }
+            if ($payment->status !== 'COMPLETED') {
+                throw new \InvalidArgumentException('Payment cannot be refunded');
+            }
 
-        $this->paymentLogger->processingRefund($paymentIntentId, $payment->order_id, $amount ?? (float) $payment->amount, $reason);
+            $order = Order::whereKey($payment->order_id)
+                ->lockForUpdate()
+                ->first();
 
-        $refundData = ['payment_intent' => $paymentIntentId];
+            $refundAmount = $amount ?? (float) $payment->amount;
 
-        if ($amount !== null) {
-            $refundData['amount'] = (int) round($amount * 100);
-        }
+            $this->paymentLogger->processingRefund($paymentIntentId, $payment->order_id, $refundAmount, $reason);
 
-        if ($reason !== null) {
-            $refundData['reason'] = $reason;
-        }
+            $refundData = ['payment_intent' => $paymentIntentId];
 
-        $refund = Refund::create($refundData);
-        $refundAmount = $amount ?? (float) $payment->amount;
-        $order = $payment->order;
-        $previousStatus = $order?->status;
+            if ($amount !== null) {
+                $refundData['amount'] = (int) round($amount * 100);
+            }
 
-        $payment->update([
-            'status' => 'REFUNDED',
-            'refund_amount' => $refundAmount,
-            'refunded_at' => now(),
-        ]);
+            if ($reason !== null) {
+                $refundData['reason'] = $reason;
+            }
 
-        if ($order) {
-            $order->update([
-                'payment_status' => 'REFUNDED',
+            $refund = Refund::create($refundData);
+            $previousStatus = $order?->status;
+
+            $payment->update([
                 'status' => 'REFUNDED',
+                'refund_amount' => $refundAmount,
+                'refunded_at' => now(),
             ]);
 
+            if ($order) {
+                $order->update([
+                    'payment_status' => 'REFUNDED',
+                    'status' => 'REFUNDED',
+                ]);
+            }
+
+            $this->paymentLogger->refundCompleted($paymentIntentId, $refund->id, $payment->order_id, $refundAmount);
+
+            return [
+                'refundId' => $refund->id,
+                'amount' => $refundAmount,
+                'status' => 'REFUNDED',
+                'order' => $order?->fresh(['user']),
+                'previousStatus' => $previousStatus,
+            ];
+        });
+
+        if ($result['order']) {
             $this->orderNotificationService->sendStatusUpdate(
-                $order->fresh(['user']),
+                $result['order'],
                 newStatus: 'REFUNDED',
-                previousStatus: $previousStatus,
+                previousStatus: $result['previousStatus'],
             );
         }
 
-        $this->paymentLogger->refundCompleted($paymentIntentId, $refund->id, $payment->order_id, $refundAmount);
-
         return [
-            'refundId' => $refund->id,
-            'amount' => $refundAmount,
-            'status' => 'REFUNDED',
+            'refundId' => $result['refundId'],
+            'amount' => $result['amount'],
+            'status' => $result['status'],
         ];
     }
 }

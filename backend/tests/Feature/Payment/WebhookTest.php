@@ -134,6 +134,57 @@ class WebhookTest extends TestCase
         });
     }
 
+    public function test_payment_failed_event_is_idempotent(): void
+    {
+        $user = User::factory()->create(['password_hash' => Hash::make('Secret@123')]);
+        $product = Product::factory()->create([
+            'stock_quantity' => 8,
+            'reserved_quantity' => 2,
+        ]);
+        $order = Order::factory()->pending()->create(['user_id' => $user->id]);
+
+        OrderItem::factory()->create([
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+        ]);
+
+        Payment::factory()->create([
+            'order_id' => $order->id,
+            'stripe_payment_intent_id' => 'pi_test_failed_idempotent',
+            'status' => 'PROCESSING',
+        ]);
+
+        $event = $this->makeFakeEvent('payment_intent.payment_failed', [
+            'id' => 'pi_test_failed_idempotent',
+            'last_payment_error' => (object) ['message' => 'Card declined'],
+        ]);
+
+        Mockery::mock('alias:\Stripe\Webhook')
+            ->shouldReceive('constructEvent')
+            ->twice()
+            ->andReturn($event);
+
+        $this->postJson($this->endpoint, [], [
+            'Stripe-Signature' => 'valid_sig',
+        ])->assertOk();
+
+        $this->postJson($this->endpoint, [], [
+            'Stripe-Signature' => 'valid_sig',
+        ])->assertOk();
+
+        $product->refresh();
+        $this->assertEquals(10, $product->stock_quantity);
+        $this->assertEquals(0, $product->reserved_quantity);
+
+        Mail::assertSent(PaymentFailedMail::class, function ($mail) use ($order, $user) {
+            return $mail->hasTo($user->email)
+                && $mail->orderNumber === $order->order_number
+                && $mail->failureReason === 'Card declined';
+        });
+        Mail::assertSentCount(1);
+    }
+
     /* ── Graceful handling when no payment found ────────────────── */
 
     public function test_succeeded_event_with_unknown_payment_returns_ok(): void
