@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
@@ -205,6 +206,27 @@ class AuthService
         ]);
 
         $this->authLogger->passwordChanged($user);
+    }
+
+    public function deleteAccount(User $user, string $currentPassword): void
+    {
+        if (! Hash::check($currentPassword, $user->password_hash)) {
+            throw new InvalidArgumentException('Current password is incorrect.', 422);
+        }
+
+        if ($user->profile_picture_url && str_contains($user->profile_picture_url, '/storage/avatars/')) {
+            $oldPath = str_replace(url('storage') . '/', '', $user->profile_picture_url);
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        $userId = $user->id;
+        $email = $user->email;
+
+        DB::transaction(function () use ($user): void {
+            $user->delete();
+        });
+
+        $this->authLogger->accountDeleted($userId, $email);
     }
 
     private function issueTokens(User $user): array

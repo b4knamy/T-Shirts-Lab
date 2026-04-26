@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['jwt.auth', 'jwt.password'])->controller(UserController::class)->group(function () {
     Route::get('/users/me', 'me');
     Route::patch('/users/me', 'updateProfile');
+    Route::delete('/users/me', 'destroy');
     Route::post('/users/me/avatar', 'uploadAvatar');
     Route::post('/users/me/password', 'changePassword');
     Route::get('/users/me/addresses', 'addresses');

@@ -2,12 +2,12 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   User as UserIcon, Package, LogOut, Mail, Phone, Calendar,
-  Edit3, Save, X, Camera, MapPin, Plus, Trash2, Check, Eye, EyeOff, Shield,
+  Edit3, Save, X, Camera, MapPin, Plus, Trash2, Check, Eye, EyeOff, Shield, AlertTriangle,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useAppDispatch } from '../store';
 import { setUser } from '../store/slices/authSlice';
-import { userApi, type UpdateProfileData, type AddressData, type ChangePasswordData } from '../services/api/user';
+import { userApi, type UpdateProfileData, type AddressData, type ChangePasswordData, type DeleteAccountData } from '../services/api/user';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import type { UserAddress } from '../types';
 
@@ -20,6 +20,10 @@ const emptyPasswordForm: ChangePasswordData = {
   current_password: '',
   password: '',
   password_confirmation: '',
+};
+
+const emptyDeleteAccountForm: DeleteAccountData = {
+  current_password: '',
 };
 
 export function ProfilePage() {
@@ -279,13 +283,16 @@ function SecuritySection() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [changingPassword, setChangingPassword] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [passwordForm, setPasswordForm] = useState<ChangePasswordData>(emptyPasswordForm);
+  const [deleteAccountForm, setDeleteAccountForm] = useState<DeleteAccountData>(emptyDeleteAccountForm);
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     next: false,
     confirm: false,
   });
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
 
   const showMsg = (text: string, type: 'success' | 'error') => {
     setMessage({ text, type });
@@ -324,6 +331,37 @@ function SecuritySection() {
       showMsg(getApiMessage(error, 'Failed to change password.'), 'error');
     } finally {
       setChangingPassword(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deleteAccountForm.current_password) {
+      showMsg('Enter your current password to delete your account.', 'error');
+      return;
+    }
+
+    const confirmed = confirm('This action is permanent and will delete your account and related data. Continue?');
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingAccount(true);
+
+    try {
+      const response = await userApi.deleteAccount(deleteAccountForm);
+      setDeleteAccountForm(emptyDeleteAccountForm);
+      signOut();
+      navigate('/login', {
+        replace: true,
+        state: {
+          message: response.data.message || 'Account deleted successfully.',
+        },
+      });
+    } catch (error) {
+      showMsg(getApiMessage(error, 'Failed to delete account.'), 'error');
+    } finally {
+      setDeletingAccount(false);
     }
   };
 
@@ -387,6 +425,46 @@ function SecuritySection() {
             onClick={() => setPasswordForm(emptyPasswordForm)}
             disabled={changingPassword}
             className="flex items-center gap-2 text-gray-500 hover:text-gray-700 px-1 py-2 disabled:opacity-50"
+          >
+            <X className="w-4 h-4" /> Clear
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-red-50 border border-red-200 rounded-2xl p-6 shadow-sm">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <h2 className="font-semibold text-lg flex items-center gap-2 text-red-700">
+              <AlertTriangle className="w-5 h-5" /> Danger Zone
+            </h2>
+            <p className="text-sm text-red-600 mt-1">Deleting your account is permanent and cannot be undone.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4">
+          <PasswordInput
+            id="deleteAccountPassword"
+            label="Confirm Current Password"
+            value={deleteAccountForm.current_password}
+            visible={showDeletePassword}
+            onToggle={() => setShowDeletePassword((value) => !value)}
+            onChange={(value) => setDeleteAccountForm({ current_password: value })}
+            hint="Required to confirm account deletion."
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 mt-6">
+          <button
+            onClick={handleDeleteAccount}
+            disabled={deletingAccount}
+            className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50"
+          >
+            <AlertTriangle className="w-4 h-4" /> {deletingAccount ? 'Deleting...' : 'Delete My Account'}
+          </button>
+          <button
+            onClick={() => setDeleteAccountForm(emptyDeleteAccountForm)}
+            disabled={deletingAccount}
+            className="flex items-center gap-2 text-red-700 hover:text-red-800 px-1 py-2 disabled:opacity-50"
           >
             <X className="w-4 h-4" /> Clear
           </button>
