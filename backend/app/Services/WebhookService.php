@@ -11,6 +11,7 @@ class WebhookService
     public function __construct(
         private WebhookLogger $webhookLogger,
         private PaymentLogger $paymentLogger,
+        private OrderNotificationService $orderNotificationService,
     ) {}
 
     public function handlePaymentSucceeded(object $paymentIntent): void
@@ -30,12 +31,23 @@ class WebhookService
             'payment_method' => $paymentIntent->payment_method,
         ]);
 
-        $payment->order->update([
-            'payment_status' => 'COMPLETED',
-            'status' => 'CONFIRMED',
-        ]);
+        $order = $payment->order;
+        $previousStatus = $order?->status;
 
-        $this->paymentLogger->completedViaWebhook($paymentIntent->id, $payment->order_id, $payment->order->order_number ?? null);
+        if ($order) {
+            $order->update([
+                'payment_status' => 'COMPLETED',
+                'status' => 'CONFIRMED',
+            ]);
+
+            $this->orderNotificationService->sendStatusUpdate(
+                $order->fresh(['user']),
+                newStatus: 'CONFIRMED',
+                previousStatus: $previousStatus,
+            );
+        }
+
+        $this->paymentLogger->completedViaWebhook($paymentIntent->id, $payment->order_id, $order?->order_number);
     }
 
     public function handlePaymentFailed(object $paymentIntent): void
@@ -57,16 +69,26 @@ class WebhookService
             'failure_reason' => $failureMessage,
         ]);
 
-        $payment->order->update([
+        $order = $payment->order;
+
+        if (! $order) {
+            $this->webhookLogger->paymentNotFoundForFailed($paymentIntent->id);
+
+            return;
+        }
+
+        $order->update([
             'payment_status' => 'FAILED',
         ]);
 
+        $this->orderNotificationService->sendPaymentFailed($order->fresh(['user']), $failureMessage);
+
         // Release reserved stock
-        foreach ($payment->order->items as $item) {
+        foreach ($order->items as $item) {
             $item->product->increment('stock_quantity', $item->quantity);
             $item->product->decrement('reserved_quantity', $item->quantity);
         }
 
-        $this->paymentLogger->failedViaWebhook($paymentIntent->id, $payment->order_id, $failureMessage, $payment->order->items->count());
+        $this->paymentLogger->failedViaWebhook($paymentIntent->id, $payment->order_id, $failureMessage, $order->items->count());
     }
 }

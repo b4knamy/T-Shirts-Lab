@@ -2,10 +2,14 @@
 
 namespace App\Services;
 
+use App\Mail\ProductReviewAdminReplyMail;
 use App\Models\Product;
 use App\Models\ProductReview;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 class ProductReviewService
 {
@@ -73,9 +77,39 @@ class ProductReviewService
             'admin_replied_at' => now(),
         ]);
 
-        $review->load('user');
+        $review->load(['user', 'product']);
+
+        $this->sendAdminReplyEmail($review);
 
         return $review->fresh();
+    }
+
+    private function sendAdminReplyEmail(ProductReview $review): void
+    {
+        $user = $review->user;
+
+        if (! $user || empty($user->email)) {
+            return;
+        }
+
+        try {
+            Mail::to($user->email)->send(new ProductReviewAdminReplyMail(
+                firstName: $user->first_name ?? 'there',
+                productName: $review->product?->name ?? 'Product',
+                rating: (int) $review->rating,
+                userComment: $review->comment,
+                adminReply: $review->admin_reply ?? '',
+                productSlug: $review->product?->slug,
+            ));
+        } catch (Throwable $e) {
+            Log::channel('request')->warning('review.admin_reply_email_failed', [
+                'review_id' => $review->id,
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'product_id' => $review->product_id,
+                'message' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function adminList(array $filters, int $perPage): LengthAwarePaginator

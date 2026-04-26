@@ -2,17 +2,26 @@
 
 namespace Tests\Feature\Order;
 
+use App\Mail\OrderStatusMail;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class AdminOrdersTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Mail::fake();
+    }
 
     private function authAdmin(): array
     {
@@ -65,6 +74,7 @@ class AdminOrdersTest extends TestCase
     public function test_admin_can_update_order_status(): void
     {
         $order = Order::factory()->pending()->create();
+        $order->load('user');
         $headers = $this->authAdmin();
 
         $response = $this->patchJson("/api/v1/orders/{$order->id}/status", [
@@ -80,6 +90,12 @@ class AdminOrdersTest extends TestCase
                     'status' => 'CONFIRMED',
                 ],
             ]);
+
+        Mail::assertSent(OrderStatusMail::class, function ($mail) use ($order) {
+            return $mail->hasTo($order->user->email)
+                && $mail->currentStatus === 'CONFIRMED'
+                && $mail->previousStatus === 'PENDING';
+        });
     }
 
     public function test_admin_can_add_notes_with_status_update(): void

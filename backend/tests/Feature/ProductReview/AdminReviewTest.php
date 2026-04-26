@@ -2,16 +2,25 @@
 
 namespace Tests\Feature\ProductReview;
 
+use App\Mail\ProductReviewAdminReplyMail;
 use App\Models\Product;
 use App\Models\ProductReview;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class AdminReviewTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Mail::fake();
+    }
 
     private function authAdmin(): array
     {
@@ -88,7 +97,15 @@ class AdminReviewTest extends TestCase
 
     public function test_admin_can_reply_to_review(): void
     {
-        $review = ProductReview::factory()->create();
+        $product = Product::factory()->create([
+            'name' => 'Classic White Tee',
+            'slug' => 'classic-white-tee',
+        ]);
+        $review = ProductReview::factory()->create([
+            'product_id' => $product->id,
+            'comment' => 'Great quality but a bit tight on the shoulders.',
+        ]);
+        $review->load('user');
         $headers = $this->authAdmin();
 
         $response = $this->postJson("/api/v1/reviews/{$review->id}/reply", [
@@ -107,6 +124,13 @@ class AdminReviewTest extends TestCase
         $review->refresh();
         $this->assertEquals('Thank you for your feedback!', $review->admin_reply);
         $this->assertNotNull($review->admin_replied_at);
+
+        Mail::assertSent(ProductReviewAdminReplyMail::class, function ($mail) use ($review, $product) {
+            return $mail->hasTo($review->user->email)
+                && $mail->productName === $product->name
+                && $mail->userComment === 'Great quality but a bit tight on the shoulders.'
+                && $mail->adminReply === 'Thank you for your feedback!';
+        });
     }
 
     public function test_admin_reply_fails_without_text(): void

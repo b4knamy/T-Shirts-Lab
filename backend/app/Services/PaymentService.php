@@ -11,8 +11,10 @@ use Stripe\Stripe;
 
 class PaymentService
 {
-    public function __construct(private PaymentLogger $paymentLogger)
-    {
+    public function __construct(
+        private PaymentLogger $paymentLogger,
+        private OrderNotificationService $orderNotificationService,
+    ) {
         Stripe::setApiKey(config('services.stripe.secret'));
     }
 
@@ -62,17 +64,26 @@ class PaymentService
         $payment = Payment::where('stripe_payment_intent_id', $paymentIntentId)->first();
 
         if ($payment) {
+            $order = $payment->order;
+            $previousStatus = $order?->status;
+
             $status = $paymentIntent->status === 'succeeded' ? 'COMPLETED' : 'PROCESSING';
             $payment->update([
                 'status' => $status,
                 'payment_method' => $paymentMethodId,
             ]);
 
-            if ($status === 'COMPLETED') {
-                $payment->order->update([
+            if ($status === 'COMPLETED' && $order) {
+                $order->update([
                     'payment_status' => 'COMPLETED',
                     'status' => 'CONFIRMED',
                 ]);
+
+                $this->orderNotificationService->sendStatusUpdate(
+                    $order->fresh(['user']),
+                    newStatus: 'CONFIRMED',
+                    previousStatus: $previousStatus,
+                );
             }
 
             $this->paymentLogger->confirmed($paymentIntentId, $payment->order_id, $status, $paymentIntent->status);
@@ -126,6 +137,8 @@ class PaymentService
 
         $refund = Refund::create($refundData);
         $refundAmount = $amount ?? (float) $payment->amount;
+        $order = $payment->order;
+        $previousStatus = $order?->status;
 
         $payment->update([
             'status' => 'REFUNDED',
@@ -133,10 +146,18 @@ class PaymentService
             'refunded_at' => now(),
         ]);
 
-        $payment->order->update([
-            'payment_status' => 'REFUNDED',
-            'status' => 'REFUNDED',
-        ]);
+        if ($order) {
+            $order->update([
+                'payment_status' => 'REFUNDED',
+                'status' => 'REFUNDED',
+            ]);
+
+            $this->orderNotificationService->sendStatusUpdate(
+                $order->fresh(['user']),
+                newStatus: 'REFUNDED',
+                previousStatus: $previousStatus,
+            );
+        }
 
         $this->paymentLogger->refundCompleted($paymentIntentId, $refund->id, $payment->order_id, $refundAmount);
 
