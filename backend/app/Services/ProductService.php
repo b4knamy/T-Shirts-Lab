@@ -79,15 +79,18 @@ class ProductService
 
     public function getFeatured(int $limit): Collection
     {
-        return Cache::remember("products:featured:{$limit}", 3600, function () use ($limit) {
+        $rows = Cache::remember("products:featured:{$limit}", 3600, function () use ($limit) {
             return Product::with(['category', 'images', 'designs'])
                 ->withAvg('reviews', 'rating')
                 ->withCount('reviews')
                 ->where('is_featured', true)
                 ->where('status', 'ACTIVE')
                 ->limit($limit)
-                ->get();
+                ->get()
+                ->toArray();  // store plain arrays — never serialize Eloquent objects into cache
         });
+
+        return Product::hydrate($rows);
     }
 
     public function getCategories(): Collection

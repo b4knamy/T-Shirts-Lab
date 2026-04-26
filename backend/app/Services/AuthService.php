@@ -3,8 +3,13 @@
 namespace App\Services;
 
 use App\Logging\Loggers\AuthLogger;
+use App\Mail\ResetPasswordMail;
 use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
@@ -115,6 +120,91 @@ class AuthService
         }
 
         $this->authLogger->logout($user);
+    }
+
+    public function sendPasswordResetLink(string $email): void
+    {
+        // Always respond the same way regardless of whether email exists (prevents enumeration)
+        $user = User::where('email', $email)->first();
+
+        if (! $user) {
+            $this->authLogger->passwordResetRequested($email, found: false);
+
+            return;
+        }
+
+        $token = Str::random(64);
+        $expiresInMinutes = config('auth.passwords.users.expire', 60);
+
+        DB::table('password_reset_tokens')->upsert(
+            [
+                'email' => $email,
+                'token' => Hash::make($token),
+                'created_at' => now(),
+            ],
+            uniqueBy: ['email'],
+            update: ['token', 'created_at'],
+        );
+
+        $resetUrl = rtrim(config('app.frontend_url'), '/').'/reset-password?token='.$token.'&email='.urlencode($email);
+
+        Mail::to($user->email)->send(new ResetPasswordMail(
+            resetUrl: $resetUrl,
+            firstName: $user->first_name,
+            expiresInMinutes: $expiresInMinutes,
+        ));
+
+        $this->authLogger->passwordResetRequested($email, found: true);
+    }
+
+    public function resetPassword(string $email, string $token, string $newPassword): void
+    {
+        $record = DB::table('password_reset_tokens')->where('email', $email)->first();
+
+        if (! $record) {
+            throw new InvalidArgumentException('Invalid or expired reset token.', 422);
+        }
+
+        $expiresInMinutes = config('auth.passwords.users.expire', 60);
+        $expiresAt = Carbon::parse($record->created_at)->addMinutes($expiresInMinutes);
+
+        if (now()->greaterThan($expiresAt)) {
+            DB::table('password_reset_tokens')->where('email', $email)->delete();
+            throw new InvalidArgumentException('Invalid or expired reset token.', 422);
+        }
+
+        if (! Hash::check($token, $record->token)) {
+            throw new InvalidArgumentException('Invalid or expired reset token.', 422);
+        }
+
+        $user = User::where('email', $email)->first();
+
+        if (! $user) {
+            throw new InvalidArgumentException('Invalid or expired reset token.', 422);
+        }
+
+        $user->update([
+            'password_hash' => Hash::make($newPassword),
+            'refresh_token' => null,   // invalidate all active sessions
+        ]);
+
+        DB::table('password_reset_tokens')->where('email', $email)->delete();
+
+        $this->authLogger->passwordReset($user);
+    }
+
+    public function changePassword(User $user, string $currentPassword, string $newPassword): void
+    {
+        if (! Hash::check($currentPassword, $user->password_hash)) {
+            throw new InvalidArgumentException('Current password is incorrect.', 422);
+        }
+
+        $user->update([
+            'password_hash' => Hash::make($newPassword),
+            'refresh_token' => null,   // invalidate all active sessions
+        ]);
+
+        $this->authLogger->passwordChanged($user);
     }
 
     private function issueTokens(User $user): array

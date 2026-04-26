@@ -3,34 +3,40 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Auth\ChangePasswordRequest;
 use App\Http\Requests\Api\V1\User\StoreAddressRequest;
 use App\Http\Requests\Api\V1\User\UpdateAddressRequest;
 use App\Http\Requests\Api\V1\User\UpdateProfileRequest;
 use App\Http\Requests\Api\V1\User\UploadAvatarRequest;
 use App\Http\Resources\Api\V1\UserResource;
+use App\Models\User;
+use App\Services\AuthService;
 use App\Services\UserService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
-use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
     use ApiResponse;
 
     public function __construct(
-        private readonly UserService $userService
+        private readonly UserService $userService,
+        private readonly AuthService $authService,
     ) {}
 
     public function me(): JsonResponse
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        /** @var User $user */
+        $user = Auth::user();
 
         return $this->success(new UserResource($this->userService->getProfile($user)));
     }
 
     public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        /** @var User $user */
+        $user = Auth::user();
 
         $updated = $this->userService->updateProfile($user, $request->validated());
 
@@ -40,24 +46,46 @@ class UserController extends Controller
     /* ── Upload avatar ──────────────────────────────────────────────── */
     public function uploadAvatar(UploadAvatarRequest $request): JsonResponse
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        /** @var User $user */
+        $user = Auth::user();
 
         $updated = $this->userService->uploadAvatar($user, $request->file('avatar'));
 
         return $this->success(new UserResource($updated), 'Avatar uploaded');
     }
 
+    /* ── Change password ─────────────────────────────────────────────── */
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        try {
+            $this->authService->changePassword(
+                user: $user,
+                currentPassword: $request->validated('current_password'),
+                newPassword: $request->validated('password'),
+            );
+        } catch (\InvalidArgumentException $e) {
+            return $this->error($e->getMessage(), 422);
+        }
+
+        return $this->success(null, 'Password changed successfully. Please log in again.');
+    }
+
     /* ── Address CRUD ───────────────────────────────────────────────── */
     public function addresses(): JsonResponse
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        /** @var User $user */
+        $user = Auth::user();
 
         return $this->success($this->userService->getAddresses($user));
     }
 
     public function storeAddress(StoreAddressRequest $request): JsonResponse
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        /** @var User $user */
+        $user = Auth::user();
 
         $address = $this->userService->addAddress($user, $request->validated());
 
@@ -66,7 +94,8 @@ class UserController extends Controller
 
     public function updateAddress(UpdateAddressRequest $request, string $id): JsonResponse
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        /** @var User $user */
+        $user = Auth::user();
 
         $address = $this->userService->updateAddress($user, $id, $request->validated());
 
@@ -79,7 +108,8 @@ class UserController extends Controller
 
     public function destroyAddress(string $id): JsonResponse
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        /** @var User $user */
+        $user = Auth::user();
 
         $address = $this->userService->deleteAddress($user, $id);
 

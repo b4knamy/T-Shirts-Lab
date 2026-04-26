@@ -1,23 +1,24 @@
 #!/bin/sh
-# Run Laravel Pint only on staged PHP files
 
-STAGED_PHP=$(git diff --cached --name-only --diff-filter=ACMR | grep '\.php$')
+set -e
 
-if [ -z "$STAGED_PHP" ]; then
+# Auto-format only staged backend PHP files with Laravel Pint.
+STAGED_BACKEND_PHP=$(git diff --cached --name-only --diff-filter=ACMR | grep '^backend/.*\.php$' || true)
+
+if [ -z "$STAGED_BACKEND_PHP" ]; then
     exit 0
 fi
 
-echo "Running Laravel Pint on staged PHP files..."
+echo "Running Laravel Pint on staged backend PHP files..."
 
-cd backend
+RELATIVE_PHP_FILES=$(printf '%s\n' "$STAGED_BACKEND_PHP" | sed 's#^backend/##')
 
-# Build the file list as individual arguments
-echo "$STAGED_PHP" | xargs vendor/bin/pint --test
+(
+    cd backend
+    printf '%s\n' "$RELATIVE_PHP_FILES" | xargs vendor/bin/pint
+)
 
-if [ $? -ne 0 ]; then
-    echo ""
-    echo "❌ Pint found code style issues. Run 'cd backend && vendor/bin/pint' to fix them, then re-stage."
-    exit 1
-fi
+# Re-stage files changed by Pint.
+printf '%s\n' "$STAGED_BACKEND_PHP" | xargs git add
 
-echo "✅ Pint passed."
+echo "✅ Pint auto-formatted staged PHP files."

@@ -27,7 +27,7 @@ class StructuredJsonFormatter extends JsonFormatter
             batchMode: self::BATCH_MODE_NEWLINES,
             appendNewline: true,
             ignoreEmptyContextAndExtra: false,
-            includeStacktraces: true,
+            includeStacktraces: false,  // true causes OOM — exception objects contain circular refs
         );
     }
 

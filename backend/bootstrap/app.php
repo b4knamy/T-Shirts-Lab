@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\EnsureJwtPasswordVersionIsValid;
 use App\Http\Middleware\JwtAuthenticateMiddleware;
 use App\Http\Middleware\RequestLogMiddleware;
 use App\Http\Middleware\SecurityLogMiddleware;
@@ -19,25 +20,39 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'jwt.auth' => JwtAuthenticateMiddleware::class,
+            'jwt.password' => EnsureJwtPasswordVersionIsValid::class,
             'admin' => AdminMiddleware::class,
         ]);
 
-        // Global middleware for API request/security logging
-        $middleware->api(prepend: [
-            RequestLogMiddleware::class,
-            SecurityLogMiddleware::class,
-        ]);
+        if (env('APP_ENV') !== 'testing') {
+            // Request/security logging is useful in runtime environments but
+            // adds unnecessary I/O and JSON formatting overhead in the test suite.
+            $middleware->api(prepend: [
+                RequestLogMiddleware::class,
+                SecurityLogMiddleware::class,
+            ]);
+        }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 
+        // Don't report expected business-logic exceptions (they're handled at the controller layer)
+        $exceptions->dontReport([
+            InvalidArgumentException::class,
+        ]);
+
         $exceptions->report(function (Throwable $e) {
+            // NOTE: Do NOT include the raw exception object or full trace string in context.
+            // LineFormatter (used by the `daily` channel) json_encodes the entire context
+            // array, and a full trace for a deep Laravel call stack can be megabytes,
+            // causing OOM (attempted allocation of 100MB+) inside json_encode.
+            $traceLines = explode("\n", $e->getTraceAsString());
             $context = [
                 'message' => $e->getMessage(),
                 'exception' => get_class($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'code' => $e->getCode(),
-                'trace' => $e->getTraceAsString(),
+                'trace_summary' => implode("\n", array_slice($traceLines, 0, 10)),
             ];
 
             // Add request context when available
@@ -61,6 +76,11 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             Log::error('Application Error', $context);
+
+            // Return false to stop Laravel's default reporter from also running.
+            // The default reporter passes the raw exception object to Monolog,
+            // which causes OOM when json_encode walks circular object references.
+            return false;
         });
 
         $exceptions->shouldRenderJsonWhen(function ($request) {

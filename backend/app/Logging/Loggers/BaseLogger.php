@@ -73,11 +73,17 @@ abstract class BaseLogger
 
         $request = request();
 
+        try {
+            $userId = $request->user()?->id;
+        } catch (Throwable) {
+            $userId = null;
+        }
+
         return [
             'request_id' => $request->attributes->get('request_id'),
             'ip' => $request->ip(),
             'user_agent' => $request->userAgent(),
-            'authenticated_user_id' => $request->user()?->id,
+            'authenticated_user_id' => $userId,
             'request_method' => $request->method(),
             'request_path' => $request->path(),
         ];

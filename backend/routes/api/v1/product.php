@@ -16,20 +16,20 @@ Route::prefix('products')->controller(ProductController::class)->group(function 
 });
 
 // Authenticated — reviews
-Route::middleware('jwt.auth')->controller(ProductReviewController::class)->group(function () {
+Route::middleware(['jwt.auth', 'jwt.password'])->controller(ProductReviewController::class)->group(function () {
     Route::post('/products/{id}/reviews', 'store');
     Route::patch('/reviews/{id}', 'update');
 });
 
 // Admin — product management
-Route::middleware(['jwt.auth', 'admin'])->controller(ProductController::class)->group(function () {
+Route::middleware(['jwt.auth', 'jwt.password', 'admin'])->controller(ProductController::class)->group(function () {
     Route::post('/products', 'store');
     Route::patch('/products/{id}', 'update');
     Route::delete('/products/{id}', 'destroy');
 });
 
 // Admin — product image management
-Route::middleware(['jwt.auth', 'admin'])
+Route::middleware(['jwt.auth', 'jwt.password', 'admin'])
     ->prefix('products/{productId}/images')
     ->controller(ProductImageController::class)
     ->group(function () {
@@ -41,7 +41,7 @@ Route::middleware(['jwt.auth', 'admin'])
     });
 
 // Admin — review moderation
-Route::middleware(['jwt.auth', 'admin'])->controller(ProductReviewController::class)->group(function () {
+Route::middleware(['jwt.auth', 'jwt.password', 'admin'])->controller(ProductReviewController::class)->group(function () {
     Route::get('/reviews', 'adminIndex');
     Route::post('/reviews/{id}/reply', 'adminReply');
     Route::delete('/reviews/{id}', 'destroy');
