@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductReview;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -70,18 +71,31 @@ class ProductReviewService
 
     public function addAdminReply(string $reviewId, string $reply): ProductReview
     {
-        $review = ProductReview::findOrFail($reviewId);
+        ['review' => $review, 'shouldSendEmail' => $shouldSendEmail] = DB::transaction(function () use ($reviewId, $reply) {
+            $review = ProductReview::whereKey($reviewId)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $review->update([
-            'admin_reply' => $reply,
-            'admin_replied_at' => now(),
-        ]);
+            $shouldSendEmail = $review->admin_reply !== $reply;
 
-        $review->load(['user', 'product']);
+            $review->update([
+                'admin_reply' => $reply,
+                'admin_replied_at' => now(),
+            ]);
 
-        $this->sendAdminReplyEmail($review);
+            $freshReview = $review->fresh(['user', 'product']);
 
-        return $review->fresh();
+            return [
+                'review' => $freshReview,
+                'shouldSendEmail' => $shouldSendEmail,
+            ];
+        });
+
+        if ($shouldSendEmail) {
+            $this->sendAdminReplyEmail($review);
+        }
+
+        return $review;
     }
 
     private function sendAdminReplyEmail(ProductReview $review): void
