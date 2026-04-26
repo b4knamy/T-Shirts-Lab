@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CreditCard, Loader2, ArrowLeft, ShoppingBag, Tag, X, Check } from 'lucide-react';
+import { CreditCard, Loader2, ArrowLeft, ShoppingBag, Tag, X, Check, AlertTriangle } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
 import { ordersApi, paymentsApi, couponsApi } from '../services/api';
 import type { Coupon } from '../types';
@@ -26,8 +26,13 @@ type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
 export function CheckoutPage() {
   const { items, total, clear } = useCart();
+  const [searchParams] = useSearchParams();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const checkoutStatus = (searchParams.get('checkout') || '').toLowerCase();
+  const isCancelledCheckoutStatus = checkoutStatus === 'cancelled' || checkoutStatus === 'canceled';
+  const cancelledOrderId = isCancelledCheckoutStatus ? (searchParams.get('order_id') || searchParams.get('orderId')) : null;
 
   // Coupon state
   const [couponCode, setCouponCode] = useState('');
@@ -72,8 +77,57 @@ export function CheckoutPage() {
     setCouponError(null);
   };
 
+  const getPrimaryImageUrl = (productImages: { image_url: string; is_primary: boolean }[] | undefined): string | null => {
+    if (!productImages || productImages.length === 0) {
+      return null;
+    }
+
+    const primary = productImages.find((image) => image.is_primary);
+
+    return primary?.image_url || productImages[0].image_url || null;
+  };
+
   const shipping = total >= 50 ? 0 : 9.99;
   const finalTotal = Math.max(0, total - discountAmount + shipping);
+
+  const resolveErrorMessage = (err: unknown): string => {
+    const e = err as { response?: { data?: { message?: string; error?: { message?: string } } }; message?: string };
+
+    return e.response?.data?.message || e.response?.data?.error?.message || e.message || 'Failed to process order. Please try again.';
+  };
+
+  const createCheckoutUrl = async (orderId: string): Promise<string> => {
+    const checkoutResponse = await paymentsApi.createIntent(orderId, 'brl');
+    const checkoutUrl = checkoutResponse.data.data.checkoutUrl;
+
+    if (!checkoutUrl) {
+      throw new Error('Checkout URL is missing');
+    }
+
+    return checkoutUrl;
+  };
+
+  const redirectToCheckout = (checkoutUrl: string) => {
+    window.location.href = checkoutUrl;
+  };
+
+  const handleRetryCheckout = async () => {
+    if (!cancelledOrderId) {
+      return;
+    }
+
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      const checkoutUrl = await createCheckoutUrl(cancelledOrderId);
+      redirectToCheckout(checkoutUrl);
+    } catch (err: unknown) {
+      setError(resolveErrorMessage(err));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const onSubmit = async (data: CheckoutFormData) => {
     setIsProcessing(true);
@@ -94,24 +148,70 @@ export function CheckoutPage() {
       const order = orderResponse.data.data;
 
       // Create checkout session and redirect customer to Stripe Checkout
-      const checkoutResponse = await paymentsApi.createIntent(order.id, 'brl');
-      const checkoutUrl = checkoutResponse.data.data.checkoutUrl;
+      const checkoutUrl = await createCheckoutUrl(order.id);
 
-      if (!checkoutUrl) {
-        throw new Error('Checkout URL is missing');
-      }
-
+      // Clear cart only after checkout URL is ready to avoid empty-cart flicker before redirect.
       clear();
-      window.location.href = checkoutUrl;
+      redirectToCheckout(checkoutUrl);
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { message?: string; error?: { message?: string } } }; message?: string };
-      setError(e.response?.data?.message || e.response?.data?.error?.message || e.message || 'Failed to process order. Please try again.');
+      setError(resolveErrorMessage(err));
     } finally {
       setIsProcessing(false);
     }
   };
 
   if (items.length === 0) {
+    if (isCancelledCheckoutStatus) {
+      return (
+        <div className="w-full max-w-4xl mx-auto px-6 py-20 text-center">
+          <AlertTriangle className="w-16 h-16 text-amber-400 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">Checkout cancelled</h1>
+          <p className="text-gray-500 mb-2">Your payment was not completed.</p>
+          <p className="text-gray-500 mb-6">
+            {cancelledOrderId
+              ? 'You can try paying again for this order without rebuilding your cart.'
+              : 'You can return to your orders and try payment again from there.'}
+          </p>
+
+          {error && (
+            <div className="max-w-xl mx-auto bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 text-sm">
+              {error}
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            {cancelledOrderId ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleRetryCheckout}
+                  disabled={isProcessing}
+                  className="inline-flex items-center justify-center gap-2 bg-accent text-white px-6 py-2 rounded-lg hover:bg-accent-light transition-colors disabled:opacity-50"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Redirecting...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-4 h-4" /> Try payment again
+                    </>
+                  )}
+                </button>
+                <Link to={`/orders/${cancelledOrderId}`} className="inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
+                  View order
+                </Link>
+              </>
+            ) : (
+              <Link to="/orders" className="inline-flex items-center justify-center px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
+                View my orders
+              </Link>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="w-full max-w-4xl mx-auto px-6 py-20 text-center">
         <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -251,11 +351,28 @@ export function CheckoutPage() {
 
               <ul className="space-y-3 mb-4">
                 {items.map((item) => (
-                  <li key={item.product.id} className="flex justify-between text-sm">
-                    <span className="text-gray-600">
-                      {item.product.name} × {item.quantity}
-                    </span>
-                    <span className="font-medium">
+                  <li key={`${item.product.id}-${item.design_id || 'default'}`} className="flex items-center justify-between gap-3 text-sm">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-12 h-12 rounded-lg bg-surface overflow-hidden flex-shrink-0 border border-gray-100">
+                        {getPrimaryImageUrl(item.product.images) ? (
+                          <img
+                            src={getPrimaryImageUrl(item.product.images) || ''}
+                            alt={item.product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">
+                            No image
+                          </div>
+                        )}
+                      </div>
+
+                      <span className="text-gray-600 truncate">
+                        {item.product.name} × {item.quantity}
+                      </span>
+                    </div>
+
+                    <span className="font-medium flex-shrink-0">
                       R${(Number(item.product.discount_price || item.product.price) * item.quantity).toFixed(2)}
                     </span>
                   </li>
