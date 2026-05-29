@@ -4,20 +4,19 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { render } from '@testing-library/react';
+import { CheckoutDraftProvider } from '../pages/checkout/draft_state';
+import type { CheckoutDraftState } from '../pages/checkout/types';
 import { createQueryClient } from '../services/queryClient';
 import cartReducer from '../store/slices/cartSlice';
-import checkoutReducer from '../store/slices/checkoutSlice';
 
 type TestState = {
   cart: ReturnType<typeof cartReducer>;
-  checkout: ReturnType<typeof checkoutReducer>;
 };
 
 export function createTestStore(preloadedState?: Partial<TestState>) {
   return configureStore({
     reducer: {
       cart: cartReducer,
-      checkout: checkoutReducer,
     },
     preloadedState: preloadedState as TestState | undefined,
     middleware: (getDefaultMiddleware) =>
@@ -30,6 +29,7 @@ export function createTestStore(preloadedState?: Partial<TestState>) {
 export function renderRouteWithProviders(
   element: ReactElement,
   options: {
+    initialDraftState?: Partial<CheckoutDraftState>;
     path: string;
     route: string;
     preloadedState?: Partial<TestState>;
@@ -42,11 +42,13 @@ export function renderRouteWithProviders(
     return (
       <QueryClientProvider client={queryClient}>
         <Provider store={store}>
-          <MemoryRouter initialEntries={[options.route]}>
-            <Routes>
-              <Route path={options.path} element={children} />
-            </Routes>
-          </MemoryRouter>
+          <CheckoutDraftProvider initialState={options.initialDraftState}>
+            <MemoryRouter initialEntries={[options.route]}>
+              <Routes>
+                <Route path={options.path} element={children} />
+              </Routes>
+            </MemoryRouter>
+          </CheckoutDraftProvider>
         </Provider>
       </QueryClientProvider>
     );

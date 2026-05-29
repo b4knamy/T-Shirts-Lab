@@ -7,6 +7,16 @@ import { checkoutSchema } from './schemas';
 export type SelectedCheckoutItem = CartItem & { checkoutQuantity: number };
 export type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
+export interface CheckoutDraftItem {
+	productId: string;
+	quantity: number;
+}
+
+export interface CheckoutDraftState {
+	items: CheckoutDraftItem[];
+	draftInitialized: boolean;
+}
+
 // Coupon
 export interface ValidateCouponVariables {
 	code: string;
@@ -66,6 +76,7 @@ export interface CancelledCheckoutStateProps {
 	cancelledOrderId: string | null;
 	error: string | null;
 	isProcessing: boolean;
+	isRedirecting: boolean;
 	onRetryCheckout: () => void;
 }
 

@@ -6,6 +6,7 @@ export function CancelledCheckoutState({
   cancelledOrderId,
   error,
   isProcessing,
+  isRedirecting,
   onRetryCheckout,
 }: CancelledCheckoutStateProps) {
   return (
@@ -31,10 +32,10 @@ export function CancelledCheckoutState({
             <button
               type="button"
               onClick={onRetryCheckout}
-              disabled={isProcessing}
+              disabled={isProcessing || isRedirecting}
               className="inline-flex items-center justify-center gap-2 bg-accent text-white px-6 py-2 rounded-lg hover:bg-accent-light transition-colors disabled:opacity-50"
             >
-              {isProcessing ? (
+              {isProcessing || isRedirecting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" /> Redirecting...
                 </>

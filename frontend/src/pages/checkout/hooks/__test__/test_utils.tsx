@@ -2,10 +2,13 @@ import type { PropsWithChildren } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { CheckoutDraftProvider } from '../../draft_state';
+import type { CheckoutDraftState } from '../../types';
 import { createQueryClient } from '../../../../services/queryClient';
 import { createTestStore } from '../../../../test/renderWithProviders';
 export {
   createCartItem,
+  createCheckoutDraftState,
   createCheckoutFormData,
   createCoupon,
   createPreloadedState,
@@ -16,6 +19,7 @@ export {
 type PreloadedState = Parameters<typeof createTestStore>[0];
 
 export function createHookWrapper(options?: {
+  initialDraftState?: Partial<CheckoutDraftState>;
   path?: string;
   preloadedState?: PreloadedState;
   route?: string;
@@ -27,11 +31,13 @@ export function createHookWrapper(options?: {
     return (
       <QueryClientProvider client={queryClient}>
         <Provider store={store}>
-          <MemoryRouter initialEntries={[options?.route ?? '/checkout']}>
-            <Routes>
-              <Route path={options?.path ?? '/checkout'} element={<>{children}</>} />
-            </Routes>
-          </MemoryRouter>
+          <CheckoutDraftProvider initialState={options?.initialDraftState}>
+            <MemoryRouter initialEntries={[options?.route ?? '/checkout']}>
+              <Routes>
+                <Route path={options?.path ?? '/checkout'} element={<>{children}</>} />
+              </Routes>
+            </MemoryRouter>
+          </CheckoutDraftProvider>
         </Provider>
       </QueryClientProvider>
     );

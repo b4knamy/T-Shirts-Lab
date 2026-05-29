@@ -7,10 +7,7 @@ describe('useCheckout', () => {
   it('composes the checkout concerns and exposes the derived total', async () => {
     const cartItems = [createCartItem()];
     const { wrapper } = createHookWrapper({
-      preloadedState: createPreloadedState({
-        cartItems,
-        draftInitialized: true,
-      }),
+      preloadedState: createPreloadedState({ cartItems }),
     });
 
     const { result } = renderHook(() => useCheckout(), { wrapper });

@@ -1,4 +1,4 @@
-import type { CheckoutFormData, SelectedCheckoutItem } from '../types';
+import type { CheckoutDraftState, CheckoutFormData, SelectedCheckoutItem } from '../types';
 import type { CartItem, Coupon, Product } from '../../../types';
 
 export function createProduct(overrides: Partial<Product> = {}): Product {
@@ -25,7 +25,6 @@ export function createProduct(overrides: Partial<Product> = {}): Product {
 
 export function createCartItem(quantity = 2, overrides: Partial<CartItem> = {}): CartItem {
   return {
-    id: 'cart-item-1',
     product: createProduct(),
     quantity,
     ...overrides,
@@ -61,10 +60,7 @@ export function createCoupon(code = 'SAVE10', overrides: Partial<Coupon> = {}): 
 
 export function createPreloadedState(options?: {
   cartItems?: CartItem[];
-  checkoutItems?: Array<{ cartItemId: string; quantity: number }>;
-  draftInitialized?: boolean;
   isCartOpen?: boolean;
-  processedCheckoutKeys?: string[];
 }) {
   const cartItems = options?.cartItems ?? [createCartItem()];
 
@@ -73,14 +69,22 @@ export function createPreloadedState(options?: {
       items: cartItems,
       isOpen: options?.isCartOpen ?? false,
     },
-    checkout: {
-      items: options?.checkoutItems ?? cartItems.map((item) => ({
-        cartItemId: item.id,
-        quantity: item.quantity,
-      })),
-      processedCheckoutKeys: options?.processedCheckoutKeys ?? [],
-      draftInitialized: options?.draftInitialized ?? true,
-    },
+  };
+}
+
+export function createCheckoutDraftState(options?: {
+  cartItems?: CartItem[];
+  checkoutItems?: Array<{ productId: string; quantity: number }>;
+  draftInitialized?: boolean;
+}): CheckoutDraftState {
+  const cartItems = options?.cartItems ?? [createCartItem()];
+
+  return {
+    items: options?.checkoutItems ?? cartItems.map((item) => ({
+      productId: item.product.id,
+      quantity: item.quantity,
+    })),
+    draftInitialized: options?.draftInitialized ?? true,
   };
 }
 

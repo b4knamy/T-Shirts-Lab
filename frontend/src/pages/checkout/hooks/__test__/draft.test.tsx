@@ -1,14 +1,19 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { useCheckoutDraft } from '../draft';
-import { createCartItem, createHookWrapper, createPreloadedState, createProduct } from './test_utils';
+import {
+  createCartItem,
+  createCheckoutDraftState,
+  createHookWrapper,
+  createPreloadedState,
+  createProduct,
+} from './test_utils';
 
 describe('useCheckoutDraft', () => {
   it('derives selected items, subtotal, and shipping from the draft selection', () => {
     const cartItems = [
       createCartItem(2),
       createCartItem(1, {
-        id: 'cart-item-2',
         product: createProduct({
           id: 'product-2',
           name: 'Heavy Hoodie',
@@ -21,14 +26,15 @@ describe('useCheckoutDraft', () => {
     ];
 
     const { wrapper } = createHookWrapper({
-      preloadedState: createPreloadedState({
+      initialDraftState: createCheckoutDraftState({
         cartItems,
         checkoutItems: [
-          { cartItemId: 'cart-item-1', quantity: 1 },
-          { cartItemId: 'cart-item-2', quantity: 3 },
+          { productId: 'product-1', quantity: 1 },
+          { productId: 'product-2', quantity: 3 },
         ],
         draftInitialized: true,
       }),
+      preloadedState: createPreloadedState({ cartItems }),
     });
 
     const { result } = renderHook(() => useCheckoutDraft(cartItems, false), { wrapper });
@@ -43,12 +49,8 @@ describe('useCheckoutDraft', () => {
 
   it('initializes the checkout draft from cart items when needed', async () => {
     const cartItems = [createCartItem()];
-    const { store, wrapper } = createHookWrapper({
-      preloadedState: createPreloadedState({
-        cartItems,
-        checkoutItems: [],
-        draftInitialized: false,
-      }),
+    const { wrapper } = createHookWrapper({
+      preloadedState: createPreloadedState({ cartItems }),
     });
 
     const { result } = renderHook(() => useCheckoutDraft(cartItems, false), { wrapper });
@@ -58,27 +60,20 @@ describe('useCheckoutDraft', () => {
     });
 
     expect(result.current.selectedItems).toHaveLength(1);
-    expect(store.getState().checkout.items).toEqual([
-      { cartItemId: 'cart-item-1', quantity: 2 },
-    ]);
-    expect(store.getState().checkout.draftInitialized).toBe(true);
+    expect(result.current.selectedItems[0].checkoutQuantity).toBe(2);
+    expect(result.current.subtotal).toBe(36);
   });
 
   it('does not initialize the draft while handling a cancelled checkout', () => {
     const cartItems = [createCartItem()];
-    const { store, wrapper } = createHookWrapper({
-      preloadedState: createPreloadedState({
-        cartItems,
-        checkoutItems: [],
-        draftInitialized: false,
-      }),
+    const { wrapper } = createHookWrapper({
+      preloadedState: createPreloadedState({ cartItems }),
     });
 
     const { result } = renderHook(() => useCheckoutDraft(cartItems, true), { wrapper });
 
     expect(result.current.isPreparingDraft).toBe(false);
     expect(result.current.selectedItems).toHaveLength(0);
-    expect(store.getState().checkout.items).toEqual([]);
-    expect(store.getState().checkout.draftInitialized).toBe(false);
+    expect(result.current.subtotal).toBe(0);
   });
 });

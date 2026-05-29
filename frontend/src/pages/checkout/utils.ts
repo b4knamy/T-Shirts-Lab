@@ -1,15 +1,14 @@
-import type { CheckoutDraftItem } from '../../store/slices/checkoutSlice';
 import type { CartItem } from '../../types';
-import type { SelectedCheckoutItem } from './types';
+import type { CheckoutDraftItem, SelectedCheckoutItem } from './types';
 
 export const buildSelectedCheckoutItems = (
   cartItems: CartItem[],
   checkoutDraftItems: CheckoutDraftItem[],
 ): SelectedCheckoutItem[] => {
-  const draftQuantities = new Map(checkoutDraftItems.map((item) => [item.cartItemId, item.quantity]));
+  const draftQuantities = new Map(checkoutDraftItems.map((item) => [item.productId, item.quantity]));
 
   return cartItems.flatMap((item) => {
-    const selectedQuantity = draftQuantities.get(item.id);
+    const selectedQuantity = draftQuantities.get(item.product.id);
 
     if (!selectedQuantity) {
       return [];

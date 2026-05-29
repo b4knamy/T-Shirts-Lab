@@ -5,6 +5,7 @@ import { updateQuantity } from '../../../store/slices/cartSlice';
 import { renderRouteWithProviders } from '../../../test/renderWithProviders';
 import { CheckoutPage } from '../index';
 import {
+  createCheckoutDraftState,
   createCheckoutFormData,
   createCoupon,
   createPreloadedState,
@@ -44,10 +45,12 @@ vi.mock('react-hot-toast', () => ({
 }));
 
 function renderCheckoutPage(options?: {
+  initialDraftState?: ReturnType<typeof createCheckoutDraftState>;
   route?: string;
   preloadedState?: ReturnType<typeof createPreloadedState>;
 }) {
   return renderRouteWithProviders(<CheckoutPage />, {
+    initialDraftState: options?.initialDraftState,
     path: '/checkout',
     route: options?.route ?? '/checkout',
     preloadedState: options?.preloadedState ?? createPreloadedState(),
@@ -108,11 +111,7 @@ describe('checkout', () => {
 
   it('shows the empty cart state when there are no cart items', () => {
     renderCheckoutPage({
-      preloadedState: createPreloadedState({
-        cartItems: [],
-        checkoutItems: [],
-        draftInitialized: false,
-      }),
+      preloadedState: createPreloadedState({ cartItems: [] }),
     });
 
     expect(screen.getByText('Your cart is empty')).toBeInTheDocument();
@@ -122,7 +121,7 @@ describe('checkout', () => {
   it('shows the no items selected state and opens the cart when asked', async () => {
     const user = userEvent.setup();
     const view = renderCheckoutPage({
-      preloadedState: createPreloadedState({
+      initialDraftState: createCheckoutDraftState({
         checkoutItems: [],
         draftInitialized: true,
       }),
@@ -157,7 +156,7 @@ describe('checkout', () => {
       expect(paymentsCreateIntentMock).toHaveBeenCalledWith('order-123', 'brl');
     });
 
-    expect(await screen.findByText('Redirecting to Stripe')).toBeInTheDocument();
+    expect(await screen.findByText('Redirecting...')).toBeInTheDocument();
   });
 
   it('invalidates an applied coupon when the selected subtotal changes', async () => {
@@ -179,7 +178,7 @@ describe('checkout', () => {
     expect(await screen.findByText('SAVE10')).toBeInTheDocument();
 
     act(() => {
-      view.store.dispatch(updateQuantity({ cartItemId: 'cart-item-1', quantity: 1 }));
+      view.store.dispatch(updateQuantity({ productId: 'product-1', quantity: 1 }));
     });
 
     await waitFor(() => {
@@ -238,7 +237,7 @@ describe('checkout', () => {
     });
 
     expect(paymentsCreateIntentMock).toHaveBeenCalledWith('order-999', 'brl');
-    expect(await screen.findByText('Redirecting to Stripe')).toBeInTheDocument();
+    expect(await screen.findByText('Redirecting...')).toBeInTheDocument();
   });
 
   it('shows the submission error when order creation fails', async () => {

@@ -26,6 +26,7 @@ export function CheckoutPage() {
         cancelledOrderId={status.cancelledOrderId}
         error={submission.error}
         isProcessing={submission.isProcessing}
+        isRedirecting={submission.isRedirecting}
         onRetryCheckout={submission.handleRetryCheckout}
       />
     );
