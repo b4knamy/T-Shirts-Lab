@@ -3,15 +3,15 @@
 # T-Shirts Lab — Dev Environment Starter
 # =============================================================================
 # Starts everything needed for local development:
-#   • Docker services  → PostgreSQL + Redis (via docker-compose)
+#   • Docker services  → PostgreSQL + Redis + Grafana/Loki/Promtail
 #   • Laravel backend  → php artisan serve  (port 8000)
 #   • Laravel queue    → php artisan queue:listen
 #   • Laravel logs     → php artisan pail
 #   • React frontend   → vite dev server   (port 5173)
 #
 # Usage:
-#   ./dev.sh            — start all services (native PHP + Vite)
-#   ./dev.sh --docker   — start EVERYTHING in Docker (+ Grafana at :3000)
+#   ./dev.sh            — start native backend/frontend + Docker infra/logging
+#   ./dev.sh --docker   — start only Docker infra/logging
 #   ./dev.sh --no-docker — skip Docker step (if DB/Redis already running)
 #   ./dev.sh --stop     — stop Docker services and all background processes
 # =============================================================================
@@ -40,10 +40,26 @@ warn() { echo -e "${YELLOW}  ⚠${RESET}  $*"; }
 err()  { echo -e "${RED}  ✖${RESET}  $*" >&2; }
 sep()  { echo -e "${CYAN}──────────────────────────────────────────────${RESET}"; }
 
+compose_cmd() {
+  if docker compose version &>/dev/null 2>&1; then
+    docker compose -f "$SCRIPT_DIR/docker-compose.yml" -f "$SCRIPT_DIR/docker-compose.logging.yml" "$@"
+  else
+    docker-compose -f "$SCRIPT_DIR/docker-compose.yml" -f "$SCRIPT_DIR/docker-compose.logging.yml" "$@"
+  fi
+}
+
+compose_base_cmd() {
+  if docker compose version &>/dev/null 2>&1; then
+    docker compose -f "$SCRIPT_DIR/docker-compose.yml" "$@"
+  else
+    docker-compose -f "$SCRIPT_DIR/docker-compose.yml" "$@"
+  fi
+}
+
 # ── Argument parsing ──────────────────────────────────────────────────────────
 USE_DOCKER=true
 STOP_MODE=false
-FULL_DOCKER=false   # --docker: run entire stack (backend + frontend) in containers
+FULL_DOCKER=false   # --docker: run only infra/logging containers
 
 for arg in "$@"; do
   case "$arg" in
@@ -69,12 +85,9 @@ if $STOP_MODE; then
   fi
 
   # Also stop the Docker services
-  if command -v docker compose &>/dev/null; then
+  if command -v docker &>/dev/null; then
     log "Stopping Docker services…"
-    docker compose -f "$SCRIPT_DIR/docker-compose.yml" \
-                   -f "$SCRIPT_DIR/docker-compose.logging.yml" \
-                   stop 2>/dev/null || \
-    docker compose -f "$SCRIPT_DIR/docker-compose.yml" stop
+    compose_cmd stop
     ok "Docker services stopped."
   fi
 
@@ -82,12 +95,11 @@ if $STOP_MODE; then
   exit 0
 fi
 
-# ── Full Docker mode (--docker) ───────────────────────────────────────────────
-# Runs backend + frontend + monitoring all inside containers.
-# No native PHP or Node required on the host.
+# ── Docker infra mode (--docker) ──────────────────────────────────────────────
+# Runs database, cache, and logging/monitoring inside containers.
 if $FULL_DOCKER; then
   sep
-  echo -e "${BOLD}  🐳  T-Shirts Lab — Full Docker Mode${RESET}"
+  echo -e "${BOLD}  🐳  T-Shirts Lab — Docker Infra Mode${RESET}"
   sep
 
   if ! command -v docker &>/dev/null; then
@@ -95,23 +107,19 @@ if $FULL_DOCKER; then
     exit 1
   fi
 
-  log "Building and starting all containers…"
-  docker compose \
-    -f "$SCRIPT_DIR/docker-compose.yml" \
-    -f "$SCRIPT_DIR/docker-compose.logging.yml" \
-    up -d --build
+  log "Starting database, cache, and logging containers…"
+  compose_cmd up -d postgres redis loki promtail grafana
 
   sep
   echo -e ""
   echo -e "  ${BOLD}${GREEN}All containers are running!${RESET}"
   echo -e ""
-  echo -e "  ${BOLD}Frontend${RESET}   http://localhost:5173"
-  echo -e "  ${BOLD}Backend${RESET}    http://localhost:8000"
-  echo -e "  ${BOLD}API Base${RESET}   http://localhost:8000/api/v1"
+  echo -e "  ${BOLD}PostgreSQL${RESET} http://localhost:5432"
+  echo -e "  ${BOLD}Redis${RESET}      http://localhost:6379"
   echo -e "  ${BOLD}Grafana${RESET}    http://localhost:3000  ${CYAN}(admin / admin)${RESET}"
   echo -e "  ${BOLD}Loki${RESET}       http://localhost:3100"
   echo -e ""
-  echo -e "  Logs:  ${BOLD}docker compose logs -f backend${RESET}"
+  echo -e "  Native backend/frontend stay on the host machine."
   echo -e "  Stop:  ${BOLD}./dev.sh --stop${RESET}"
   echo -e ""
   sep
@@ -174,24 +182,19 @@ if [[ -z "$APP_KEY" ]]; then
   ok "App key generated."
 fi
 
-# ── Docker — PostgreSQL + Redis ───────────────────────────────────────────────
+# ── Docker — PostgreSQL + Redis + Logging ────────────────────────────────────
 if $USE_DOCKER; then
   sep
-  log "Starting Docker services (postgres + redis)…"
+  log "Starting Docker services (postgres + redis + logging)…"
 
   if ! command -v docker &>/dev/null; then
     warn "Docker not found — skipping. Make sure PostgreSQL and Redis are running manually."
   else
-    COMPOSE_CMD="docker compose"
-    if ! docker compose version &>/dev/null 2>&1; then
-      COMPOSE_CMD="docker-compose"
-    fi
-
-    $COMPOSE_CMD -f "$SCRIPT_DIR/docker-compose.yml" up -d postgres redis
+    compose_cmd up -d postgres redis loki promtail grafana
 
     log "Waiting for PostgreSQL to be healthy…"
     for i in $(seq 1 30); do
-      if $COMPOSE_CMD -f "$SCRIPT_DIR/docker-compose.yml" exec -T postgres \
+      if compose_base_cmd exec -T postgres \
           pg_isready -U "${POSTGRES_USER:-tshirtslab}" -d "${POSTGRES_DB:-tshirtslab_db}" &>/dev/null; then
         ok "PostgreSQL is ready."
         break
@@ -205,7 +208,7 @@ if $USE_DOCKER; then
 
     log "Waiting for Redis to be healthy…"
     for i in $(seq 1 20); do
-      if $COMPOSE_CMD -f "$SCRIPT_DIR/docker-compose.yml" exec -T redis \
+      if compose_base_cmd exec -T redis \
           redis-cli ping &>/dev/null; then
         ok "Redis is ready."
         break
@@ -268,9 +271,9 @@ echo -e ""
 echo -e "  ${BOLD}Frontend${RESET}   http://localhost:5173"
 echo -e "  ${BOLD}Backend${RESET}    http://localhost:8000"
 echo -e "  ${BOLD}API Base${RESET}   http://localhost:8000/api/v1"
+echo -e "  ${BOLD}Grafana${RESET}    http://localhost:3000"
 echo -e ""
-echo -e "  Tip: run ${BOLD}./dev.sh --docker${RESET} to start everything in containers"
-echo -e "       (adds Grafana log dashboard at http://localhost:3000)"
+echo -e "  Tip: run ${BOLD}./dev.sh --docker${RESET} to start only Docker infra/logging"
 echo -e ""
 echo -e "  Stop with:  ${BOLD}./dev.sh --stop${RESET}   or press ${BOLD}Ctrl+C${RESET}"
 echo -e ""

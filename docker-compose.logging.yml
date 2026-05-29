@@ -10,22 +10,6 @@
 
 services:
   # --------------------------------------------------------------------------
-  # Override backend to enable JSON stdout logging + Docker JSON-file driver
-  # --------------------------------------------------------------------------
-  backend:
-    environment:
-      LOG_CHANNEL: stack
-      LOG_STACK: stdout,daily
-      LOG_LEVEL: debug
-      APP_VERSION: "0.0.1"
-    logging:
-      driver: json-file
-      options:
-        max-size: "50m"
-        max-file: "5"
-        tag: "{{.Name}}"
-
-  # --------------------------------------------------------------------------
   # Loki — log aggregation engine (stores + indexes logs)
   # --------------------------------------------------------------------------
   loki:
@@ -54,6 +38,7 @@ services:
     container_name: tshirtslab-promtail
     volumes:
       - ./docker/logging/promtail.yaml:/etc/promtail/config.yaml:ro
+      - ./backend/storage/logs:/var/log/tshirtslab/backend:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - promtail_positions:/tmp
     command: -config.file=/etc/promtail/config.yaml
