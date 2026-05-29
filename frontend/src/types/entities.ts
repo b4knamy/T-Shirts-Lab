@@ -162,6 +162,7 @@ export interface Payment {
 export interface CartItem {
   product: Product;
   design_id?: string;
+  customization_data?: Record<string, unknown>;
   quantity: number;
 }
 

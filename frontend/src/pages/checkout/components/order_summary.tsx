@@ -17,7 +17,7 @@ export function OrderSummarySection({
           const primaryImageUrl = getPrimaryImageUrl(item.product.images);
 
           return (
-            <li key={item.id} className="flex items-center justify-between gap-3 text-sm">
+            <li key={item.product.id} className="flex items-center justify-between gap-3 text-sm">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-12 h-12 rounded-lg bg-surface overflow-hidden flex-shrink-0 border border-gray-100">
                   {primaryImageUrl ? (

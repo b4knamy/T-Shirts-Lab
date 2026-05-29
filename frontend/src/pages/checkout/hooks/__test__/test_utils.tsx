@@ -4,8 +4,8 @@ import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { CheckoutDraftProvider } from '../../draft_state';
 import type { CheckoutDraftState } from '../../types';
-import { createQueryClient } from '../../../../services/queryClient';
 import { createTestStore } from '../../../../test/renderWithProviders';
+import { createQueryClient } from '../../../../services/queryClient';
 export {
   createCartItem,
   createCheckoutDraftState,

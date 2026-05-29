@@ -6,8 +6,8 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { render } from '@testing-library/react';
 import { CheckoutDraftProvider } from '../pages/checkout/draft_state';
 import type { CheckoutDraftState } from '../pages/checkout/types';
-import { createQueryClient } from '../services/queryClient';
 import cartReducer from '../store/slices/cartSlice';
+import { createQueryClient } from '../services/queryClient';
 
 type TestState = {
   cart: ReturnType<typeof cartReducer>;
