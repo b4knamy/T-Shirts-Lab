@@ -1,5 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, Menu, X, Search, LogOut, Package } from 'lucide-react';
+import {
+  ShoppingCart,
+  User,
+  Menu,
+  X,
+  Search,
+  LogOut,
+  Package,
+} from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
@@ -24,28 +32,46 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 font-bold text-xl tracking-tight">
+          <Link
+            to="/"
+            className="flex items-center gap-2 font-bold text-xl tracking-tight"
+          >
             <span className="text-accent">T-Shirts</span>Lab
           </Link>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link to="/products" className="hover:text-accent transition-colors">
+            <Link
+              to="/products"
+              className="hover:text-accent transition-colors"
+            >
               Products
             </Link>
-            <Link to="/products?category=men" className="hover:text-accent transition-colors">
+            <Link
+              to="/products?category=men"
+              className="hover:text-accent transition-colors"
+            >
               Men
             </Link>
-            <Link to="/products?category=women" className="hover:text-accent transition-colors">
+            <Link
+              to="/products?category=women"
+              className="hover:text-accent transition-colors"
+            >
               Women
             </Link>
-            <Link to="/products?category=kids" className="hover:text-accent transition-colors">
+            <Link
+              to="/products?category=kids"
+              className="hover:text-accent transition-colors"
+            >
               Kids
             </Link>
           </nav>
 
           {/* Search Bar */}
-          <form onSubmit={handleSearch} className="hidden md:flex items-center flex-1 max-w-md mx-8">
+          <form
+            onSubmit={handleSearch}
+            className="hidden md:flex items-center flex-1 max-w-md mx-8"
+          >
             <div className="relative w-full">
               <input
                 type="text"
@@ -77,16 +103,26 @@ export function Header() {
             {/* User Menu */}
             {isAuthenticated ? (
               <div className="hidden md:flex items-center gap-3">
-                <Link to="/profile" className="flex items-center gap-2 hover:text-accent transition-colors">
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 hover:text-accent transition-colors"
+                >
                   <User className="w-5 h-5" />
                   <span className="text-sm">{user?.first_name}</span>
                 </Link>
                 {user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' ? (
-                  <Link to="/admin" className="hover:text-accent transition-colors text-sm">
+                  <Link
+                    to="/admin"
+                    className="hover:text-accent transition-colors text-sm"
+                  >
                     <Package className="w-5 h-5" />
                   </Link>
                 ) : null}
-                <button onClick={signOut} className="hover:text-accent transition-colors" aria-label="Logout">
+                <button
+                  onClick={signOut}
+                  className="hover:text-accent transition-colors"
+                  aria-label="Logout"
+                >
                   <LogOut className="w-5 h-5" />
                 </button>
               </div>
@@ -106,7 +142,11 @@ export function Header() {
               className="md:hidden p-2"
               aria-label="Toggle menu"
             >
-              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {menuOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
             </button>
           </div>
         </div>
@@ -127,33 +167,67 @@ export function Header() {
               </div>
             </form>
             <nav className="flex flex-col gap-3">
-              <Link to="/products" onClick={() => setMenuOpen(false)} className="hover:text-accent transition-colors">
+              <Link
+                to="/products"
+                onClick={() => setMenuOpen(false)}
+                className="hover:text-accent transition-colors"
+              >
                 All Products
               </Link>
-              <Link to="/products?category=men" onClick={() => setMenuOpen(false)} className="hover:text-accent transition-colors">
+              <Link
+                to="/products?category=men"
+                onClick={() => setMenuOpen(false)}
+                className="hover:text-accent transition-colors"
+              >
                 Men
               </Link>
-              <Link to="/products?category=women" onClick={() => setMenuOpen(false)} className="hover:text-accent transition-colors">
+              <Link
+                to="/products?category=women"
+                onClick={() => setMenuOpen(false)}
+                className="hover:text-accent transition-colors"
+              >
                 Women
               </Link>
-              <Link to="/products?category=kids" onClick={() => setMenuOpen(false)} className="hover:text-accent transition-colors">
+              <Link
+                to="/products?category=kids"
+                onClick={() => setMenuOpen(false)}
+                className="hover:text-accent transition-colors"
+              >
                 Kids
               </Link>
               <hr className="border-gray-700" />
               {isAuthenticated ? (
                 <>
-                  <Link to="/profile" onClick={() => setMenuOpen(false)} className="hover:text-accent transition-colors">
+                  <Link
+                    to="/profile"
+                    onClick={() => setMenuOpen(false)}
+                    className="hover:text-accent transition-colors"
+                  >
                     My Profile
                   </Link>
-                  <Link to="/orders" onClick={() => setMenuOpen(false)} className="hover:text-accent transition-colors">
+                  <Link
+                    to="/orders"
+                    onClick={() => setMenuOpen(false)}
+                    className="hover:text-accent transition-colors"
+                  >
                     My Orders
                   </Link>
-                  <button onClick={() => { signOut(); setMenuOpen(false); }} className="text-left hover:text-accent transition-colors">
+                  <button
+                    onClick={() => {
+                      signOut();
+                      setMenuOpen(false);
+                    }}
+                    className="text-left hover:text-accent transition-colors"
+                  >
                     Sign Out
                   </button>
                 </>
               ) : (
-                <Link to="/login" onClick={() => setMenuOpen(false)} className="hover:text-accent transition-colors">
+                <Link
+                  to="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="hover:text-accent transition-colors"
+                >
                   Sign In
                 </Link>
               )}

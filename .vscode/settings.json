@@ -1,7 +1,14 @@
 {
+  "[javascript]": {
+    "editor.maxTokenizationLineLength": 2500,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "editor.formatOnSave": true,
   "[php]": {
     "editor.defaultFormatter": "open-southeners.laravel-pint",
     "editor.formatOnSave": true
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "never"
   }
 }

@@ -56,14 +56,24 @@ export function RegisterPage() {
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4 text-sm">
           {error}
-          <button onClick={resetError} className="float-right font-medium hover:text-red-800">×</button>
+          <button
+            onClick={resetError}
+            className="float-right font-medium hover:text-red-800"
+          >
+            ×
+          </button>
         </div>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="firstName" className="block text-sm font-medium mb-1">First Name</label>
+            <label
+              htmlFor="firstName"
+              className="block text-sm font-medium mb-1"
+            >
+              First Name
+            </label>
             <input
               id="firstName"
               type="text"
@@ -71,10 +81,19 @@ export function RegisterPage() {
               className="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:border-accent"
               placeholder="John"
             />
-            {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName.message}</p>}
+            {errors.firstName && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.firstName.message}
+              </p>
+            )}
           </div>
           <div>
-            <label htmlFor="lastName" className="block text-sm font-medium mb-1">Last Name</label>
+            <label
+              htmlFor="lastName"
+              className="block text-sm font-medium mb-1"
+            >
+              Last Name
+            </label>
             <input
               id="lastName"
               type="text"
@@ -82,12 +101,18 @@ export function RegisterPage() {
               className="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:border-accent"
               placeholder="Doe"
             />
-            {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName.message}</p>}
+            {errors.lastName && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.lastName.message}
+              </p>
+            )}
           </div>
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
+          <label htmlFor="email" className="block text-sm font-medium mb-1">
+            Email
+          </label>
           <input
             id="email"
             type="email"
@@ -95,11 +120,15 @@ export function RegisterPage() {
             className="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:border-accent"
             placeholder="you@example.com"
           />
-          {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+          {errors.email && (
+            <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+          )}
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
+          <label htmlFor="password" className="block text-sm font-medium mb-1">
+            Password
+          </label>
           <div className="relative">
             <input
               id="password"
@@ -113,14 +142,27 @@ export function RegisterPage() {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              {showPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
             </button>
           </div>
-          {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
+          {errors.password && (
+            <p className="text-red-500 text-xs mt-1">
+              {errors.password.message}
+            </p>
+          )}
         </div>
 
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">Confirm Password</label>
+          <label
+            htmlFor="confirmPassword"
+            className="block text-sm font-medium mb-1"
+          >
+            Confirm Password
+          </label>
           <input
             id="confirmPassword"
             type="password"
@@ -128,7 +170,11 @@ export function RegisterPage() {
             className="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:border-accent"
             placeholder="Repeat your password"
           />
-          {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>}
+          {errors.confirmPassword && (
+            <p className="text-red-500 text-xs mt-1">
+              {errors.confirmPassword.message}
+            </p>
+          )}
         </div>
 
         <button

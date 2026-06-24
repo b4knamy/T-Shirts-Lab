@@ -58,23 +58,21 @@ Toda a documentação do projeto está organizada em `project_context/`:
 git clone https://github.com/b4knamy/tshirts-lab.git
 cd tshirts-lab
 
-# Backend
-cd backend
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan jwt:secret
-php artisan migrate:fresh --seed
-php artisan serve --port=8000
+# Configurar o backend
+cp backend/.env.example backend/.env
 
-# Frontend (outra aba)
-cd frontend
-npm install
-npm run dev
+# Subir o stack local:
+# - Postgres, Redis, Grafana, Loki e Promtail via Docker
+# - Backend Laravel e frontend Vite nativos na maquina host
+./dev.sh
 ```
 
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:8000/api/v1/health
+
+Se quiser rodar manualmente sem `./dev.sh`, suba a infraestrutura com
+`docker compose -f docker-compose.yml -f docker-compose.logging.yml up -d postgres redis loki promtail grafana`,
+depois use `composer install`, `php artisan ...` e `npm run dev` localmente.
 
 ### Contas de Teste
 

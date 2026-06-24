@@ -10,9 +10,7 @@ clients:
 
 scrape_configs:
   # ---------------------------------------------------------------------------
-  # Docker container logs via Docker socket service discovery.
-  # Promtail discovers all running containers and reads their JSON log files
-  # directly from /var/lib/docker/containers/<id>/<id>-json.log
+  # Docker container logs for infrastructure services that stay in Docker.
   # ---------------------------------------------------------------------------
   - job_name: docker
     docker_sd_configs:
@@ -35,60 +33,55 @@ scrape_configs:
 
       # Set a fixed job label for Loki queries
       - target_label: job
-        replacement: tshirtslab
+        replacement: tshirtslab-infra
 
-      # Drop infrastructure containers — only keep application services
+      # Drop the logging stack itself to avoid recursive ingestion
       - source_labels: [__meta_docker_container_label_com_docker_compose_service]
         action: drop
-        regex: "loki|promtail|grafana|postgres|redis|frontend"
-
-      # Double-guard: drop by container name pattern too
-      - source_labels: [__meta_docker_container_name]
-        action: keep
-        regex: "/tshirtslab-backend"
+        regex: "loki|promtail|grafana"
 
     pipeline_stages:
-      # Step 1 — Docker wraps each stdout line in a JSON envelope:
-      #   {"log":"<actual json line>\n","stream":"stdout","time":"..."}
       - docker: {}
 
-      # Step 2 — Only apply JSON parsing to Laravel structured log lines.
-      #   Supervisord, nginx, and php-fpm emit plain text — skip them.
-      - match:
-          selector: '{job="tshirtslab"}'
-          stages:
-            # Only process lines that look like JSON objects
-            - json:
-                expressions:
-                  _msg: message
-                  level: level_name
-                  channel: channel
-                  environment: extra.environment
-                  app: extra.app
-                  pod: extra.pod
+  # ---------------------------------------------------------------------------
+  # Native Laravel backend logs.
+  # The backend runs on the host, but still writes structured JSON files to
+  # storage/logs/ while Loki/Promtail remain containerized.
+  # ---------------------------------------------------------------------------
+  - job_name: backend-files
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: tshirtslab
+          service: backend
+          container: native-backend
+          __path__: /var/log/tshirtslab/backend/*.log
 
-            # Only promote labels when we actually got a channel (i.e. it's a Laravel log line)
-            - labels:
-                level:
-                channel:
-                environment:
-                app:
-                pod:
+    pipeline_stages:
+      - json:
+          expressions:
+            _msg: message
+            level: level_name
+            channel: channel
+            environment: extra.environment
+            app: extra.app
+            pod: extra.pod
+            uri: extra.uri
 
-            # Use ISO timestamp from the log entry (more precise than Docker's)
-            - timestamp:
-                source: datetime
-                format: "2006-01-02T15:04:05.000000Z07:00"
-                fallback_formats:
-                  - "2006-01-02T15:04:05Z07:00"
+      - labels:
+          level:
+          channel:
+          environment:
+          app:
+          pod:
 
-      # Step 3 — Drop health-check noise (only runs on JSON lines that have uri)
-      - match:
-          selector: '{job="tshirtslab", channel=~".+"}'
-          stages:
-            - json:
-                expressions:
-                  uri: extra.uri
-            - drop:
-                source: uri
-                expression: "^/api/health$"
+      - timestamp:
+          source: datetime
+          format: "2006-01-02T15:04:05.000000Z07:00"
+          fallback_formats:
+            - "2006-01-02T15:04:05Z07:00"
+
+      - drop:
+          source: uri
+          expression: "^/api/health$"

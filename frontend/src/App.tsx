@@ -18,7 +18,15 @@ import {
   CheckoutPage,
   NotFoundPage,
 } from './pages';
-import { AdminDashboard, AdminProducts, AdminOrders, AdminCategories, AdminCoupons, AdminReviews, AdminStaff } from './pages/admin';
+import {
+  AdminDashboard,
+  AdminProducts,
+  AdminOrders,
+  AdminCoupons,
+  AdminReviews,
+  AdminStaff,
+  AdminCategory,
+} from './pages/admin';
 
 function App() {
   return (
@@ -89,7 +97,7 @@ function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="orders" element={<AdminOrders />} />
-            <Route path="categories" element={<AdminCategories />} />
+            <Route path="categories" element={<AdminCategory />} />
             <Route path="coupons" element={<AdminCoupons />} />
             <Route path="reviews" element={<AdminReviews />} />
             <Route path="staff" element={<AdminStaff />} />

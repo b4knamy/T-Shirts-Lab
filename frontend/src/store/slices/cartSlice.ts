@@ -28,9 +28,14 @@ const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
-    addToCart: (state, action: PayloadAction<{ product: Product; quantity?: number }>) => {
+    addToCart: (
+      state,
+      action: PayloadAction<{ product: Product; quantity?: number }>,
+    ) => {
       const { product, quantity = 1 } = action.payload;
-      const existingItem = state.items.find((item) => item.product.id === product.id);
+      const existingItem = state.items.find(
+        (item) => item.product.id === product.id,
+      );
 
       if (existingItem) {
         existingItem.quantity += quantity;
@@ -42,12 +47,19 @@ const cartSlice = createSlice({
     },
 
     removeFromCart: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter((item) => item.product.id !== action.payload);
+      state.items = state.items.filter(
+        (item) => item.product.id !== action.payload,
+      );
       saveCartToStorage(state.items);
     },
 
-    updateQuantity: (state, action: PayloadAction<{ productId: string; quantity: number }>) => {
-      const item = state.items.find((i) => i.product.id === action.payload.productId);
+    updateQuantity: (
+      state,
+      action: PayloadAction<{ productId: string; quantity: number }>,
+    ) => {
+      const item = state.items.find(
+        (i) => i.product.id === action.payload.productId,
+      );
       if (item) {
         item.quantity = Math.max(1, action.payload.quantity);
       }
@@ -69,15 +81,25 @@ const cartSlice = createSlice({
   },
 });
 
-export const { addToCart, removeFromCart, updateQuantity, clearCart, toggleCart, setCartOpen } =
-  cartSlice.actions;
+export const {
+  addToCart,
+  removeFromCart,
+  updateQuantity,
+  clearCart,
+  toggleCart,
+  setCartOpen,
+} = cartSlice.actions;
 
 // Selectors
 export const selectCartItems = (state: { cart: CartState }) => state.cart.items;
 export const selectCartItemCount = (state: { cart: CartState }) =>
   state.cart.items.reduce((total, item) => total + item.quantity, 0);
 export const selectCartTotal = (state: { cart: CartState }) =>
-  state.cart.items.reduce((total, item) => total + Number(item.product.price) * item.quantity, 0);
-export const selectIsCartOpen = (state: { cart: CartState }) => state.cart.isOpen;
+  state.cart.items.reduce(
+    (total, item) => total + Number(item.product.price) * item.quantity,
+    0,
+  );
+export const selectIsCartOpen = (state: { cart: CartState }) =>
+  state.cart.isOpen;
 
 export default cartSlice.reducer;

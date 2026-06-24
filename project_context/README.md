@@ -47,7 +47,7 @@ Documentação técnica completa do **T-Shirts Lab**, uma plataforma e-commerce 
 
 ## 🚀 Quick Start
 
-### Docker (Recomendado)
+### Infra com Docker + App Local (Recomendado)
 ```bash
 # Clonar e entrar no projeto
 git clone <repo-url> tshirtslab && cd tshirtslab
@@ -55,18 +55,15 @@ git clone <repo-url> tshirtslab && cd tshirtslab
 # Configurar backend
 cp backend/.env.example backend/.env
 
-# Subir todos os serviços
-docker compose up -d
-
-# Migrations e seed
-docker compose exec backend php artisan migrate --seed
-
-# Gerar chave JWT
-docker compose exec backend php artisan jwt:secret
+# Subir infraestrutura Docker + backend/frontend locais
+./dev.sh
 ```
 
 ### Local
 ```bash
+# Infraestrutura
+docker compose -f docker-compose.yml -f docker-compose.logging.yml up -d postgres redis loki promtail grafana
+
 # Backend
 cd backend
 composer install
@@ -74,7 +71,7 @@ cp .env.example .env
 php artisan key:generate
 php artisan jwt:secret
 php artisan migrate --seed
-php artisan serve --port=8000
+php artisan serve --host=0.0.0.0 --port=8000
 
 # Frontend (outro terminal)
 cd frontend

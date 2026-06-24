@@ -1,6 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { Product, Category } from '../../types';
-import { productsApi, type ProductQueryParams } from '../../services/api/products';
+import {
+  productsApi,
+  type ProductQueryParams,
+} from '../../services/api/products';
 
 interface ProductState {
   products: Product[];
@@ -105,15 +108,13 @@ const productSlice = createSlice({
         state.error = action.error.message || 'Failed to load product';
       });
 
-    builder
-      .addCase(fetchCategories.fulfilled, (state, action) => {
-        state.categories = action.payload;
-      });
+    builder.addCase(fetchCategories.fulfilled, (state, action) => {
+      state.categories = action.payload;
+    });
 
-    builder
-      .addCase(fetchFeaturedProducts.fulfilled, (state, action) => {
-        state.featuredProducts = action.payload;
-      });
+    builder.addCase(fetchFeaturedProducts.fulfilled, (state, action) => {
+      state.featuredProducts = action.payload;
+    });
   },
 });
 

@@ -35,43 +35,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # Backend Laravel (PHP-FPM + Nginx)
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: tshirtslab-backend
-    ports:
-      - "8000:8000"
-    env_file:
-      - ./backend/.env
-    environment:
-      # Override host/port values that differ inside Docker networking
-      DB_HOST: postgres
-      REDIS_HOST: redis
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - ./backend/storage/logs:/var/www/html/storage/logs
-    networks:
-      - app-network
-
-  # Frontend React (Vite)
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: tshirtslab-frontend
-    ports:
-      - "5173:80"
-    depends_on:
-      - backend
-    networks:
-      - app-network
-
 volumes:
   postgres_data:
   redis_data:

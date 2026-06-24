@@ -8,5 +8,5 @@ export { ResetPasswordPage } from './ResetPasswordPage';
 export { ProfilePage } from './ProfilePage';
 export { OrdersPage } from './OrdersPage';
 export { OrderDetailPage } from './OrderDetailPage';
-export { CheckoutPage } from './CheckoutPage';
+export { CheckoutPage } from './checkout/checkout';
 export { NotFoundPage } from './NotFoundPage';

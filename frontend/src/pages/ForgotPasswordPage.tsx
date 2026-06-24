@@ -46,8 +46,12 @@ export function ForgotPasswordPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-center mb-2">Reset Your Password</h1>
-      <p className="text-gray-500 text-center mb-8">Enter your email and we will send you a reset link.</p>
+      <h1 className="text-2xl font-bold text-center mb-2">
+        Reset Your Password
+      </h1>
+      <p className="text-gray-500 text-center mb-8">
+        Enter your email and we will send you a reset link.
+      </p>
 
       {successMessage && (
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 text-sm">
@@ -63,7 +67,9 @@ export function ForgotPasswordPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
+          <label htmlFor="email" className="block text-sm font-medium mb-1">
+            Email
+          </label>
           <div className="relative">
             <Mail className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
             <input
@@ -74,7 +80,9 @@ export function ForgotPasswordPage() {
               placeholder="you@example.com"
             />
           </div>
-          {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+          {errors.email && (
+            <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+          )}
         </div>
 
         <button
@@ -93,7 +101,10 @@ export function ForgotPasswordPage() {
       </form>
 
       <p className="text-center text-sm text-gray-500 mt-6">
-        <Link to="/login" className="inline-flex items-center gap-2 text-accent hover:underline font-medium">
+        <Link
+          to="/login"
+          className="inline-flex items-center gap-2 text-accent hover:underline font-medium"
+        >
           <ArrowLeft className="w-4 h-4" /> Back to sign in
         </Link>
       </p>

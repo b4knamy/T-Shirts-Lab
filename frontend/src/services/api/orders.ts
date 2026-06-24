@@ -5,6 +5,7 @@ export interface CreateOrderData {
   items: {
     product_id: string;
     design_id?: string;
+    customization_data?: Record<string, unknown>;
     quantity: number;
   }[];
   shipping_address_id?: string;

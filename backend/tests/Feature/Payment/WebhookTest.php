@@ -74,6 +74,68 @@ class WebhookTest extends TestCase
         });
     }
 
+    public function test_checkout_session_completed_updates_order_and_links_payment_intent(): void
+    {
+        $user = User::factory()->create(['password_hash' => Hash::make('Secret@123')]);
+        $order = Order::factory()->pending()->create([
+            'user_id' => $user->id,
+            'subtotal' => 100.00,
+            'discount_amount' => 0,
+            'shipping_cost' => 0,
+            'tax_amount' => 0,
+            'total' => 100.00,
+        ]);
+
+        $payment = Payment::factory()->create([
+            'order_id' => $order->id,
+            'stripe_payment_intent_id' => null,
+            'amount' => 100.00,
+            'currency' => 'brl',
+            'status' => 'PROCESSING',
+            'metadata' => [],
+        ]);
+
+        $event = $this->makeFakeEvent('checkout.session.completed', [
+            'id' => 'cs_test_123',
+            'payment_intent' => 'pi_test_checkout_123',
+            'payment_status' => 'paid',
+            'status' => 'complete',
+            'currency' => 'brl',
+            'amount_total' => 10000,
+            'metadata' => (object) ['order_id' => $order->id],
+            'client_reference_id' => $order->id,
+        ]);
+
+        Mockery::mock('alias:\Stripe\Webhook')
+            ->shouldReceive('constructEvent')
+            ->once()
+            ->andReturn($event);
+
+        $response = $this->postJson($this->endpoint, [], [
+            'Stripe-Signature' => 'valid_sig',
+        ]);
+
+        $response->assertOk()
+            ->assertJson(['received' => true]);
+
+        $payment->refresh();
+        $this->assertEquals('pi_test_checkout_123', $payment->stripe_payment_intent_id);
+        $this->assertEquals('COMPLETED', $payment->status);
+        $this->assertEquals(100.00, (float) $payment->amount);
+
+        $order->refresh();
+        $this->assertEquals('COMPLETED', $order->payment_status);
+        $this->assertEquals('CONFIRMED', $order->status);
+        $this->assertEquals(0.00, (float) $order->tax_amount);
+        $this->assertEquals(100.00, (float) $order->total);
+
+        Mail::assertSent(OrderStatusMail::class, function ($mail) use ($order, $user) {
+            return $mail->hasTo($user->email)
+                && $mail->orderNumber === $order->order_number
+                && $mail->currentStatus === 'CONFIRMED';
+        });
+    }
+
     /* ── payment_intent.payment_failed ──────────────────────────── */
 
     public function test_payment_failed_updates_payment_and_releases_stock(): void

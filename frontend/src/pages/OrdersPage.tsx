@@ -45,7 +45,9 @@ export function OrdersPage() {
         <div className="text-center py-20">
           <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">No orders yet</h2>
-          <p className="text-gray-500 mb-4">Start shopping to see your orders here.</p>
+          <p className="text-gray-500 mb-4">
+            Start shopping to see your orders here.
+          </p>
           <Link
             to="/products"
             className="inline-flex bg-accent text-white px-6 py-2 rounded-lg hover:bg-accent-light transition-colors"
@@ -70,7 +72,9 @@ export function OrdersPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`text-xs font-medium px-3 py-1 rounded-full ${statusColors[order.status] || 'bg-gray-100'}`}>
+                  <span
+                    className={`text-xs font-medium px-3 py-1 rounded-full ${statusColors[order.status] || 'bg-gray-100'}`}
+                  >
                     {order.status}
                   </span>
                   <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -78,8 +82,12 @@ export function OrdersPage() {
               </div>
 
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">{order.items?.length || 0} item(s)</span>
-                <span className="font-semibold text-lg">${Number(order.total).toFixed(2)}</span>
+                <span className="text-gray-500">
+                  {order.items?.length || 0} item(s)
+                </span>
+                <span className="font-semibold text-lg">
+                  ${Number(order.total).toFixed(2)}
+                </span>
               </div>
             </Link>
           ))}

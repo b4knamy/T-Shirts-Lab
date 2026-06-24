@@ -10,6 +10,6 @@ export const couponsApi = {
   validate: (code: string, subtotal: number) =>
     apiClient.post<{ data: { coupon: Coupon; discount: number } }>(
       '/api/v1/coupons/validate',
-      { code, subtotal }
+      { code, subtotal },
     ),
 };

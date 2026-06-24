@@ -3,7 +3,7 @@ import apiClient from './client';
 export const paymentsApi = {
   createIntent: (order_id: string, currency?: string) =>
     apiClient.post<{
-      data: { client_secret: string; payment_intent_id: string };
+      data: { checkoutUrl: string; checkoutSessionId: string };
     }>('/api/v1/payments/create-intent', { order_id, currency }),
 
   confirmPayment: (payment_intent_id: string, payment_method_id: string) =>

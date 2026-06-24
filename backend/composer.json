@@ -6,7 +6,7 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^3.0",
@@ -35,6 +35,10 @@
         }
     },
     "scripts": {
+        "artisan": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan"
+        ],
         "setup": [
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
@@ -47,11 +51,14 @@
         ],
         "dev:start": [
             "Composer\\Config::disableProcessTimeout",
-            "bash ../dev.sh --docker"
+            "bash ../dev.sh"
         ],
         "dev:start:native": [
             "Composer\\Config::disableProcessTimeout",
             "bash ../dev.sh"
+        ],
+        "dev:infra": [
+            "bash ../dev.sh --docker"
         ],
         "dev:stop": [
             "bash ../dev.sh --stop"
