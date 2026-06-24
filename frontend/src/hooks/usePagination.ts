@@ -1,8 +1,8 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState } from "react";
 import type {
   PaginationMeta,
   PaginationState,
-} from '../components/common/pagination/type';
+} from "../components/common/pagination/type";
 
 const INITIAL_STATE = {
   current_page: 1,
@@ -11,7 +11,7 @@ const INITIAL_STATE = {
   last_page: 1,
   from: 1,
   to: 1,
-  limit: 20,
+  limit: 1,
   total_pages: 1,
   page: 1,
 };

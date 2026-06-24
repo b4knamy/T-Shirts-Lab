@@ -1,27 +1,30 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { adminApi } from "../../../../services/api";
-import type { Category } from "../../../../types";
-import type { UseCategoryFetchingOptions } from "../types";
+import type { Coupon } from "../../../../types";
+import type { UseCouponFetchingOptions } from "../types";
 
-export function useCategoryFetching({
+export function useCouponFetching({
   pagination,
   search,
+  typeFilter,
   statusFilter,
-}: UseCategoryFetchingOptions) {
+}: UseCouponFetchingOptions) {
   const query = useQuery({
     queryKey: [
-      "admin-categories",
+      "admin-coupons",
       pagination.page,
       pagination.limit,
       search,
+      typeFilter,
       statusFilter,
     ],
     queryFn: async () => {
-      const response = await adminApi.getCategoriesPaginated({
+      const response = await adminApi.getCoupons({
         page: pagination.page,
         limit: pagination.limit,
         search: search || undefined,
+        type: typeFilter || undefined,
         status: statusFilter || undefined,
       });
 
@@ -39,7 +42,7 @@ export function useCategoryFetching({
   }, [query.data?.meta]);
 
   return {
-    categories: (query.data?.data?.data || []) as Category[],
+    coupons: (query.data?.data?.data || []) as Coupon[],
     total: query.data?.meta?.total ?? 0,
     isLoading: query.isLoading,
     isFetching: query.isFetching,

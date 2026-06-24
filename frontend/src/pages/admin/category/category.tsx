@@ -1,14 +1,14 @@
-import { CategoryDeleteModal } from './modals/delete';
-import { CategoryFilters } from './sections/filters';
-import { CategoryFormModal } from './modals/form';
-import { CategoryHeader } from './sections/header';
-import { CategoryTable } from './sections/table';
-import { Pagination } from '../../../components/common/pagination/Pagination';
-import { usePagination } from '../../../hooks';
-import { useCategoryFetching } from './hooks/fetch_hook';
-import { useCategoryDelete } from './hooks/delete_hook';
-import { useCategoryForm } from './hooks/form_hook';
-import { useCategoryFilters } from './hooks/filter_hook';
+import { CategoryDeleteModal } from "./modals/delete";
+import { CategoryFilters } from "./sections/filters";
+import { CategoryFormModal } from "./modals/form";
+import { CategoryHeader } from "./sections/header";
+import { CategoryTable } from "./sections/table";
+import { Pagination } from "../../../components/common/pagination/Pagination";
+import { usePagination } from "../../../hooks";
+import { useCategoryFetching } from "./hooks/fetch_hook";
+import { useCategoryDelete } from "./hooks/delete_hook";
+import { useCategoryForm } from "./hooks/form_hook";
+import { useCategoryFilters } from "./hooks/filter_hook";
 
 export function AdminCategory() {
   const form = useCategoryForm();
@@ -51,12 +51,10 @@ export function AdminCategory() {
       <CategoryFormModal
         isOpen={form.isModalOpen}
         editingCategory={form.editingCategory}
-        form={form.form}
         isSaving={form.isSaving}
         saveError={form.saveError}
         onClose={form.closeModal}
         onSave={form.saveCategory}
-        onFormChange={form.updateForm}
       />
 
       <CategoryDeleteModal

@@ -1,5 +1,5 @@
-import type { PaginationMeta } from '../../../components/common/pagination/type';
-import type { Category } from '../../../types';
+import type { PaginationMeta } from "../../../components/common/pagination/type";
+import type { Category } from "../../../types";
 
 // Category Form
 export interface CategoryFormData {
@@ -55,13 +55,8 @@ export interface CategoryFiltersProps {
 export interface CategoryFormModalProps {
   isOpen: boolean;
   editingCategory: Category | null;
-  form: CategoryFormData;
   isSaving: boolean;
   saveError: string | null;
   onClose: () => void;
-  onSave: () => void;
-  onFormChange: <K extends keyof CategoryFormData>(
-    field: K,
-    value: CategoryFormData[K],
-  ) => void;
+  onSave: (data: CategoryFormData) => void;
 }
