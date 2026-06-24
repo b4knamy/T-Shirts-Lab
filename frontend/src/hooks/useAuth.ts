@@ -1,11 +1,19 @@
 import { useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '../store';
-import { loginUser, registerUser, fetchProfile, logout, clearError } from '../store/slices/authSlice';
+import {
+  loginUser,
+  registerUser,
+  fetchProfile,
+  logout,
+  clearError,
+} from '../store/slices/authSlice';
 import type { RegisterData, LoginData } from '../services/api/auth';
 
 export function useAuth() {
   const dispatch = useAppDispatch();
-  const { user, isAuthenticated, isLoading, error } = useAppSelector((state) => state.auth);
+  const { user, isAuthenticated, isLoading, error } = useAppSelector(
+    (state) => state.auth,
+  );
 
   const login = useCallback(
     async (data: LoginData) => {

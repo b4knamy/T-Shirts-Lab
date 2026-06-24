@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, ShoppingCart, DollarSign, TrendingUp, ArrowUpRight } from 'lucide-react';
+import {
+  Package,
+  ShoppingCart,
+  DollarSign,
+  TrendingUp,
+  ArrowUpRight,
+} from 'lucide-react';
 import { adminApi } from '../../services/api/admin';
 
 interface DashboardStats {
@@ -12,7 +18,10 @@ interface DashboardStats {
 
 export function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
-    total_products: 0, total_orders: 0, revenue: 0, pending_orders: 0,
+    total_products: 0,
+    total_orders: 0,
+    revenue: 0,
+    pending_orders: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -25,8 +34,13 @@ export function AdminDashboard() {
         ]);
 
         const orders = orderRes.data.data.data || [];
-        const revenue = orders.reduce((sum: number, o: { total: number }) => sum + Number(o.total), 0);
-        const pending = orders.filter((o: { status: string }) => o.status === 'PENDING').length;
+        const revenue = orders.reduce(
+          (sum: number, o: { total: number }) => sum + Number(o.total),
+          0,
+        );
+        const pending = orders.filter(
+          (o: { status: string }) => o.status === 'PENDING',
+        ).length;
 
         setStats({
           total_products: prodRes.data.meta?.total ?? 0,
@@ -44,10 +58,34 @@ export function AdminDashboard() {
   }, []);
 
   const cards = [
-    { label: 'Total Products', value: stats.total_products, icon: Package, color: 'bg-blue-500', link: '/admin/products' },
-    { label: 'Total Orders',   value: stats.total_orders,   icon: ShoppingCart, color: 'bg-purple-500', link: '/admin/orders' },
-    { label: 'Revenue',        value: `$${stats.revenue.toFixed(2)}`, icon: DollarSign, color: 'bg-green-500', link: '/admin/orders' },
-    { label: 'Pending Orders', value: stats.pending_orders, icon: TrendingUp, color: 'bg-yellow-500', link: '/admin/orders' },
+    {
+      label: 'Total Products',
+      value: stats.total_products,
+      icon: Package,
+      color: 'bg-blue-500',
+      link: '/admin/products',
+    },
+    {
+      label: 'Total Orders',
+      value: stats.total_orders,
+      icon: ShoppingCart,
+      color: 'bg-purple-500',
+      link: '/admin/orders',
+    },
+    {
+      label: 'Revenue',
+      value: `$${stats.revenue.toFixed(2)}`,
+      icon: DollarSign,
+      color: 'bg-green-500',
+      link: '/admin/orders',
+    },
+    {
+      label: 'Pending Orders',
+      value: stats.pending_orders,
+      icon: TrendingUp,
+      color: 'bg-yellow-500',
+      link: '/admin/orders',
+    },
   ];
 
   return (
@@ -68,13 +106,19 @@ export function AdminDashboard() {
               className="bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 group"
             >
               <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 ${card.color} rounded-xl flex items-center justify-center`}>
+                <div
+                  className={`w-12 h-12 ${card.color} rounded-xl flex items-center justify-center`}
+                >
                   <Icon className="w-6 h-6 text-white" />
                 </div>
                 <ArrowUpRight className="w-5 h-5 text-gray-300 group-hover:text-accent transition-colors" />
               </div>
               <p className="text-2xl font-bold text-gray-900">
-                {isLoading ? <span className="inline-block w-16 h-7 bg-gray-100 animate-pulse rounded" /> : card.value}
+                {isLoading ? (
+                  <span className="inline-block w-16 h-7 bg-gray-100 animate-pulse rounded" />
+                ) : (
+                  card.value
+                )}
               </p>
               <p className="text-sm text-gray-500 mt-1">{card.label}</p>
             </Link>

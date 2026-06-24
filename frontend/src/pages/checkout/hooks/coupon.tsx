@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "react-hot-toast";
-import { couponsApi } from "../../../services/api";
-import type { Coupon } from "../../../types";
-import type { ValidateCouponVariables } from "../types";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
+import { couponsApi } from '../../../services/api';
+import type { Coupon } from '../../../types';
+import type { ValidateCouponVariables } from '../types';
 
 export function useCoupon(subtotal: number) {
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [appliedCouponSubtotal, setAppliedCouponSubtotal] = useState<
@@ -40,7 +40,7 @@ export function useCoupon(subtotal: number) {
         response?: { data?: { message?: string } };
       };
       const message =
-        couponRequestError.response?.data?.message || "Invalid coupon code";
+        couponRequestError.response?.data?.message || 'Invalid coupon code';
 
       setError(message);
       setAppliedCoupon(null);
@@ -51,7 +51,7 @@ export function useCoupon(subtotal: number) {
   });
 
   const couponInvalidationMessage =
-    "Coupon removed because your checkout selection changed. Reapply it for the updated subtotal.";
+    'Coupon removed because your checkout selection changed. Reapply it for the updated subtotal.';
 
   const isCouponInvalidated =
     appliedCoupon !== null &&
@@ -103,7 +103,7 @@ export function useCoupon(subtotal: number) {
     setAppliedCoupon(null);
     setAppliedCouponSubtotal(null);
     setDiscountAmount(0);
-    setCode("");
+    setCode('');
     setError(null);
     resetCouponMutation();
   };

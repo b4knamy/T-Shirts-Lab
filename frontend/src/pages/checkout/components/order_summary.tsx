@@ -17,7 +17,10 @@ export function OrderSummarySection({
           const primaryImageUrl = getPrimaryImageUrl(item.product.images);
 
           return (
-            <li key={item.product.id} className="flex items-center justify-between gap-3 text-sm">
+            <li
+              key={item.product.id}
+              className="flex items-center justify-between gap-3 text-sm"
+            >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-12 h-12 rounded-lg bg-surface overflow-hidden flex-shrink-0 border border-gray-100">
                   {primaryImageUrl ? (
@@ -39,7 +42,11 @@ export function OrderSummarySection({
               </div>
 
               <span className="font-medium flex-shrink-0">
-                R${(Number(item.product.discount_price || item.product.price) * item.checkoutQuantity).toFixed(2)}
+                R$
+                {(
+                  Number(item.product.discount_price || item.product.price) *
+                  item.checkoutQuantity
+                ).toFixed(2)}
               </span>
             </li>
           );
@@ -52,7 +59,9 @@ export function OrderSummarySection({
             <input
               type="text"
               value={coupon.code}
-              onChange={(event) => coupon.setCode(event.target.value.toUpperCase())}
+              onChange={(event) =>
+                coupon.setCode(event.target.value.toUpperCase())
+              }
               placeholder="Coupon code"
               className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-accent"
             />
@@ -71,7 +80,9 @@ export function OrderSummarySection({
               )}
             </button>
           </div>
-          {coupon.error && <p className="text-red-500 text-xs mt-1">{coupon.error}</p>}
+          {coupon.error && (
+            <p className="text-red-500 text-xs mt-1">{coupon.error}</p>
+          )}
         </div>
       ) : (
         <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-4">

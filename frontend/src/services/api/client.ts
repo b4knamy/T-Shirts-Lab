@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -89,14 +90,17 @@ apiClient.interceptors.response.use(
         refresh_token: refreshToken,
       });
 
-      const { access_token, refresh_token: newRefreshToken } = response.data.data;
+      const { access_token, refresh_token: newRefreshToken } =
+        response.data.data;
       localStorage.setItem('accessToken', access_token);
       localStorage.setItem('refreshToken', newRefreshToken);
 
       // Notify the Redux store so isAuthenticated / user stay in sync
-      window.dispatchEvent(new CustomEvent('auth:refreshed', {
-        detail: { access_token, refresh_token: newRefreshToken },
-      }));
+      window.dispatchEvent(
+        new CustomEvent('auth:refreshed', {
+          detail: { access_token, refresh_token: newRefreshToken },
+        }),
+      );
 
       processQueue(null, access_token);
       originalRequest.headers.Authorization = `Bearer ${access_token}`;

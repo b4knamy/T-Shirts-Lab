@@ -3,15 +3,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useCoupon } from '../coupon';
 import { createCoupon, createHookWrapper } from './test_utils';
 
-const {
-  couponsValidateMock,
-  toastErrorMock,
-  toastSuccessMock,
-} = vi.hoisted(() => ({
-  couponsValidateMock: vi.fn(),
-  toastErrorMock: vi.fn(),
-  toastSuccessMock: vi.fn(),
-}));
+const { couponsValidateMock, toastErrorMock, toastSuccessMock } = vi.hoisted(
+  () => ({
+    couponsValidateMock: vi.fn(),
+    toastErrorMock: vi.fn(),
+    toastSuccessMock: vi.fn(),
+  }),
+);
 
 vi.mock('../../../../services/api', () => ({
   couponsApi: {
@@ -61,7 +59,9 @@ describe('useCoupon', () => {
     expect(couponsValidateMock).toHaveBeenCalledWith('SAVE10', 36);
     expect(result.current.discountAmount).toBe(10);
     expect(result.current.error).toBeNull();
-    expect(toastSuccessMock).toHaveBeenCalledWith('Coupon SAVE10 applied successfully.');
+    expect(toastSuccessMock).toHaveBeenCalledWith(
+      'Coupon SAVE10 applied successfully.',
+    );
   });
 
   it('exposes the api error when coupon validation fails', async () => {
@@ -131,7 +131,9 @@ describe('useCoupon', () => {
     });
 
     expect(result.current.code).toBe('SAVE10');
-    expect(result.current.error).toBe('Coupon removed because your checkout selection changed. Reapply it for the updated subtotal.');
+    expect(result.current.error).toBe(
+      'Coupon removed because your checkout selection changed. Reapply it for the updated subtotal.',
+    );
     expect(result.current.discountAmount).toBe(0);
     expect(toastErrorMock).toHaveBeenCalledWith(
       'Coupon removed because your checkout selection changed. Reapply it for the updated subtotal.',

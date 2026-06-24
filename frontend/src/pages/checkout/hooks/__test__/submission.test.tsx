@@ -7,10 +7,7 @@ import {
   createSelectedCheckoutItem,
 } from './test_utils';
 
-const {
-  ordersCreateMock,
-  paymentsCreateIntentMock,
-} = vi.hoisted(() => ({
+const { ordersCreateMock, paymentsCreateIntentMock } = vi.hoisted(() => ({
   ordersCreateMock: vi.fn(),
   paymentsCreateIntentMock: vi.fn(),
 }));
@@ -34,7 +31,10 @@ describe('useCheckoutSubmission', () => {
     vi.spyOn(console, 'error').mockImplementation((...args) => {
       const [firstArg] = args;
 
-      if (typeof firstArg === 'string' && firstArg.includes('Not implemented: navigation (except hash changes)')) {
+      if (
+        typeof firstArg === 'string' &&
+        firstArg.includes('Not implemented: navigation (except hash changes)')
+      ) {
         return;
       }
 
@@ -53,11 +53,12 @@ describe('useCheckoutSubmission', () => {
 
     const { wrapper } = createHookWrapper();
     const { result } = renderHook(
-      () => useCheckoutSubmission({
-        cancelledOrderId: 'order-123',
-        couponCode: undefined,
-        selectedItems: [createSelectedCheckoutItem()],
-      }),
+      () =>
+        useCheckoutSubmission({
+          cancelledOrderId: 'order-123',
+          couponCode: undefined,
+          selectedItems: [createSelectedCheckoutItem()],
+        }),
       { wrapper },
     );
 
@@ -91,11 +92,12 @@ describe('useCheckoutSubmission', () => {
 
     const { wrapper } = createHookWrapper();
     const { result } = renderHook(
-      () => useCheckoutSubmission({
-        cancelledOrderId: null,
-        couponCode: 'SAVE10',
-        selectedItems: [createSelectedCheckoutItem()],
-      }),
+      () =>
+        useCheckoutSubmission({
+          cancelledOrderId: null,
+          couponCode: 'SAVE10',
+          selectedItems: [createSelectedCheckoutItem()],
+        }),
       { wrapper },
     );
 
@@ -105,12 +107,14 @@ describe('useCheckoutSubmission', () => {
 
     await waitFor(() => {
       expect(ordersCreateMock).toHaveBeenCalledWith({
-        items: [{
-          product_id: 'product-1',
-          quantity: 2,
-          design_id: undefined,
-          customization_data: undefined,
-        }],
+        items: [
+          {
+            product_id: 'product-1',
+            quantity: 2,
+            design_id: undefined,
+            customization_data: undefined,
+          },
+        ],
         customer_notes: 'Leave at the front desk',
         coupon_code: 'SAVE10',
       });
@@ -132,11 +136,12 @@ describe('useCheckoutSubmission', () => {
 
     const { wrapper } = createHookWrapper();
     const { result } = renderHook(
-      () => useCheckoutSubmission({
-        cancelledOrderId: null,
-        couponCode: undefined,
-        selectedItems: [createSelectedCheckoutItem()],
-      }),
+      () =>
+        useCheckoutSubmission({
+          cancelledOrderId: null,
+          couponCode: undefined,
+          selectedItems: [createSelectedCheckoutItem()],
+        }),
       { wrapper },
     );
 

@@ -1,8 +1,6 @@
 import { Search, X } from 'lucide-react';
 import type { CategoryFiltersProps } from '../types';
 
-
-
 export function CategoryFilters({
   search,
   statusFilter,
@@ -22,7 +20,10 @@ export function CategoryFilters({
           className="flex-1 outline-none text-sm bg-transparent"
         />
         {search && (
-          <button onClick={() => onSearchChange('')} className="text-gray-400 hover:text-gray-600">
+          <button
+            onClick={() => onSearchChange('')}
+            className="text-gray-400 hover:text-gray-600"
+          >
             <X className="w-4 h-4" />
           </button>
         )}

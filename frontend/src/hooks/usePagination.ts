@@ -1,53 +1,55 @@
 import { useCallback, useState } from 'react';
-import type { PaginationMeta, PaginationState } from '../components/common/pagination/type';
+import type {
+  PaginationMeta,
+  PaginationState,
+} from '../components/common/pagination/type';
 
 const INITIAL_STATE = {
-    current_page: 1,
-    per_page: 1,
-    total: 0,
-    last_page: 1,
-    from: 1,
-    to: 1,
-    limit: 20,
-    total_pages: 1,
-    page: 1,
-}
+  current_page: 1,
+  per_page: 1,
+  total: 0,
+  last_page: 1,
+  from: 1,
+  to: 1,
+  limit: 20,
+  total_pages: 1,
+  page: 1,
+};
 
 export function usePagination() {
-
   const [paginate, setPaginate] = useState<PaginationState>(INITIAL_STATE);
 
   function applyPagination(meta: Partial<PaginationState>) {
-      setPaginate((currentState) => {
-        return mapToPaginationState({
-          ...currentState,
-          ...meta
-        })
-      })
+    setPaginate((currentState) => {
+      return mapToPaginationState({
+        ...currentState,
+        ...meta,
+      });
+    });
   }
 
   const goToPreviousPage = () => {
     if (paginate.page > 1) {
-      applyPagination({ page: paginate.page - 1 })
+      applyPagination({ page: paginate.page - 1 });
     }
-  }
+  };
 
   const goToNextPage = () => {
     if (paginate.page <= paginate.last_page) {
-      applyPagination({ page: paginate.page + 1 })
+      applyPagination({ page: paginate.page + 1 });
     }
-  }
+  };
 
   const changePage = (page: number) => {
     if (page === paginate.current_page) {
       return;
     }
 
-    applyPagination({ page })
-  }
+    applyPagination({ page });
+  };
 
   const resetPagination = useCallback(() => {
-    setPaginate(INITIAL_STATE)
+    setPaginate(INITIAL_STATE);
   }, []);
 
   return {
@@ -59,7 +61,6 @@ export function usePagination() {
     resetPagination,
   } as PaginationMeta;
 }
-
 
 function mapToPaginationState(meta: PaginationState): PaginationState {
   const page = normalizePaginationValue(meta.page, 1);

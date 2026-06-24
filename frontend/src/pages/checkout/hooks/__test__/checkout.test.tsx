@@ -1,7 +1,11 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { useCheckout } from '../checkout';
-import { createCartItem, createHookWrapper, createPreloadedState } from './test_utils';
+import {
+  createCartItem,
+  createHookWrapper,
+  createPreloadedState,
+} from './test_utils';
 
 describe('useCheckout', () => {
   it('composes the checkout concerns and exposes the derived total', async () => {

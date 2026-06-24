@@ -37,7 +37,9 @@ describe('useCheckoutDraft', () => {
       preloadedState: createPreloadedState({ cartItems }),
     });
 
-    const { result } = renderHook(() => useCheckoutDraft(cartItems, false), { wrapper });
+    const { result } = renderHook(() => useCheckoutDraft(cartItems, false), {
+      wrapper,
+    });
 
     expect(result.current.selectedItems).toHaveLength(2);
     expect(result.current.selectedItems[0].checkoutQuantity).toBe(1);
@@ -53,7 +55,9 @@ describe('useCheckoutDraft', () => {
       preloadedState: createPreloadedState({ cartItems }),
     });
 
-    const { result } = renderHook(() => useCheckoutDraft(cartItems, false), { wrapper });
+    const { result } = renderHook(() => useCheckoutDraft(cartItems, false), {
+      wrapper,
+    });
 
     await waitFor(() => {
       expect(result.current.isPreparingDraft).toBe(false);
@@ -70,7 +74,9 @@ describe('useCheckoutDraft', () => {
       preloadedState: createPreloadedState({ cartItems }),
     });
 
-    const { result } = renderHook(() => useCheckoutDraft(cartItems, true), { wrapper });
+    const { result } = renderHook(() => useCheckoutDraft(cartItems, true), {
+      wrapper,
+    });
 
     expect(result.current.isPreparingDraft).toBe(false);
     expect(result.current.selectedItems).toHaveLength(0);

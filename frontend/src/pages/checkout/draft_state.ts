@@ -1,4 +1,10 @@
-import { createContext, createElement, useContext, useMemo, useReducer } from 'react';
+import {
+  createContext,
+  createElement,
+  useContext,
+  useMemo,
+  useReducer,
+} from 'react';
 import type { PropsWithChildren } from 'react';
 import type { CartItem } from '../../types';
 import type { CheckoutDraftItem, CheckoutDraftState } from './types';
@@ -7,7 +13,9 @@ type CheckoutDraftAction =
   | { type: 'sync-with-cart'; cartItems: CartItem[] }
   | { type: 'initialize-from-cart'; cartItems: CartItem[] };
 
-const CheckoutDraftInitialStateContext = createContext<CheckoutDraftState | undefined>(undefined);
+const CheckoutDraftInitialStateContext = createContext<
+  CheckoutDraftState | undefined
+>(undefined);
 
 function buildDraftItemsFromCart(cartItems: CartItem[]): CheckoutDraftItem[] {
   return cartItems.map((item) => ({
@@ -16,8 +24,13 @@ function buildDraftItemsFromCart(cartItems: CartItem[]): CheckoutDraftItem[] {
   }));
 }
 
-function syncDraftItemsWithCart(cartItems: CartItem[], draftItems: CheckoutDraftItem[]): CheckoutDraftItem[] {
-  const cartQuantities = new Map(cartItems.map((item) => [item.product.id, item.quantity]));
+function syncDraftItemsWithCart(
+  cartItems: CartItem[],
+  draftItems: CheckoutDraftItem[],
+): CheckoutDraftItem[] {
+  const cartQuantities = new Map(
+    cartItems.map((item) => [item.product.id, item.quantity]),
+  );
 
   return draftItems.flatMap((item) => {
     const cartQuantity = cartQuantities.get(item.productId);
@@ -26,21 +39,30 @@ function syncDraftItemsWithCart(cartItems: CartItem[], draftItems: CheckoutDraft
       return [];
     }
 
-    return [{
-      productId: item.productId,
-      quantity: Math.min(item.quantity, cartQuantity),
-    }];
+    return [
+      {
+        productId: item.productId,
+        quantity: Math.min(item.quantity, cartQuantity),
+      },
+    ];
   });
 }
 
-function getInitialDraftState(initialState?: CheckoutDraftState): CheckoutDraftState {
-  return initialState ?? {
-    items: [],
-    draftInitialized: false,
-  };
+function getInitialDraftState(
+  initialState?: CheckoutDraftState,
+): CheckoutDraftState {
+  return (
+    initialState ?? {
+      items: [],
+      draftInitialized: false,
+    }
+  );
 }
 
-function checkoutDraftReducer(state: CheckoutDraftState, action: CheckoutDraftAction): CheckoutDraftState {
+function checkoutDraftReducer(
+  state: CheckoutDraftState,
+  action: CheckoutDraftAction,
+): CheckoutDraftState {
   switch (action.type) {
     case 'sync-with-cart':
       return {
@@ -78,7 +100,11 @@ export function CheckoutDraftProvider({
     } satisfies CheckoutDraftState;
   }, [initialState]);
 
-  return createElement(CheckoutDraftInitialStateContext.Provider, { value }, children);
+  return createElement(
+    CheckoutDraftInitialStateContext.Provider,
+    { value },
+    children,
+  );
 }
 
 export function useCheckoutDraftState(initialState?: CheckoutDraftState) {

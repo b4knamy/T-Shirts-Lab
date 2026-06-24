@@ -1,5 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
-import { MessageSquare, Send, Edit3, X, ChevronLeft, ChevronRight, Shield } from 'lucide-react';
+import {
+  MessageSquare,
+  Send,
+  Edit3,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Shield,
+} from 'lucide-react';
 import { reviewsApi } from '../../services/api/reviews';
 import { StarRating } from '../common/StarRating';
 import { useAuth } from '../../hooks/useAuth';
@@ -16,18 +24,21 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchReviews = useCallback(async (p: number) => {
-    setLoading(true);
-    try {
-      const res = await reviewsApi.getProductReviews(productId, p);
-      setData(res.data.data);
-      setError(null);
-    } catch {
-      setError('Failed to load reviews');
-    } finally {
-      setLoading(false);
-    }
-  }, [productId]);
+  const fetchReviews = useCallback(
+    async (p: number) => {
+      setLoading(true);
+      try {
+        const res = await reviewsApi.getProductReviews(productId, p);
+        setData(res.data.data);
+        setError(null);
+      } catch {
+        setError('Failed to load reviews');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [productId],
+  );
 
   useEffect(() => {
     fetchReviews(page);
@@ -53,17 +64,25 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
           <div className="text-center">
             <p className="text-4xl font-bold">{data.average_rating}</p>
             <StarRating rating={Math.round(data.average_rating)} size="md" />
-            <p className="text-sm text-gray-500 mt-1">{data.total_reviews} review{data.total_reviews !== 1 ? 's' : ''}</p>
+            <p className="text-sm text-gray-500 mt-1">
+              {data.total_reviews} review{data.total_reviews !== 1 ? 's' : ''}
+            </p>
           </div>
           <div className="flex-1">
             {[5, 4, 3, 2, 1].map((star) => {
-              const count = data.reviews.filter((r) => r.rating === star).length;
-              const pct = data.total_reviews > 0 ? (count / data.total_reviews) * 100 : 0;
+              const count = data.reviews.filter(
+                (r) => r.rating === star,
+              ).length;
+              const pct =
+                data.total_reviews > 0 ? (count / data.total_reviews) * 100 : 0;
               return (
                 <div key={star} className="flex items-center gap-2 text-sm">
                   <span className="w-8 text-right text-gray-500">{star}★</span>
                   <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${pct}%` }} />
+                    <div
+                      className="h-full bg-yellow-400 rounded-full"
+                      style={{ width: `${pct}%` }}
+                    />
                   </div>
                   <span className="w-8 text-gray-400">{count}</span>
                 </div>
@@ -84,13 +103,18 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
 
       {!isAuthenticated && (
         <p className="text-sm text-gray-500 mb-8">
-          <a href="/login" className="text-accent hover:underline">Sign in</a> to leave a review.
+          <a href="/login" className="text-accent hover:underline">
+            Sign in
+          </a>{' '}
+          to leave a review.
         </p>
       )}
 
       {/* Review List */}
       {loading && !data ? (
-        <div className="text-center py-10 text-gray-400">Loading reviews...</div>
+        <div className="text-center py-10 text-gray-400">
+          Loading reviews...
+        </div>
       ) : error ? (
         <div className="text-center py-10 text-red-500">{error}</div>
       ) : data && data.reviews.length === 0 ? (
@@ -122,10 +146,13 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
                 <ChevronLeft className="w-4 h-4" /> Previous
               </button>
               <span className="text-sm text-gray-500">
-                Page {data.pagination.current_page} of {data.pagination.last_page}
+                Page {data.pagination.current_page} of{' '}
+                {data.pagination.last_page}
               </span>
               <button
-                onClick={() => setPage((p) => Math.min(data.pagination.last_page, p + 1))}
+                onClick={() =>
+                  setPage((p) => Math.min(data.pagination.last_page, p + 1))
+                }
                 disabled={page === data.pagination.last_page}
                 className="flex items-center gap-1 px-3 py-2 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
               >
@@ -166,9 +193,15 @@ function ReviewForm({
     setError(null);
     try {
       if (isEditing && existingReview) {
-        await reviewsApi.updateReview(existingReview.id, { rating, comment: comment || undefined });
+        await reviewsApi.updateReview(existingReview.id, {
+          rating,
+          comment: comment || undefined,
+        });
       } else {
-        await reviewsApi.createReview(productId, { rating, comment: comment || undefined });
+        await reviewsApi.createReview(productId, {
+          rating,
+          comment: comment || undefined,
+        });
       }
       setOpen(false);
       onSubmitted();
@@ -187,7 +220,11 @@ function ReviewForm({
           onClick={() => setOpen(true)}
           className="flex items-center gap-2 bg-accent text-white px-5 py-2.5 rounded-xl font-medium hover:bg-accent/90 transition-colors shadow-sm"
         >
-          {isEditing ? <Edit3 className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
+          {isEditing ? (
+            <Edit3 className="w-4 h-4" />
+          ) : (
+            <MessageSquare className="w-4 h-4" />
+          )}
           {isEditing ? 'Edit Your Review' : 'Write a Review'}
         </button>
       </div>
@@ -196,17 +233,28 @@ function ReviewForm({
 
   return (
     <div className="mb-8 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-      <h3 className="font-semibold mb-4">{isEditing ? 'Edit Your Review' : 'Write a Review'}</h3>
+      <h3 className="font-semibold mb-4">
+        {isEditing ? 'Edit Your Review' : 'Write a Review'}
+      </h3>
 
       {error && <p className="text-sm text-red-500 mb-3">{error}</p>}
 
       <div className="mb-4">
-        <label className="block text-sm text-gray-500 mb-2">Your Rating *</label>
-        <StarRating rating={rating} size="lg" interactive onChange={setRating} />
+        <label className="block text-sm text-gray-500 mb-2">
+          Your Rating *
+        </label>
+        <StarRating
+          rating={rating}
+          size="lg"
+          interactive
+          onChange={setRating}
+        />
       </div>
 
       <div className="mb-4">
-        <label className="block text-sm text-gray-500 mb-2">Your Review (optional)</label>
+        <label className="block text-sm text-gray-500 mb-2">
+          Your Review (optional)
+        </label>
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
@@ -224,7 +272,12 @@ function ReviewForm({
           disabled={saving || rating === 0}
           className="flex items-center gap-2 bg-accent text-white px-5 py-2.5 rounded-xl font-medium hover:bg-accent/90 disabled:opacity-50 transition-colors"
         >
-          <Send className="w-4 h-4" /> {saving ? 'Submitting...' : isEditing ? 'Update Review' : 'Submit Review'}
+          <Send className="w-4 h-4" />{' '}
+          {saving
+            ? 'Submitting...'
+            : isEditing
+              ? 'Update Review'
+              : 'Submit Review'}
         </button>
         <button
           onClick={() => setOpen(false)}
@@ -266,7 +319,8 @@ function ReviewCard({
     }
   };
 
-  const initials = `${review.user.first_name?.[0] || ''}${review.user.last_name?.[0] || ''}`.toUpperCase();
+  const initials =
+    `${review.user.first_name?.[0] || ''}${review.user.last_name?.[0] || ''}`.toUpperCase();
 
   return (
     <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
@@ -302,7 +356,9 @@ function ReviewCard({
           </div>
 
           {review.comment && (
-            <p className="text-sm text-gray-600 mt-3 leading-relaxed">{review.comment}</p>
+            <p className="text-sm text-gray-600 mt-3 leading-relaxed">
+              {review.comment}
+            </p>
           )}
 
           {/* Admin Reply */}
@@ -310,14 +366,18 @@ function ReviewCard({
             <div className="mt-4 ml-4 pl-4 border-l-2 border-accent/30 bg-accent/5 rounded-r-xl p-4">
               <div className="flex items-center gap-2 mb-1">
                 <Shield className="w-4 h-4 text-accent" />
-                <span className="text-xs font-semibold text-accent">Store Owner Reply</span>
+                <span className="text-xs font-semibold text-accent">
+                  Store Owner Reply
+                </span>
                 {review.admin_replied_at && (
                   <span className="text-xs text-gray-400">
                     · {new Date(review.admin_replied_at).toLocaleDateString()}
                   </span>
                 )}
               </div>
-              <p className="text-sm text-gray-600 leading-relaxed">{review.admin_reply}</p>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                {review.admin_reply}
+              </p>
             </div>
           )}
 
@@ -349,7 +409,8 @@ function ReviewCard({
                   disabled={saving || !replyText.trim()}
                   className="flex items-center gap-1 bg-accent text-white text-xs px-3 py-1.5 rounded-lg hover:bg-accent/90 disabled:opacity-50"
                 >
-                  <Send className="w-3 h-3" /> {saving ? 'Sending...' : 'Send Reply'}
+                  <Send className="w-3 h-3" />{' '}
+                  {saving ? 'Sending...' : 'Send Reply'}
                 </button>
                 <button
                   onClick={() => setReplying(false)}

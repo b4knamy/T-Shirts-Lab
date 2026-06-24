@@ -60,5 +60,8 @@ export interface CategoryFormModalProps {
   saveError: string | null;
   onClose: () => void;
   onSave: () => void;
-  onFormChange: <K extends keyof CategoryFormData>(field: K, value: CategoryFormData[K]) => void;
+  onFormChange: <K extends keyof CategoryFormData>(
+    field: K,
+    value: CategoryFormData[K],
+  ) => void;
 }

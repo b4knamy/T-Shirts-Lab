@@ -23,8 +23,12 @@ describe('useCheckoutStatus', () => {
       route: '/checkout?checkout=success&order_id=order-789',
     });
 
-    const cancelledResult = renderHook(() => useCheckoutStatus(), { wrapper: cancelled.wrapper });
-    const activeResult = renderHook(() => useCheckoutStatus(), { wrapper: active.wrapper });
+    const cancelledResult = renderHook(() => useCheckoutStatus(), {
+      wrapper: cancelled.wrapper,
+    });
+    const activeResult = renderHook(() => useCheckoutStatus(), {
+      wrapper: active.wrapper,
+    });
 
     expect(cancelledResult.result.current.isCancelledCheckoutStatus).toBe(true);
     expect(cancelledResult.result.current.cancelledOrderId).toBe('order-456');

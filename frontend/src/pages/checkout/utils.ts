@@ -5,7 +5,9 @@ export const buildSelectedCheckoutItems = (
   cartItems: CartItem[],
   checkoutDraftItems: CheckoutDraftItem[],
 ): SelectedCheckoutItem[] => {
-  const draftQuantities = new Map(checkoutDraftItems.map((item) => [item.productId, item.quantity]));
+  const draftQuantities = new Map(
+    checkoutDraftItems.map((item) => [item.productId, item.quantity]),
+  );
 
   return cartItems.flatMap((item) => {
     const selectedQuantity = draftQuantities.get(item.product.id);
@@ -14,10 +16,12 @@ export const buildSelectedCheckoutItems = (
       return [];
     }
 
-    return [{
-      ...item,
-      checkoutQuantity: Math.min(selectedQuantity, item.quantity),
-    }];
+    return [
+      {
+        ...item,
+        checkoutQuantity: Math.min(selectedQuantity, item.quantity),
+      },
+    ];
   });
 };
 
@@ -34,10 +38,15 @@ export const getPrimaryImageUrl = (
 };
 
 export const resolveErrorMessage = (err: unknown): string => {
-  const error = err as { response?: { data?: { message?: string; error?: { message?: string } } }; message?: string };
+  const error = err as {
+    response?: { data?: { message?: string; error?: { message?: string } } };
+    message?: string;
+  };
 
-  return error.response?.data?.message
-    || error.response?.data?.error?.message
-    || error.message
-    || 'Failed to process order. Please try again.';
+  return (
+    error.response?.data?.message ||
+    error.response?.data?.error?.message ||
+    error.message ||
+    'Failed to process order. Please try again.'
+  );
 };

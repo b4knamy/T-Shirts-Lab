@@ -1,6 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { User } from '../../types';
-import { authApi, type RegisterData, type LoginData } from '../../services/api/auth';
+import {
+  authApi,
+  type RegisterData,
+  type LoginData,
+} from '../../services/api/auth';
 
 interface AuthState {
   user: User | null;
@@ -26,8 +30,12 @@ export const registerUser = createAsyncThunk(
       localStorage.setItem('refreshToken', result.refresh_token);
       return result;
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: { message?: string } } } };
-      return rejectWithValue(err.response?.data?.error?.message || 'Registration failed');
+      const err = error as {
+        response?: { data?: { error?: { message?: string } } };
+      };
+      return rejectWithValue(
+        err.response?.data?.error?.message || 'Registration failed',
+      );
     }
   },
 );
@@ -42,8 +50,12 @@ export const loginUser = createAsyncThunk(
       localStorage.setItem('refreshToken', result.refresh_token);
       return result;
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: { message?: string } } } };
-      return rejectWithValue(err.response?.data?.error?.message || 'Login failed');
+      const err = error as {
+        response?: { data?: { error?: { message?: string } } };
+      };
+      return rejectWithValue(
+        err.response?.data?.error?.message || 'Login failed',
+      );
     }
   },
 );
@@ -55,8 +67,12 @@ export const fetchProfile = createAsyncThunk(
       const response = await authApi.getProfile();
       return response.data.data as User;
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: { message?: string } } } };
-      return rejectWithValue(err.response?.data?.error?.message || 'Failed to fetch profile');
+      const err = error as {
+        response?: { data?: { error?: { message?: string } } };
+      };
+      return rejectWithValue(
+        err.response?.data?.error?.message || 'Failed to fetch profile',
+      );
     }
   },
 );

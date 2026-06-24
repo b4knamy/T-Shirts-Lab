@@ -9,9 +9,14 @@ export function useCategoryFetching({
   search,
   statusFilter,
 }: UseCategoryFetchingOptions) {
-
   const query = useQuery({
-    queryKey: ['admin-categories', pagination.page, pagination.limit, search, statusFilter],
+    queryKey: [
+      'admin-categories',
+      pagination.page,
+      pagination.limit,
+      search,
+      statusFilter,
+    ],
     queryFn: async () => {
       const response = await adminApi.getCategoriesPaginated({
         page: pagination.page,

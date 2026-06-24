@@ -1,6 +1,10 @@
 import { useState } from 'react';
 
-export function useCategoryFilters({ onResetPagination }: { onResetPagination: () => void }) {
+export function useCategoryFilters({
+  onResetPagination,
+}: {
+  onResetPagination: () => void;
+}) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 

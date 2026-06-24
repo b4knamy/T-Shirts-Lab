@@ -9,7 +9,9 @@ import { useDebounce } from '../hooks';
 
 export function ProductsPage() {
   const dispatch = useAppDispatch();
-  const { products, categories, total, limit, isLoading } = useAppSelector((state) => state.products);
+  const { products, categories, total, limit, isLoading } = useAppSelector(
+    (state) => state.products,
+  );
   const [searchParams, setSearchParams] = useSearchParams();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [gridView, setGridView] = useState(true);
@@ -106,7 +108,9 @@ export function ProductsPage() {
 
       <div className="flex gap-8">
         {/* Sidebar Filters */}
-        <aside className={`w-64 flex-shrink-0 ${filtersOpen ? 'block' : 'hidden'} md:block`}>
+        <aside
+          className={`w-64 flex-shrink-0 ${filtersOpen ? 'block' : 'hidden'} md:block`}
+        >
           <div className="sticky top-20 space-y-6">
             {/* Search */}
             <div>
@@ -156,7 +160,9 @@ export function ProductsPage() {
           ) : products.length === 0 ? (
             <div className="text-center py-20 text-gray-500">
               <p className="text-lg font-medium">No products found</p>
-              <p className="text-sm mt-1">Try adjusting your filters or search.</p>
+              <p className="text-sm mt-1">
+                Try adjusting your filters or search.
+              </p>
             </div>
           ) : (
             <>

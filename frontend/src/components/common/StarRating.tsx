@@ -9,7 +9,12 @@ interface StarRatingProps {
 
 const sizeMap = { sm: 'w-4 h-4', md: 'w-5 h-5', lg: 'w-6 h-6' };
 
-export function StarRating({ rating, size = 'md', interactive = false, onChange }: StarRatingProps) {
+export function StarRating({
+  rating,
+  size = 'md',
+  interactive = false,
+  onChange,
+}: StarRatingProps) {
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((star) => (
@@ -22,7 +27,9 @@ export function StarRating({ rating, size = 'md', interactive = false, onChange 
         >
           <Star
             className={`${sizeMap[size]} ${
-              star <= rating ? 'fill-yellow-400 text-yellow-400' : 'fill-none text-gray-300'
+              star <= rating
+                ? 'fill-yellow-400 text-yellow-400'
+                : 'fill-none text-gray-300'
             }`}
           />
         </button>

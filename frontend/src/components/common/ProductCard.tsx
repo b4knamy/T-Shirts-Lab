@@ -9,13 +9,18 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { add } = useCart();
-  const primaryImage = product.images?.find((img) => img.is_primary) || product.images?.[0];
-  const hasDiscount = product.discount_price && product.discount_price < product.price;
+  const primaryImage =
+    product.images?.find((img) => img.is_primary) || product.images?.[0];
+  const hasDiscount =
+    product.discount_price && product.discount_price < product.price;
 
   return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:-translate-y-1">
       {/* Image */}
-      <Link to={`/products/${product.slug}`} className="block relative overflow-hidden">
+      <Link
+        to={`/products/${product.slug}`}
+        className="block relative overflow-hidden"
+      >
         <div className="aspect-square bg-surface">
           {primaryImage ? (
             <img
@@ -34,7 +39,10 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="absolute top-3 left-3 flex flex-col gap-1">
           {hasDiscount && (
             <span className="bg-accent text-white text-xs font-bold px-2 py-1 rounded">
-              -{product.discount_percent || Math.round((1 - product.discount_price! / product.price) * 100)}%
+              -
+              {product.discount_percent ||
+                Math.round((1 - product.discount_price! / product.price) * 100)}
+              %
             </span>
           )}
           {product.is_featured && (
@@ -56,7 +64,9 @@ export function ProductCard({ product }: ProductCardProps) {
       {/* Content */}
       <div className="p-4">
         {product.category && (
-          <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{product.category.name}</p>
+          <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+            {product.category.name}
+          </p>
         )}
         <Link to={`/products/${product.slug}`}>
           <h3 className="font-medium text-sm line-clamp-2 hover:text-accent transition-colors">
@@ -68,11 +78,17 @@ export function ProductCard({ product }: ProductCardProps) {
           <div className="flex items-center gap-2">
             {hasDiscount ? (
               <>
-                <span className="font-bold text-accent">${Number(product.discount_price).toFixed(2)}</span>
-                <span className="text-sm text-gray-400 line-through">${Number(product.price).toFixed(2)}</span>
+                <span className="font-bold text-accent">
+                  ${Number(product.discount_price).toFixed(2)}
+                </span>
+                <span className="text-sm text-gray-400 line-through">
+                  ${Number(product.price).toFixed(2)}
+                </span>
               </>
             ) : (
-              <span className="font-bold">${Number(product.price).toFixed(2)}</span>
+              <span className="font-bold">
+                ${Number(product.price).toFixed(2)}
+              </span>
             )}
           </div>
 

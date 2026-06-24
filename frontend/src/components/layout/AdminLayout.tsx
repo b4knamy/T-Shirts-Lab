@@ -13,13 +13,55 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 
 const NAV_ITEMS = [
-  { to: '/admin',            icon: LayoutDashboard, label: 'Dashboard',  end: true,  adminOnly: false },
-  { to: '/admin/products',   icon: Package,         label: 'Products',   end: false, adminOnly: false },
-  { to: '/admin/orders',     icon: ShoppingCart,     label: 'Orders',     end: false, adminOnly: false },
-  { to: '/admin/categories', icon: Tags,            label: 'Categories', end: false, adminOnly: false },
-  { to: '/admin/coupons',    icon: Ticket,          label: 'Coupons',    end: false, adminOnly: false },
-  { to: '/admin/reviews',    icon: MessageSquare,   label: 'Reviews',    end: false, adminOnly: false },
-  { to: '/admin/staff',      icon: Users,           label: 'Staff',      end: false, adminOnly: true },
+  {
+    to: '/admin',
+    icon: LayoutDashboard,
+    label: 'Dashboard',
+    end: true,
+    adminOnly: false,
+  },
+  {
+    to: '/admin/products',
+    icon: Package,
+    label: 'Products',
+    end: false,
+    adminOnly: false,
+  },
+  {
+    to: '/admin/orders',
+    icon: ShoppingCart,
+    label: 'Orders',
+    end: false,
+    adminOnly: false,
+  },
+  {
+    to: '/admin/categories',
+    icon: Tags,
+    label: 'Categories',
+    end: false,
+    adminOnly: false,
+  },
+  {
+    to: '/admin/coupons',
+    icon: Ticket,
+    label: 'Coupons',
+    end: false,
+    adminOnly: false,
+  },
+  {
+    to: '/admin/reviews',
+    icon: MessageSquare,
+    label: 'Reviews',
+    end: false,
+    adminOnly: false,
+  },
+  {
+    to: '/admin/staff',
+    icon: Users,
+    label: 'Staff',
+    end: false,
+    adminOnly: true,
+  },
 ];
 
 export function AdminLayout() {
@@ -31,7 +73,9 @@ export function AdminLayout() {
   }
 
   const isHighAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
-  const visibleItems = NAV_ITEMS.filter((item) => !item.adminOnly || isHighAdmin);
+  const visibleItems = NAV_ITEMS.filter(
+    (item) => !item.adminOnly || isHighAdmin,
+  );
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -88,11 +132,14 @@ export function AdminLayout() {
           <h2 className="font-semibold text-gray-700">Administration</h2>
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-800">{user?.first_name} {user?.last_name}</p>
+              <p className="text-sm font-medium text-gray-800">
+                {user?.first_name} {user?.last_name}
+              </p>
               <p className="text-xs text-gray-400">{user?.role}</p>
             </div>
             <div className="w-9 h-9 bg-accent text-white rounded-full flex items-center justify-center font-bold text-sm">
-              {user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}
+              {user?.first_name?.charAt(0)}
+              {user?.last_name?.charAt(0)}
             </div>
           </div>
         </header>

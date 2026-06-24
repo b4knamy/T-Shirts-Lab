@@ -16,18 +16,21 @@ export type PaginationHandlers = {
   goToPreviousPage: () => void;
   goToNextPage: () => void;
   resetPagination: () => void;
-}
+};
 
-export type PaginationMeta = PaginationHandlers & PaginationState
+export type PaginationMeta = PaginationHandlers & PaginationState;
 
 export type PaginationProps = {
-  mode: "minimalist"
-} & PaginationMeta
+  mode: 'minimalist';
+} & PaginationMeta;
 
-export type MinimalistPaginationProps = Pick<PaginationMeta, 'page' | 'total_pages' | 'goToNextPage' | 'goToPreviousPage'>
+export type MinimalistPaginationProps = Pick<
+  PaginationMeta,
+  'page' | 'total_pages' | 'goToNextPage' | 'goToPreviousPage'
+>;
 
-export type PaginateQuery = Pick<PaginationMeta, 'page' | 'limit'>
+export type PaginateQuery = Pick<PaginationMeta, 'page' | 'limit'>;
 
 export type PaginationHookProps = {
-  handler: (pagination: PaginateQuery) => any
-}
+  handler: (pagination: PaginateQuery) => any;
+};

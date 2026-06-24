@@ -10,15 +10,8 @@ import { PreparingCheckoutState } from './states/preparing_checkout';
 import { useCheckout } from './hooks/checkout';
 
 export function CheckoutPage() {
-  const {
-    cart,
-    coupon,
-    draft,
-    finalTotal,
-    form,
-    status,
-    submission,
-  } = useCheckout();
+  const { cart, coupon, draft, finalTotal, form, status, submission } =
+    useCheckout();
 
   if (status.isCancelledCheckoutStatus) {
     return (
@@ -41,12 +34,17 @@ export function CheckoutPage() {
   }
 
   if (draft.selectedItems.length === 0) {
-    return <NoItemsSelectedState onChooseCartItems={() => cart.setOpen(true)} />;
+    return (
+      <NoItemsSelectedState onChooseCartItems={() => cart.setOpen(true)} />
+    );
   }
 
   return (
     <div className="w-full max-w-6xl mx-auto px-6 py-10">
-      <Link to="/products" className="inline-flex items-center gap-2 text-gray-500 hover:text-accent mb-8">
+      <Link
+        to="/products"
+        className="inline-flex items-center gap-2 text-gray-500 hover:text-accent mb-8"
+      >
         <ArrowLeft className="w-4 h-4" /> Continue Shopping
       </Link>
 
@@ -61,7 +59,10 @@ export function CheckoutPage() {
       <form onSubmit={form.handleSubmit(submission.onSubmit)}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <ShippingAddressSection errors={form.formState.errors} register={form.register} />
+            <ShippingAddressSection
+              errors={form.formState.errors}
+              register={form.register}
+            />
             <AdditionalNotesSection register={form.register} />
           </div>
 

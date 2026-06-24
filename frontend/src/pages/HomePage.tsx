@@ -2,13 +2,18 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Truck, Shield, Palette } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../store';
-import { fetchFeaturedProducts, fetchCategories } from '../store/slices/productSlice';
+import {
+  fetchFeaturedProducts,
+  fetchCategories,
+} from '../store/slices/productSlice';
 import { ProductCard } from '../components/common/ProductCard';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 
 export function HomePage() {
   const dispatch = useAppDispatch();
-  const { featuredProducts, categories, isLoading } = useAppSelector((state) => state.products);
+  const { featuredProducts, categories, isLoading } = useAppSelector(
+    (state) => state.products,
+  );
 
   useEffect(() => {
     dispatch(fetchFeaturedProducts(8));
@@ -21,11 +26,13 @@ export function HomePage() {
       <section className="w-full bg-gradient-to-br from-primary via-primary-light to-secondary text-white">
         <div className="w-full max-w-7xl mx-auto px-6 py-24 md:py-36 flex flex-col items-center text-center">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight tracking-tight max-w-3xl">
-            Express Yourself with <span className="text-accent">Unique</span> T-Shirts
+            Express Yourself with <span className="text-accent">Unique</span>{' '}
+            T-Shirts
           </h1>
           <p className="mt-6 text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl">
-            Discover our collection of high-quality custom t-shirts with original designs.
-            From casual to creative — find the perfect fit for your style.
+            Discover our collection of high-quality custom t-shirts with
+            original designs. From casual to creative — find the perfect fit for
+            your style.
           </p>
           <div className="mt-10 flex flex-wrap gap-4 justify-center">
             <Link
@@ -83,25 +90,35 @@ export function HomePage() {
           <div className="w-full max-w-7xl mx-auto px-6">
             <div className="flex flex-col items-center text-center mb-12">
               <h2 className="text-3xl font-bold">Shop by Category</h2>
-              <p className="mt-2 text-gray-500 max-w-lg">Find exactly what you're looking for in our curated collections.</p>
+              <p className="mt-2 text-gray-500 max-w-lg">
+                Find exactly what you're looking for in our curated collections.
+              </p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-              {categories.filter((c) => c.is_active).map((category) => (
-                <Link
-                  key={category.id}
-                  to={`/products?categoryId=${category.id}`}
-                  className="group relative overflow-hidden rounded-2xl aspect-square bg-surface flex items-center justify-center hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-                >
-                  {category.image_url ? (
-                    <img src={category.image_url} alt={category.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="bg-gradient-to-br from-primary/10 to-secondary/10 w-full h-full" />
-                  )}
-                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors flex items-center justify-center">
-                    <span className="text-white font-semibold text-lg">{category.name}</span>
-                  </div>
-                </Link>
-              ))}
+              {categories
+                .filter((c) => c.is_active)
+                .map((category) => (
+                  <Link
+                    key={category.id}
+                    to={`/products?categoryId=${category.id}`}
+                    className="group relative overflow-hidden rounded-2xl aspect-square bg-surface flex items-center justify-center hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                  >
+                    {category.image_url ? (
+                      <img
+                        src={category.image_url}
+                        alt={category.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="bg-gradient-to-br from-primary/10 to-secondary/10 w-full h-full" />
+                    )}
+                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors flex items-center justify-center">
+                      <span className="text-white font-semibold text-lg">
+                        {category.name}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
             </div>
           </div>
         </section>
@@ -115,7 +132,10 @@ export function HomePage() {
               <h2 className="text-3xl font-bold">Featured Products</h2>
               <p className="text-gray-500 mt-1">Hand-picked for you</p>
             </div>
-            <Link to="/products?featured=true" className="text-accent hover:text-accent-light font-medium flex items-center gap-1 transition-colors">
+            <Link
+              to="/products?featured=true"
+              className="text-accent hover:text-accent-light font-medium flex items-center gap-1 transition-colors"
+            >
               View All <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -131,7 +151,9 @@ export function HomePage() {
           )}
 
           {!isLoading && featuredProducts.length === 0 && (
-            <p className="text-center text-gray-500 py-12">No featured products yet. Check back soon!</p>
+            <p className="text-center text-gray-500 py-12">
+              No featured products yet. Check back soon!
+            </p>
           )}
         </div>
       </section>
@@ -139,8 +161,13 @@ export function HomePage() {
       {/* CTA */}
       <section className="w-full py-24 bg-gradient-to-br from-primary via-primary-light to-secondary text-white">
         <div className="w-full max-w-2xl mx-auto px-6 flex flex-col items-center text-center">
-          <h2 className="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">Ready to Stand Out?</h2>
-          <p className="text-gray-300 mb-10 text-lg">Browse our complete collection and find the perfect t-shirt that speaks to you.</p>
+          <h2 className="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
+            Ready to Stand Out?
+          </h2>
+          <p className="text-gray-300 mb-10 text-lg">
+            Browse our complete collection and find the perfect t-shirt that
+            speaks to you.
+          </p>
           <Link
             to="/products"
             className="inline-flex items-center gap-2 bg-accent hover:bg-accent-light text-white px-8 py-3.5 rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:-translate-y-0.5"

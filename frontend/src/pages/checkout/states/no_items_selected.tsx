@@ -2,12 +2,16 @@ import { ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { NoItemsSelectedStateProps } from '../types';
 
-export function NoItemsSelectedState({ onChooseCartItems }: NoItemsSelectedStateProps) {
+export function NoItemsSelectedState({
+  onChooseCartItems,
+}: NoItemsSelectedStateProps) {
   return (
     <div className="w-full max-w-4xl mx-auto px-6 py-20 text-center">
       <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
       <h1 className="text-2xl font-bold mb-2">No items selected</h1>
-      <p className="text-gray-500 mb-6">Choose which cart item and quantity you want to buy before continuing.</p>
+      <p className="text-gray-500 mb-6">
+        Choose which cart item and quantity you want to buy before continuing.
+      </p>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
         <button
           type="button"

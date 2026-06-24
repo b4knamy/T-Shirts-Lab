@@ -21,11 +21,16 @@ export function useCategoryForm() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [form, setForm] = useState<CategoryFormData>({ ...EMPTY_CATEGORY_FORM });
+  const [form, setForm] = useState<CategoryFormData>({
+    ...EMPTY_CATEGORY_FORM,
+  });
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const saveMutation = useMutation({
-    mutationFn: async (payload: { form: CategoryFormData; editingCategory: Category | null }) => {
+    mutationFn: async (payload: {
+      form: CategoryFormData;
+      editingCategory: Category | null;
+    }) => {
       if (payload.editingCategory) {
         await adminApi.updateCategory(payload.editingCategory.id, payload.form);
         return;
@@ -60,7 +65,7 @@ export function useCategoryForm() {
 
   const updateForm = <K extends keyof CategoryFormData>(
     field: K,
-    value: CategoryFormData[K]
+    value: CategoryFormData[K],
   ) => {
     setForm((current) => ({
       ...current,

@@ -34,7 +34,10 @@ export function createHookWrapper(options?: {
           <CheckoutDraftProvider initialState={options?.initialDraftState}>
             <MemoryRouter initialEntries={[options?.route ?? '/checkout']}>
               <Routes>
-                <Route path={options?.path ?? '/checkout'} element={<>{children}</>} />
+                <Route
+                  path={options?.path ?? '/checkout'}
+                  element={<>{children}</>}
+                />
               </Routes>
             </MemoryRouter>
           </CheckoutDraftProvider>

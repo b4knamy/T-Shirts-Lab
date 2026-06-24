@@ -1,6 +1,17 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageSquare, Send, Trash2, Star, Filter, ChevronLeft, ChevronRight, Shield, Search, X } from 'lucide-react';
+import {
+  MessageSquare,
+  Send,
+  Trash2,
+  Star,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  Shield,
+  Search,
+  X,
+} from 'lucide-react';
 import { StarRating } from '../../components/common/StarRating';
 import { reviewsApi } from '../../services/api/reviews';
 import apiClient from '../../services/api/client';
@@ -26,7 +37,12 @@ interface AdminReviewsResponse {
 
 export function AdminReviews() {
   const [reviews, setReviews] = useState<AdminReview[]>([]);
-  const [meta, setMeta] = useState({ total: 0, page: 1, limit: 15, total_pages: 1 });
+  const [meta, setMeta] = useState({
+    total: 0,
+    page: 1,
+    limit: 15,
+    total_pages: 1,
+  });
   const [loading, setLoading] = useState(true);
   const [filterUnreplied, setFilterUnreplied] = useState(false);
   const [ratingFilter, setRatingFilter] = useState('');
@@ -36,15 +52,18 @@ export function AdminReviews() {
   const fetchReviews = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get<{ data: AdminReviewsResponse }>('/api/v1/reviews', {
-        params: {
-          page,
-          limit: 15,
-          ...(filterUnreplied ? { unreplied: '1' } : {}),
-          ...(ratingFilter ? { rating: ratingFilter } : {}),
-          ...(searchProduct ? { search: searchProduct } : {}),
+      const res = await apiClient.get<{ data: AdminReviewsResponse }>(
+        '/api/v1/reviews',
+        {
+          params: {
+            page,
+            limit: 15,
+            ...(filterUnreplied ? { unreplied: '1' } : {}),
+            ...(ratingFilter ? { rating: ratingFilter } : {}),
+            ...(searchProduct ? { search: searchProduct } : {}),
+          },
         },
-      });
+      );
       setReviews(res.data.data.data);
       setMeta(res.data.data.meta);
     } catch {
@@ -73,7 +92,9 @@ export function AdminReviews() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Reviews</h1>
-          <p className="text-sm text-gray-500 mt-1">{meta.total} total review{meta.total !== 1 ? 's' : ''}</p>
+          <p className="text-sm text-gray-500 mt-1">
+            {meta.total} total review{meta.total !== 1 ? 's' : ''}
+          </p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative">
@@ -81,19 +102,28 @@ export function AdminReviews() {
             <input
               type="text"
               value={searchProduct}
-              onChange={(e) => { setSearchProduct(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSearchProduct(e.target.value);
+                setPage(1);
+              }}
               placeholder="Search by product…"
               className="pl-9 pr-8 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-accent w-52"
             />
             {searchProduct && (
-              <button onClick={() => setSearchProduct('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <button
+                onClick={() => setSearchProduct('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
           <select
             value={ratingFilter}
-            onChange={(e) => { setRatingFilter(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setRatingFilter(e.target.value);
+              setPage(1);
+            }}
             className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-accent bg-white"
           >
             <option value="">All Ratings</option>
@@ -104,7 +134,10 @@ export function AdminReviews() {
             <option value="1">1 Star</option>
           </select>
           <button
-            onClick={() => { setFilterUnreplied((f) => !f); setPage(1); }}
+            onClick={() => {
+              setFilterUnreplied((f) => !f);
+              setPage(1);
+            }}
             className={`flex items-center gap-2 px-4 py-2 text-sm rounded-lg border transition-colors ${
               filterUnreplied
                 ? 'bg-accent text-white border-accent'
@@ -118,11 +151,17 @@ export function AdminReviews() {
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-400">Loading reviews...</div>
+        <div className="text-center py-16 text-gray-400">
+          Loading reviews...
+        </div>
       ) : reviews.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
           <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-          <p>{filterUnreplied ? 'All reviews have been replied to!' : 'No reviews yet.'}</p>
+          <p>
+            {filterUnreplied
+              ? 'All reviews have been replied to!'
+              : 'No reviews yet.'}
+          </p>
         </div>
       ) : (
         <>
@@ -147,9 +186,13 @@ export function AdminReviews() {
               >
                 <ChevronLeft className="w-4 h-4" /> Previous
               </button>
-              <span className="text-sm text-gray-500">Page {meta.page} of {meta.total_pages}</span>
+              <span className="text-sm text-gray-500">
+                Page {meta.page} of {meta.total_pages}
+              </span>
               <button
-                onClick={() => setPage((p) => Math.min(meta.total_pages, p + 1))}
+                onClick={() =>
+                  setPage((p) => Math.min(meta.total_pages, p + 1))
+                }
                 disabled={page === meta.total_pages}
                 className="flex items-center gap-1 px-3 py-2 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-40"
               >
@@ -192,14 +235,19 @@ function AdminReviewCard({
     }
   };
 
-  const initials = `${review.user.first_name?.[0] || ''}${review.user.last_name?.[0] || ''}`.toUpperCase();
+  const initials =
+    `${review.user.first_name?.[0] || ''}${review.user.last_name?.[0] || ''}`.toUpperCase();
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
       <div className="flex items-start gap-4">
         {/* Avatar */}
         {review.user.profile_picture_url ? (
-          <img src={review.user.profile_picture_url} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+          <img
+            src={review.user.profile_picture_url}
+            alt=""
+            className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+          />
         ) : (
           <div className="w-10 h-10 rounded-full bg-accent/10 text-accent flex items-center justify-center font-semibold text-sm flex-shrink-0">
             {initials}
@@ -215,7 +263,9 @@ function AdminReviewCard({
               </p>
               <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                 <StarRating rating={review.rating} size="sm" />
-                <span className="text-xs text-gray-400">{new Date(review.created_at).toLocaleDateString()}</span>
+                <span className="text-xs text-gray-400">
+                  {new Date(review.created_at).toLocaleDateString()}
+                </span>
                 {review.product && (
                   <Link
                     to={`/products/${review.product.slug}`}
@@ -249,13 +299,17 @@ function AdminReviewCard({
 
           {/* Comment */}
           {review.comment && (
-            <p className="text-sm text-gray-600 mt-2 leading-relaxed">{review.comment}</p>
+            <p className="text-sm text-gray-600 mt-2 leading-relaxed">
+              {review.comment}
+            </p>
           )}
 
           {/* Existing Reply */}
           {review.admin_reply && !replying && (
             <div className="mt-3 ml-4 pl-4 border-l-2 border-accent/30 bg-accent/5 rounded-r-lg p-3">
-              <p className="text-xs font-semibold text-accent mb-1">Your Reply</p>
+              <p className="text-xs font-semibold text-accent mb-1">
+                Your Reply
+              </p>
               <p className="text-sm text-gray-600">{review.admin_reply}</p>
             </div>
           )}
@@ -288,10 +342,14 @@ function AdminReviewCard({
                   disabled={saving || !replyText.trim()}
                   className="flex items-center gap-1 bg-accent text-white text-xs px-3 py-1.5 rounded-lg hover:bg-accent/90 disabled:opacity-50"
                 >
-                  <Send className="w-3 h-3" /> {saving ? 'Sending...' : 'Send Reply'}
+                  <Send className="w-3 h-3" />{' '}
+                  {saving ? 'Sending...' : 'Send Reply'}
                 </button>
                 <button
-                  onClick={() => { setReplying(false); setReplyText(review.admin_reply || ''); }}
+                  onClick={() => {
+                    setReplying(false);
+                    setReplyText(review.admin_reply || '');
+                  }}
                   className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5"
                 >
                   Cancel

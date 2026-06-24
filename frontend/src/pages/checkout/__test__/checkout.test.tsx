@@ -80,12 +80,30 @@ function getTextarea(name: string): HTMLTextAreaElement {
 async function fillCheckoutForm(user: ReturnType<typeof userEvent.setup>) {
   const formData = createCheckoutFormData();
 
-  await user.type(getInput('shippingAddress.street'), formData.shippingAddress.street);
-  await user.type(getInput('shippingAddress.number'), formData.shippingAddress.number);
-  await user.type(getInput('shippingAddress.neighborhood'), formData.shippingAddress.neighborhood);
-  await user.type(getInput('shippingAddress.city'), formData.shippingAddress.city);
-  await user.type(getInput('shippingAddress.state'), formData.shippingAddress.state);
-  await user.type(getInput('shippingAddress.zipCode'), formData.shippingAddress.zipCode);
+  await user.type(
+    getInput('shippingAddress.street'),
+    formData.shippingAddress.street,
+  );
+  await user.type(
+    getInput('shippingAddress.number'),
+    formData.shippingAddress.number,
+  );
+  await user.type(
+    getInput('shippingAddress.neighborhood'),
+    formData.shippingAddress.neighborhood,
+  );
+  await user.type(
+    getInput('shippingAddress.city'),
+    formData.shippingAddress.city,
+  );
+  await user.type(
+    getInput('shippingAddress.state'),
+    formData.shippingAddress.state,
+  );
+  await user.type(
+    getInput('shippingAddress.zipCode'),
+    formData.shippingAddress.zipCode,
+  );
 
   if (formData.customerNotes) {
     await user.type(getTextarea('customerNotes'), formData.customerNotes);
@@ -103,7 +121,10 @@ describe('checkout', () => {
     vi.spyOn(console, 'error').mockImplementation((...args) => {
       const [firstArg] = args;
 
-      if (typeof firstArg === 'string' && firstArg.includes('Not implemented: navigation (except hash changes)')) {
+      if (
+        typeof firstArg === 'string' &&
+        firstArg.includes('Not implemented: navigation (except hash changes)')
+      ) {
         return;
       }
     });
@@ -115,7 +136,9 @@ describe('checkout', () => {
     });
 
     expect(screen.getByText('Your cart is empty')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /browse products/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /browse products/i }),
+    ).toBeInTheDocument();
   });
 
   it('shows the no items selected state and opens the cart when asked', async () => {
@@ -129,7 +152,9 @@ describe('checkout', () => {
 
     expect(screen.getByText('No items selected')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /choose cart items/i }));
+    await user.click(
+      screen.getByRole('button', { name: /choose cart items/i }),
+    );
 
     expect(view.store.getState().cart.isOpen).toBe(true);
   });
@@ -150,7 +175,9 @@ describe('checkout', () => {
 
     expect(screen.getByText('Checkout cancelled')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /try payment again/i }));
+    await user.click(
+      screen.getByRole('button', { name: /try payment again/i }),
+    );
 
     await waitFor(() => {
       expect(paymentsCreateIntentMock).toHaveBeenCalledWith('order-123', 'brl');
@@ -178,11 +205,17 @@ describe('checkout', () => {
     expect(await screen.findByText('SAVE10')).toBeInTheDocument();
 
     act(() => {
-      view.store.dispatch(updateQuantity({ productId: 'product-1', quantity: 1 }));
+      view.store.dispatch(
+        updateQuantity({ productId: 'product-1', quantity: 1 }),
+      );
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/coupon removed because your checkout selection changed/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          /coupon removed because your checkout selection changed/i,
+        ),
+      ).toBeInTheDocument();
     });
 
     expect(screen.queryByText(/applied/i)).not.toBeInTheDocument();
@@ -225,12 +258,14 @@ describe('checkout', () => {
 
     await waitFor(() => {
       expect(ordersCreateMock).toHaveBeenCalledWith({
-        items: [{
-          product_id: 'product-1',
-          quantity: 2,
-          design_id: undefined,
-          customization_data: undefined,
-        }],
+        items: [
+          {
+            product_id: 'product-1',
+            quantity: 2,
+            design_id: undefined,
+            customization_data: undefined,
+          },
+        ],
         customer_notes: 'Leave at the front desk',
         coupon_code: 'SAVE10',
       });
@@ -255,7 +290,9 @@ describe('checkout', () => {
     await fillCheckoutForm(user);
     await user.click(screen.getByRole('button', { name: /place order/i }));
 
-    expect(await screen.findByText('Could not place order')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Could not place order'),
+    ).toBeInTheDocument();
     expect(paymentsCreateIntentMock).not.toHaveBeenCalled();
   });
 });

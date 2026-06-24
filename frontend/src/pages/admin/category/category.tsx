@@ -14,13 +14,14 @@ export function AdminCategory() {
   const form = useCategoryForm();
   const deletion = useCategoryDelete();
   const pagination = usePagination();
-  const filter = useCategoryFilters({ onResetPagination: pagination.resetPagination });
-  const query = useCategoryFetching({
-      pagination,
-      search: filter.search,
-      statusFilter: filter.statusFilter,
+  const filter = useCategoryFilters({
+    onResetPagination: pagination.resetPagination,
   });
-  
+  const query = useCategoryFetching({
+    pagination,
+    search: filter.search,
+    statusFilter: filter.statusFilter,
+  });
 
   return (
     <div>

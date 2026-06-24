@@ -11,7 +11,8 @@ export function Footer() {
               <span className="text-accent">T-Shirts</span>Lab
             </Link>
             <p className="mt-3 text-sm text-gray-400">
-              Custom t-shirts with unique designs. Express yourself with high-quality apparel.
+              Custom t-shirts with unique designs. Express yourself with
+              high-quality apparel.
             </p>
           </div>
 
@@ -19,10 +20,38 @@ export function Footer() {
           <div>
             <h3 className="font-semibold text-white mb-3">Shop</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/products" className="hover:text-accent transition-colors">All Products</Link></li>
-              <li><Link to="/products?category=men" className="hover:text-accent transition-colors">Men</Link></li>
-              <li><Link to="/products?category=women" className="hover:text-accent transition-colors">Women</Link></li>
-              <li><Link to="/products?category=kids" className="hover:text-accent transition-colors">Kids</Link></li>
+              <li>
+                <Link
+                  to="/products"
+                  className="hover:text-accent transition-colors"
+                >
+                  All Products
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/products?category=men"
+                  className="hover:text-accent transition-colors"
+                >
+                  Men
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/products?category=women"
+                  className="hover:text-accent transition-colors"
+                >
+                  Women
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/products?category=kids"
+                  className="hover:text-accent transition-colors"
+                >
+                  Kids
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -30,17 +59,44 @@ export function Footer() {
           <div>
             <h3 className="font-semibold text-white mb-3">Support</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/faq" className="hover:text-accent transition-colors">FAQ</Link></li>
-              <li><Link to="/shipping" className="hover:text-accent transition-colors">Shipping & Returns</Link></li>
-              <li><Link to="/contact" className="hover:text-accent transition-colors">Contact Us</Link></li>
-              <li><Link to="/size-guide" className="hover:text-accent transition-colors">Size Guide</Link></li>
+              <li>
+                <Link to="/faq" className="hover:text-accent transition-colors">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/shipping"
+                  className="hover:text-accent transition-colors"
+                >
+                  Shipping & Returns
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/contact"
+                  className="hover:text-accent transition-colors"
+                >
+                  Contact Us
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/size-guide"
+                  className="hover:text-accent transition-colors"
+                >
+                  Size Guide
+                </Link>
+              </li>
             </ul>
           </div>
 
           {/* Newsletter */}
           <div>
             <h3 className="font-semibold text-white mb-3">Stay Updated</h3>
-            <p className="text-sm text-gray-400 mb-3">Get exclusive deals and new arrivals.</p>
+            <p className="text-sm text-gray-400 mb-3">
+              Get exclusive deals and new arrivals.
+            </p>
             <form className="flex gap-2">
               <input
                 type="email"
@@ -62,8 +118,12 @@ export function Footer() {
             © {new Date().getFullYear()} T-Shirts Lab. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm text-gray-500">
-            <Link to="/privacy" className="hover:text-accent transition-colors">Privacy Policy</Link>
-            <Link to="/terms" className="hover:text-accent transition-colors">Terms of Service</Link>
+            <Link to="/privacy" className="hover:text-accent transition-colors">
+              Privacy Policy
+            </Link>
+            <Link to="/terms" className="hover:text-accent transition-colors">
+              Terms of Service
+            </Link>
           </div>
         </div>
       </div>

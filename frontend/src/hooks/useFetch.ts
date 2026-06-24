@@ -12,7 +12,10 @@ interface UseFetchReturn<T> {
   refetch: () => Promise<void>;
 }
 
-export function useFetch<T>({ fetcher, immediate = true }: UseFetchOptions<T>): UseFetchReturn<T> {
+export function useFetch<T>({
+  fetcher,
+  immediate = true,
+}: UseFetchOptions<T>): UseFetchReturn<T> {
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(immediate);
   const [error, setError] = useState<string | null>(null);
@@ -24,8 +27,13 @@ export function useFetch<T>({ fetcher, immediate = true }: UseFetchOptions<T>): 
       const result = await fetcher();
       setData(result);
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { error?: { message?: string } } }; message?: string };
-      setError(e.response?.data?.error?.message || e.message || 'Something went wrong');
+      const e = err as {
+        response?: { data?: { error?: { message?: string } } };
+        message?: string;
+      };
+      setError(
+        e.response?.data?.error?.message || e.message || 'Something went wrong',
+      );
     } finally {
       setIsLoading(false);
     }

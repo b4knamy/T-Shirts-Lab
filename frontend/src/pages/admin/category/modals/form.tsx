@@ -1,7 +1,6 @@
 import { AlertTriangle, Save, X } from 'lucide-react';
 import type { CategoryFormModalProps } from '../types';
 
-
 export function CategoryFormModal({
   isOpen,
   editingCategory,
@@ -21,8 +20,13 @@ export function CategoryFormModal({
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold">{editingCategory ? 'Edit Category' : 'New Category'}</h2>
-          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg">
+          <h2 className="text-lg font-bold">
+            {editingCategory ? 'Edit Category' : 'New Category'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-1 text-gray-400 hover:text-gray-600 rounded-lg"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -36,7 +40,9 @@ export function CategoryFormModal({
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Name *
+            </label>
             <input
               value={form.name}
               onChange={(event) => onFormChange('name', event.target.value)}
@@ -46,20 +52,28 @@ export function CategoryFormModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
             <textarea
               value={form.description}
-              onChange={(event) => onFormChange('description', event.target.value)}
+              onChange={(event) =>
+                onFormChange('description', event.target.value)
+              }
               rows={2}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent resize-none"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Image URL
+            </label>
             <input
               value={form.image_url}
-              onChange={(event) => onFormChange('image_url', event.target.value)}
+              onChange={(event) =>
+                onFormChange('image_url', event.target.value)
+              }
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent"
               placeholder="https://..."
             />

@@ -1,27 +1,51 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Plus, Search, Edit3, Trash2, X, Save, Package, ImageIcon,
-  ChevronLeft, ChevronRight, AlertTriangle, Check, Star,
-  Upload, Link as LinkIcon, Crown, Loader2,
+  Plus,
+  Search,
+  Edit3,
+  Trash2,
+  X,
+  Save,
+  Package,
+  ImageIcon,
+  ChevronLeft,
+  ChevronRight,
+  AlertTriangle,
+  Check,
+  Star,
+  Upload,
+  Link as LinkIcon,
+  Crown,
+  Loader2,
 } from 'lucide-react';
 import { adminApi, type AdminProductPayload } from '../../services/api/admin';
 import type { Product, Category, ProductImage } from '../../types';
 
 /* ─── Status badge ──────────────────────────────────────────────────────── */
 const STATUS_STYLES: Record<string, string> = {
-  ACTIVE:       'bg-green-50 text-green-700 border-green-200',
-  INACTIVE:     'bg-gray-50 text-gray-600 border-gray-200',
-  DRAFT:        'bg-yellow-50 text-yellow-700 border-yellow-200',
+  ACTIVE: 'bg-green-50 text-green-700 border-green-200',
+  INACTIVE: 'bg-gray-50 text-gray-600 border-gray-200',
+  DRAFT: 'bg-yellow-50 text-yellow-700 border-yellow-200',
   OUT_OF_STOCK: 'bg-red-50 text-red-700 border-red-200',
 };
 
 /* ─── Empty form ────────────────────────────────────────────────────────── */
 const EMPTY_FORM: AdminProductPayload = {
-  name: '', description: '', long_description: '', category_id: '',
-  price: 0, cost_price: 0, discount_price: 0, discount_percent: 0,
-  stock_quantity: 0, sku: '', is_featured: false, status: 'ACTIVE',
-  color: '', size: '',
+  name: '',
+  description: '',
+  long_description: '',
+  category_id: '',
+  price: 0,
+  cost_price: 0,
+  discount_price: 0,
+  discount_percent: 0,
+  stock_quantity: 0,
+  sku: '',
+  is_featured: false,
+  status: 'ACTIVE',
+  color: '',
+  size: '',
 };
 
 export function AdminProducts() {
@@ -75,7 +99,9 @@ export function AdminProducts() {
     adminApi.getCategories().then((r) => setCategories(r.data.data));
   }, []);
 
-  useEffect(() => { loadProducts(); }, [loadProducts]);
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
   /* Open new product modal from URL param */
   useEffect(() => {
@@ -127,7 +153,11 @@ export function AdminProducts() {
       setIsModalOpen(false);
       loadProducts();
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
+      const e = err as {
+        response?: {
+          data?: { message?: string; errors?: Record<string, string[]> };
+        };
+      };
       const errors = e.response?.data?.errors;
       if (errors) {
         setSaveError(Object.values(errors).flat().join('. '));
@@ -159,9 +189,23 @@ export function AdminProducts() {
   /* ── Stock indicator ───────────────────────────────────────────────────── */
   const stockBadge = (qty: number, reserved: number) => {
     const available = qty - reserved;
-    if (available <= 0) return <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-full">Out of stock</span>;
-    if (available <= 10) return <span className="text-xs font-medium text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full">Low: {available}</span>;
-    return <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">{available} available</span>;
+    if (available <= 0)
+      return (
+        <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
+          Out of stock
+        </span>
+      );
+    if (available <= 10)
+      return (
+        <span className="text-xs font-medium text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full">
+          Low: {available}
+        </span>
+      );
+    return (
+      <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+        {available} available
+      </span>
+    );
   };
 
   return (
@@ -188,11 +232,17 @@ export function AdminProducts() {
             type="text"
             placeholder="Search products by name, SKU…"
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             className="flex-1 outline-none text-sm bg-transparent"
           />
           {search && (
-            <button onClick={() => setSearch('')} className="text-gray-400 hover:text-gray-600">
+            <button
+              onClick={() => setSearch('')}
+              className="text-gray-400 hover:text-gray-600"
+            >
               <X className="w-4 h-4" />
             </button>
           )}
@@ -200,7 +250,10 @@ export function AdminProducts() {
         <div className="flex flex-wrap items-center gap-3 px-5 pb-3 border-t border-gray-50 pt-3">
           <select
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
             className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-accent bg-white"
           >
             <option value="">All Statuses</option>
@@ -211,17 +264,26 @@ export function AdminProducts() {
           </select>
           <select
             value={categoryFilter}
-            onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setCategoryFilter(e.target.value);
+              setPage(1);
+            }}
             className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-accent bg-white"
           >
             <option value="">All Categories</option>
             {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
             ))}
           </select>
           {(statusFilter || categoryFilter) && (
             <button
-              onClick={() => { setStatusFilter(''); setCategoryFilter(''); setPage(1); }}
+              onClick={() => {
+                setStatusFilter('');
+                setCategoryFilter('');
+                setPage(1);
+              }}
               className="text-xs text-accent hover:underline"
             >
               Clear filters
@@ -236,39 +298,65 @@ export function AdminProducts() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Product</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">SKU</th>
-                <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Price</th>
-                <th className="text-center px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Stock</th>
-                <th className="text-center px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Product
+                </th>
+                <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                  SKU
+                </th>
+                <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Price
+                </th>
+                <th className="text-center px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Stock
+                </th>
+                <th className="text-center px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
-                    <td colSpan={6} className="px-5 py-4"><div className="h-5 bg-gray-100 rounded animate-pulse" /></td>
+                    <td colSpan={6} className="px-5 py-4">
+                      <div className="h-5 bg-gray-100 rounded animate-pulse" />
+                    </td>
                   </tr>
                 ))
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-16 text-center text-gray-400">
+                  <td
+                    colSpan={6}
+                    className="px-5 py-16 text-center text-gray-400"
+                  >
                     <Package className="w-12 h-12 mx-auto mb-3 text-gray-200" />
                     <p className="font-medium">No products found</p>
                   </td>
                 </tr>
               ) : (
                 products.map((product) => {
-                  const img = product.images?.find((i) => i.is_primary) || product.images?.[0];
+                  const img =
+                    product.images?.find((i) => i.is_primary) ||
+                    product.images?.[0];
                   return (
-                    <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr
+                      key={product.id}
+                      className="hover:bg-gray-50/50 transition-colors"
+                    >
                       {/* Product */}
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           <div className="w-11 h-11 rounded-lg bg-surface overflow-hidden flex-shrink-0 border border-gray-100">
                             {img ? (
-                              <img src={img.image_url} alt="" className="w-full h-full object-cover" />
+                              <img
+                                src={img.image_url}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-gray-300">
                                 <ImageIcon className="w-5 h-5" />
@@ -278,30 +366,45 @@ export function AdminProducts() {
                           <div className="min-w-0">
                             <p className="font-medium text-gray-900 truncate max-w-[200px]">
                               {product.name}
-                              {product.is_featured && <Star className="w-3.5 h-3.5 inline ml-1.5 text-yellow-500 fill-yellow-500" />}
+                              {product.is_featured && (
+                                <Star className="w-3.5 h-3.5 inline ml-1.5 text-yellow-500 fill-yellow-500" />
+                              )}
                             </p>
-                            <p className="text-xs text-gray-400 truncate max-w-[200px]">{product.category?.name}</p>
+                            <p className="text-xs text-gray-400 truncate max-w-[200px]">
+                              {product.category?.name}
+                            </p>
                           </div>
                         </div>
                       </td>
                       {/* SKU */}
                       <td className="px-5 py-3.5 hidden md:table-cell">
-                        <span className="font-mono text-xs text-gray-500">{product.sku}</span>
+                        <span className="font-mono text-xs text-gray-500">
+                          {product.sku}
+                        </span>
                       </td>
                       {/* Price */}
                       <td className="px-5 py-3.5 text-right">
-                        <p className="font-semibold">${Number(product.price).toFixed(2)}</p>
+                        <p className="font-semibold">
+                          ${Number(product.price).toFixed(2)}
+                        </p>
                         {product.discount_price ? (
-                          <p className="text-xs text-accent">${Number(product.discount_price).toFixed(2)}</p>
+                          <p className="text-xs text-accent">
+                            ${Number(product.discount_price).toFixed(2)}
+                          </p>
                         ) : null}
                       </td>
                       {/* Stock */}
                       <td className="px-5 py-3.5 text-center">
-                        {stockBadge(product.stock_quantity, product.reserved_quantity)}
+                        {stockBadge(
+                          product.stock_quantity,
+                          product.reserved_quantity,
+                        )}
                       </td>
                       {/* Status */}
                       <td className="px-5 py-3.5 text-center">
-                        <span className={`inline-block text-xs font-medium px-2.5 py-0.5 rounded-full border ${STATUS_STYLES[product.status] ?? STATUS_STYLES['DRAFT']}`}>
+                        <span
+                          className={`inline-block text-xs font-medium px-2.5 py-0.5 rounded-full border ${STATUS_STYLES[product.status] ?? STATUS_STYLES['DRAFT']}`}
+                        >
                           {product.status}
                         </span>
                       </td>
@@ -335,7 +438,9 @@ export function AdminProducts() {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-5 py-3 border-t border-gray-100">
-            <p className="text-xs text-gray-500">Page {page} of {totalPages}</p>
+            <p className="text-xs text-gray-500">
+              Page {page} of {totalPages}
+            </p>
             <div className="flex gap-1">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -359,12 +464,20 @@ export function AdminProducts() {
       {/* ─── Create / Edit Modal ──────────────────────────────────────────── */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-10 pb-10">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setIsModalOpen(false)} />
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setIsModalOpen(false)}
+          />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
             {/* Modal header */}
             <div className="sticky top-0 bg-white flex items-center justify-between px-6 py-4 border-b border-gray-100 rounded-t-2xl z-10">
-              <h2 className="text-lg font-bold">{editingProduct ? 'Edit Product' : 'New Product'}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg">
+              <h2 className="text-lg font-bold">
+                {editingProduct ? 'Edit Product' : 'New Product'}
+              </h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -380,7 +493,9 @@ export function AdminProducts() {
               {/* Name + SKU */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Name *
+                  </label>
                   <input
                     value={form.name}
                     onChange={(e) => updateForm('name', e.target.value)}
@@ -389,7 +504,9 @@ export function AdminProducts() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">SKU</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    SKU
+                  </label>
                   <input
                     value={form.sku}
                     onChange={(e) => updateForm('sku', e.target.value)}
@@ -401,7 +518,9 @@ export function AdminProducts() {
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description *
+                </label>
                 <textarea
                   value={form.description}
                   onChange={(e) => updateForm('description', e.target.value)}
@@ -411,10 +530,14 @@ export function AdminProducts() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Long Description</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Long Description
+                </label>
                 <textarea
                   value={form.long_description}
-                  onChange={(e) => updateForm('long_description', e.target.value)}
+                  onChange={(e) =>
+                    updateForm('long_description', e.target.value)
+                  }
                   rows={3}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent resize-none"
                 />
@@ -423,7 +546,9 @@ export function AdminProducts() {
               {/* Category + Status */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Category *
+                  </label>
                   <select
                     value={form.category_id}
                     onChange={(e) => updateForm('category_id', e.target.value)}
@@ -431,12 +556,16 @@ export function AdminProducts() {
                   >
                     <option value="">Select…</option>
                     {categories.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Status
+                  </label>
                   <select
                     value={form.status}
                     onChange={(e) => updateForm('status', e.target.value)}
@@ -452,38 +581,69 @@ export function AdminProducts() {
               {/* Pricing */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Price *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Price *
+                  </label>
                   <input
-                    type="number" step="0.01" min="0"
+                    type="number"
+                    step="0.01"
+                    min="0"
                     value={form.price || ''}
-                    onChange={(e) => updateForm('price', parseFloat(e.target.value) || 0)}
+                    onChange={(e) =>
+                      updateForm('price', parseFloat(e.target.value) || 0)
+                    }
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Cost Price</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Cost Price
+                  </label>
                   <input
-                    type="number" step="0.01" min="0"
+                    type="number"
+                    step="0.01"
+                    min="0"
                     value={form.cost_price || ''}
-                    onChange={(e) => updateForm('cost_price', parseFloat(e.target.value) || 0)}
+                    onChange={(e) =>
+                      updateForm('cost_price', parseFloat(e.target.value) || 0)
+                    }
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Discount $</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Discount $
+                  </label>
                   <input
-                    type="number" step="0.01" min="0"
+                    type="number"
+                    step="0.01"
+                    min="0"
                     value={form.discount_price || ''}
-                    onChange={(e) => updateForm('discount_price', parseFloat(e.target.value) || 0)}
+                    onChange={(e) =>
+                      updateForm(
+                        'discount_price',
+                        parseFloat(e.target.value) || 0,
+                      )
+                    }
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Discount %</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Discount %
+                  </label>
                   <input
-                    type="number" step="1" min="0" max="100"
+                    type="number"
+                    step="1"
+                    min="0"
+                    max="100"
                     value={form.discount_percent || ''}
-                    onChange={(e) => updateForm('discount_percent', parseFloat(e.target.value) || 0)}
+                    onChange={(e) =>
+                      updateForm(
+                        'discount_percent',
+                        parseFloat(e.target.value) || 0,
+                      )
+                    }
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent"
                   />
                 </div>
@@ -492,16 +652,26 @@ export function AdminProducts() {
               {/* Stock + Variants */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock Quantity *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Stock Quantity *
+                  </label>
                   <input
-                    type="number" min="0"
+                    type="number"
+                    min="0"
                     value={form.stock_quantity || ''}
-                    onChange={(e) => updateForm('stock_quantity', parseInt(e.target.value) || 0)}
+                    onChange={(e) =>
+                      updateForm(
+                        'stock_quantity',
+                        parseInt(e.target.value) || 0,
+                      )
+                    }
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Color
+                  </label>
                   <input
                     value={form.color}
                     onChange={(e) => updateForm('color', e.target.value)}
@@ -510,7 +680,9 @@ export function AdminProducts() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Size
+                  </label>
                   <input
                     value={form.size}
                     onChange={(e) => updateForm('size', e.target.value)}
@@ -527,14 +699,22 @@ export function AdminProducts() {
                   onClick={() => updateForm('is_featured', !form.is_featured)}
                   className={`w-10 h-6 rounded-full transition-colors relative ${form.is_featured ? 'bg-accent' : 'bg-gray-300'}`}
                 >
-                  <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.is_featured ? 'left-[18px]' : 'left-0.5'}`} />
+                  <span
+                    className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.is_featured ? 'left-[18px]' : 'left-0.5'}`}
+                  />
                 </button>
-                <span className="text-sm font-medium text-gray-700">Featured product</span>
+                <span className="text-sm font-medium text-gray-700">
+                  Featured product
+                </span>
               </label>
 
               {/* Product images manager (edit mode) */}
               {editingProduct && (
-                <ImageManager productId={editingProduct.id} images={editingProduct.images || []} onRefresh={loadProducts} />
+                <ImageManager
+                  productId={editingProduct.id}
+                  images={editingProduct.images || []}
+                  onRefresh={loadProducts}
+                />
               )}
             </div>
 
@@ -566,7 +746,10 @@ export function AdminProducts() {
       {/* ─── Delete Confirmation ──────────────────────────────────────────── */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setDeleteTarget(null)} />
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setDeleteTarget(null)}
+          />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-red-50 text-red-500 rounded-full flex items-center justify-center">
@@ -574,11 +757,14 @@ export function AdminProducts() {
               </div>
               <div>
                 <h3 className="font-bold text-gray-900">Delete Product</h3>
-                <p className="text-sm text-gray-500">This action cannot be undone.</p>
+                <p className="text-sm text-gray-500">
+                  This action cannot be undone.
+                </p>
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-6">
-              Are you sure you want to delete <strong>{deleteTarget.name}</strong>?
+              Are you sure you want to delete{' '}
+              <strong>{deleteTarget.name}</strong>?
             </p>
             <div className="flex justify-end gap-3">
               <button
@@ -610,7 +796,11 @@ export function AdminProducts() {
 /* ═══════════════════════════════════════════════════════════════════════════
    Image Manager — inline component for managing product images
    ═══════════════════════════════════════════════════════════════════════════ */
-function ImageManager({ productId, images: initialImages, onRefresh }: {
+function ImageManager({
+  productId,
+  images: initialImages,
+  onRefresh,
+}: {
   productId: string;
   images: ProductImage[];
   onRefresh: () => void;
@@ -629,26 +819,36 @@ function ImageManager({ productId, images: initialImages, onRefresh }: {
       const res = await adminApi.getProductImages(productId);
       setImages(res.data.data || []);
       onRefresh();
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
   };
 
   const handleAddUrl = async () => {
     if (!urlInput.trim()) return;
-    setIsAdding(true); setError(null);
+    setIsAdding(true);
+    setError(null);
     try {
-      await adminApi.addProductImage(productId, { image_url: urlInput.trim(), alt_text: altInput.trim() || undefined });
-      setUrlInput(''); setAltInput('');
+      await adminApi.addProductImage(productId, {
+        image_url: urlInput.trim(),
+        alt_text: altInput.trim() || undefined,
+      });
+      setUrlInput('');
+      setAltInput('');
       await reload();
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
       setError(e.response?.data?.message || 'Failed to add image');
-    } finally { setIsAdding(false); }
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setIsUploading(true); setError(null);
+    setIsUploading(true);
+    setError(null);
     try {
       const fd = new FormData();
       fd.append('image', file);
@@ -657,32 +857,50 @@ function ImageManager({ productId, images: initialImages, onRefresh }: {
     } catch (err: unknown) {
       const ex = err as { response?: { data?: { message?: string } } };
       setError(ex.response?.data?.message || 'Upload failed');
-    } finally { setIsUploading(false); if (fileRef.current) fileRef.current.value = ''; }
+    } finally {
+      setIsUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
   };
 
   const handleSetPrimary = async (imageId: string) => {
-    setBusy(imageId); setError(null);
+    setBusy(imageId);
+    setError(null);
     try {
-      await adminApi.updateProductImage(productId, imageId, { is_primary: true });
+      await adminApi.updateProductImage(productId, imageId, {
+        is_primary: true,
+      });
       await reload();
-    } catch { setError('Failed to set primary'); } finally { setBusy(null); }
+    } catch {
+      setError('Failed to set primary');
+    } finally {
+      setBusy(null);
+    }
   };
 
   const handleDeleteImage = async (imageId: string) => {
-    setBusy(imageId); setError(null);
+    setBusy(imageId);
+    setError(null);
     try {
       await adminApi.deleteProductImage(productId, imageId);
       await reload();
-    } catch { setError('Failed to delete image'); } finally { setBusy(null); }
+    } catch {
+      setError('Failed to delete image');
+    } finally {
+      setBusy(null);
+    }
   };
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">Images</label>
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        Images
+      </label>
 
       {error && (
         <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-xl text-xs mb-3">
-          <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />{error}
+          <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+          {error}
         </div>
       )}
 
@@ -691,7 +909,11 @@ function ImageManager({ productId, images: initialImages, onRefresh }: {
         <div className="flex gap-2 flex-wrap mb-3">
           {images.map((img) => (
             <div key={img.id} className="relative group w-20 h-20">
-              <img src={img.image_url} alt={img.alt_text || ''} className="w-full h-full rounded-xl object-cover border border-gray-200" />
+              <img
+                src={img.image_url}
+                alt={img.alt_text || ''}
+                className="w-full h-full rounded-xl object-cover border border-gray-200"
+              />
               {img.is_primary && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-accent text-white rounded-full flex items-center justify-center z-10">
                   <Crown className="w-3 h-3" />
@@ -704,11 +926,19 @@ function ImageManager({ productId, images: initialImages, onRefresh }: {
                 ) : (
                   <>
                     {!img.is_primary && (
-                      <button onClick={() => handleSetPrimary(img.id)} className="p-1.5 bg-white/20 rounded-lg hover:bg-white/40 transition-colors" title="Set as primary">
+                      <button
+                        onClick={() => handleSetPrimary(img.id)}
+                        className="p-1.5 bg-white/20 rounded-lg hover:bg-white/40 transition-colors"
+                        title="Set as primary"
+                      >
                         <Star className="w-3.5 h-3.5 text-white" />
                       </button>
                     )}
-                    <button onClick={() => handleDeleteImage(img.id)} className="p-1.5 bg-white/20 rounded-lg hover:bg-red-500/80 transition-colors" title="Delete">
+                    <button
+                      onClick={() => handleDeleteImage(img.id)}
+                      className="p-1.5 bg-white/20 rounded-lg hover:bg-red-500/80 transition-colors"
+                      title="Delete"
+                    >
                       <Trash2 className="w-3.5 h-3.5 text-white" />
                     </button>
                   </>
@@ -722,20 +952,55 @@ function ImageManager({ productId, images: initialImages, onRefresh }: {
       {/* Add by URL */}
       <div className="flex gap-2 items-end mb-2">
         <div className="flex-1">
-          <input value={urlInput} onChange={(e) => setUrlInput(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-accent" placeholder="Image URL…" />
+          <input
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-accent"
+            placeholder="Image URL…"
+          />
         </div>
         <div className="w-28">
-          <input value={altInput} onChange={(e) => setAltInput(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-accent" placeholder="Alt text" />
+          <input
+            value={altInput}
+            onChange={(e) => setAltInput(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-accent"
+            placeholder="Alt text"
+          />
         </div>
-        <button onClick={handleAddUrl} disabled={isAdding || !urlInput.trim()} className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-40" title="Add by URL">
-          {isAdding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <LinkIcon className="w-3.5 h-3.5" />} Add
+        <button
+          onClick={handleAddUrl}
+          disabled={isAdding || !urlInput.trim()}
+          className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-40"
+          title="Add by URL"
+        >
+          {isAdding ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <LinkIcon className="w-3.5 h-3.5" />
+          )}{' '}
+          Add
         </button>
       </div>
 
       {/* Upload file */}
-      <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleUpload} className="hidden" />
-      <button onClick={() => fileRef.current?.click()} disabled={isUploading} className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium border border-dashed border-gray-300 text-gray-500 hover:border-accent hover:text-accent rounded-lg transition-colors disabled:opacity-40">
-        {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />} Upload File
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={handleUpload}
+        className="hidden"
+      />
+      <button
+        onClick={() => fileRef.current?.click()}
+        disabled={isUploading}
+        className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium border border-dashed border-gray-300 text-gray-500 hover:border-accent hover:text-accent rounded-lg transition-colors disabled:opacity-40"
+      >
+        {isUploading ? (
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        ) : (
+          <Upload className="w-3.5 h-3.5" />
+        )}{' '}
+        Upload File
       </button>
     </div>
   );

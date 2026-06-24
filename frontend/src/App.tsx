@@ -18,7 +18,15 @@ import {
   CheckoutPage,
   NotFoundPage,
 } from './pages';
-import { AdminDashboard, AdminProducts, AdminOrders, AdminCoupons, AdminReviews, AdminStaff, AdminCategory } from './pages/admin';
+import {
+  AdminDashboard,
+  AdminProducts,
+  AdminOrders,
+  AdminCoupons,
+  AdminReviews,
+  AdminStaff,
+  AdminCategory,
+} from './pages/admin';
 
 function App() {
   return (

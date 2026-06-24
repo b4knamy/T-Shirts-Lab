@@ -22,7 +22,9 @@ export function CategoryDeleteModal({
           </div>
           <div>
             <h3 className="font-bold text-gray-900">Delete Category</h3>
-            <p className="text-sm text-gray-500">This action cannot be undone.</p>
+            <p className="text-sm text-gray-500">
+              This action cannot be undone.
+            </p>
           </div>
         </div>
 

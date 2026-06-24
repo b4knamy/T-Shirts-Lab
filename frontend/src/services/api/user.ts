@@ -37,8 +37,7 @@ export interface DeleteAccountData {
 }
 
 export const userApi = {
-  getProfile: () =>
-    apiClient.get<{ data: User }>('/api/v1/users/me'),
+  getProfile: () => apiClient.get<{ data: User }>('/api/v1/users/me'),
 
   updateProfile: (data: UpdateProfileData) =>
     apiClient.patch<{ data: User }>('/api/v1/users/me', data),
@@ -64,7 +63,10 @@ export const userApi = {
     apiClient.post<{ data: UserAddress }>('/api/v1/users/me/addresses', data),
 
   updateAddress: (id: string, data: Partial<AddressData>) =>
-    apiClient.patch<{ data: UserAddress }>(`/api/v1/users/me/addresses/${id}`, data),
+    apiClient.patch<{ data: UserAddress }>(
+      `/api/v1/users/me/addresses/${id}`,
+      data,
+    ),
 
   deleteAddress: (id: string) =>
     apiClient.delete(`/api/v1/users/me/addresses/${id}`),
