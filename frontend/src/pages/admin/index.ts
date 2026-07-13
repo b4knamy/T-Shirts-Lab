@@ -1,7 +1,7 @@
 export { AdminDashboard } from './dashboard/dashboard';
-export { AdminProducts } from './AdminProducts';
-export { AdminOrders } from './AdminOrders';
+export { AdminProducts } from './products';
+export { AdminOrders } from './orders';
 export { AdminCategory } from './category/category';
 export { AdminCoupons } from './coupon/coupon';
-export { AdminReviews } from './AdminReviews';
-export { AdminStaff } from './AdminStaff';
+export { AdminReviews } from './reviews';
+export { AdminStaff } from './staff';
