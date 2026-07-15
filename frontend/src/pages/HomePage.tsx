@@ -1,24 +1,23 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Truck, Shield, Palette } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '../store';
-import {
-  fetchFeaturedProducts,
-  fetchCategories,
-} from '../store/slices/productSlice';
+import { useProducts } from '../hooks';
 import { ProductCard } from '../components/common/ProductCard';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 
 export function HomePage() {
-  const dispatch = useAppDispatch();
-  const { featuredProducts, categories, isLoading } = useAppSelector(
-    (state) => state.products,
-  );
+  const {
+    featuredProducts,
+    categories,
+    isLoading,
+    fetchFeaturedProducts,
+    fetchCategories,
+  } = useProducts();
 
   useEffect(() => {
-    dispatch(fetchFeaturedProducts(8));
-    dispatch(fetchCategories());
-  }, [dispatch]);
+    fetchFeaturedProducts(8);
+    fetchCategories();
+  }, [fetchFeaturedProducts, fetchCategories]);
 
   return (
     <div className="w-full overflow-x-hidden">

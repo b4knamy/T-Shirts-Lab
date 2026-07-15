@@ -1,30 +1,21 @@
 import type { PropsWithChildren, ReactElement } from 'react';
-import { configureStore } from '@reduxjs/toolkit';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { render } from '@testing-library/react';
 import { CheckoutDraftProvider } from '../pages/checkout/draft_state';
 import type { CheckoutDraftState } from '../pages/checkout/types';
-import cartReducer from '../store/slices/cartSlice';
 import { createQueryClient } from '../services/queryClient';
+import { CartProvider } from '../contexts/cart_context';
+import { AuthProvider } from '../contexts/auth_context';
+import { ProductProvider } from '../contexts/product_context';
+import { useCart } from '../hooks/useCart';
 
 type TestState = {
-  cart: ReturnType<typeof cartReducer>;
+  cart: {
+    items: any[];
+    isOpen: boolean;
+  };
 };
-
-export function createTestStore(preloadedState?: Partial<TestState>) {
-  return configureStore({
-    reducer: {
-      cart: cartReducer,
-    },
-    preloadedState: preloadedState as TestState | undefined,
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware({
-        serializableCheck: false,
-      }),
-  });
-}
 
 export function renderRouteWithProviders(
   element: ReactElement,
@@ -35,21 +26,71 @@ export function renderRouteWithProviders(
     preloadedState?: Partial<TestState>;
   },
 ) {
-  const store = createTestStore(options.preloadedState);
   const queryClient = createQueryClient();
+  const initialCartItems = options.preloadedState?.cart?.items;
+  const initialCartIsOpen = options.preloadedState?.cart?.isOpen;
+
+  let currentCartContext: any = null;
+
+  function StateSpy() {
+    currentCartContext = useCart();
+    return null;
+  }
+
+  const store = {
+    getState() {
+      return {
+        cart: {
+          items: currentCartContext
+            ? currentCartContext.items
+            : (initialCartItems ?? []),
+          isOpen: currentCartContext
+            ? currentCartContext.isOpen
+            : (initialCartIsOpen ?? false),
+        },
+      };
+    },
+    dispatch(action: any) {
+      if (!currentCartContext) return;
+      if (action.type === 'cart/updateQuantity') {
+        currentCartContext.update(
+          action.payload.productId,
+          action.payload.quantity,
+        );
+      } else if (action.type === 'cart/addToCart') {
+        currentCartContext.add(action.payload.product, action.payload.quantity);
+      } else if (action.type === 'cart/removeFromCart') {
+        currentCartContext.remove(action.payload);
+      } else if (action.type === 'cart/clearCart') {
+        currentCartContext.clear();
+      } else if (action.type === 'cart/toggleCart') {
+        currentCartContext.toggle();
+      } else if (action.type === 'cart/setCartOpen') {
+        currentCartContext.setOpen(action.payload);
+      }
+    },
+  };
 
   function Wrapper({ children }: PropsWithChildren) {
     return (
       <QueryClientProvider client={queryClient}>
-        <Provider store={store}>
-          <CheckoutDraftProvider initialState={options.initialDraftState}>
-            <MemoryRouter initialEntries={[options.route]}>
-              <Routes>
-                <Route path={options.path} element={children} />
-              </Routes>
-            </MemoryRouter>
-          </CheckoutDraftProvider>
-        </Provider>
+        <AuthProvider>
+          <CartProvider
+            initialItems={initialCartItems}
+            initialIsOpen={initialCartIsOpen}
+          >
+            <ProductProvider>
+              <StateSpy />
+              <CheckoutDraftProvider initialState={options.initialDraftState}>
+                <MemoryRouter initialEntries={[options.route]}>
+                  <Routes>
+                    <Route path={options.path} element={children} />
+                  </Routes>
+                </MemoryRouter>
+              </CheckoutDraftProvider>
+            </ProductProvider>
+          </CartProvider>
+        </AuthProvider>
       </QueryClientProvider>
     );
   }

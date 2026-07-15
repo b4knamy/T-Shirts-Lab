@@ -21,8 +21,6 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { useAppDispatch } from '../store';
-import { setUser } from '../store/slices/authSlice';
 import {
   userApi,
   type UpdateProfileData,
@@ -49,8 +47,7 @@ const emptyDeleteAccountForm: DeleteAccountData = {
 };
 
 export function ProfilePage() {
-  const { user, isLoading, loadProfile, signOut } = useAuth();
-  const dispatch = useAppDispatch();
+  const { user, isLoading, loadProfile, signOut, setUser } = useAuth();
 
   const [activeTab, setActiveTab] = useState<
     'profile' | 'security' | 'addresses'
@@ -121,7 +118,7 @@ export function ProfilePage() {
           {activeTab === 'profile' && (
             <ProfileSection
               user={user}
-              dispatch={dispatch}
+              setUser={setUser}
               onOpenSecurity={() => setActiveTab('security')}
             />
           )}
@@ -137,11 +134,11 @@ export function ProfilePage() {
 
 function ProfileSection({
   user,
-  dispatch,
+  setUser,
   onOpenSecurity,
 }: {
   user: NonNullable<ReturnType<typeof useAuth>['user']>;
-  dispatch: ReturnType<typeof useAppDispatch>;
+  setUser: ReturnType<typeof useAuth>['setUser'];
   onOpenSecurity: () => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -167,7 +164,7 @@ function ProfileSection({
     setSaving(true);
     try {
       const res = await userApi.updateProfile(form);
-      dispatch(setUser(res.data.data));
+      setUser(res.data.data);
       setEditing(false);
       showMsg('Profile updated!', 'success');
     } catch {
@@ -183,7 +180,7 @@ function ProfileSection({
     setUploadingAvatar(true);
     try {
       const res = await userApi.uploadAvatar(file);
-      dispatch(setUser(res.data.data));
+      setUser(res.data.data);
       showMsg('Avatar updated!', 'success');
     } catch {
       showMsg('Failed to upload avatar', 'error');

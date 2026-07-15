@@ -1,7 +1,6 @@
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { updateQuantity } from '../../../store/slices/cartSlice';
 import { renderRouteWithProviders } from '../../../test/renderWithProviders';
 import { CheckoutPage } from '../index';
 import {
@@ -10,6 +9,11 @@ import {
   createCoupon,
   createPreloadedState,
 } from './test_utils';
+
+const updateQuantity = (payload: { productId: string; quantity: number }) => ({
+  type: 'cart/updateQuantity',
+  payload,
+});
 
 const {
   couponsValidateMock,

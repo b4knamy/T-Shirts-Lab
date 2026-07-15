@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { SlidersHorizontal, Grid3x3, LayoutList } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '../store';
-import { fetchProducts, fetchCategories } from '../store/slices/productSlice';
+import { useProducts, useDebounce } from '../hooks';
 import { ProductCard } from '../components/common/ProductCard';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { useDebounce } from '../hooks';
 
 export function ProductsPage() {
-  const dispatch = useAppDispatch();
-  const { products, categories, total, limit, isLoading } = useAppSelector(
-    (state) => state.products,
-  );
+  const {
+    products,
+    categories,
+    total,
+    limit,
+    isLoading,
+    fetchProducts,
+    fetchCategories,
+  } = useProducts();
   const [searchParams, setSearchParams] = useSearchParams();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [gridView, setGridView] = useState(true);
@@ -24,20 +27,18 @@ export function ProductsPage() {
   const debouncedSearch = useDebounce(search, 300);
 
   useEffect(() => {
-    dispatch(fetchCategories());
-  }, [dispatch]);
+    fetchCategories();
+  }, [fetchCategories]);
 
   useEffect(() => {
-    dispatch(
-      fetchProducts({
-        search: debouncedSearch || undefined,
-        categoryId: categoryId || undefined,
-        sortBy: sortBy || undefined,
-        page: currentPage,
-        limit: 20,
-      }),
-    );
-  }, [dispatch, debouncedSearch, categoryId, sortBy, currentPage]);
+    fetchProducts({
+      search: debouncedSearch || undefined,
+      categoryId: categoryId || undefined,
+      sortBy: sortBy || undefined,
+      page: currentPage,
+      limit: 20,
+    });
+  }, [fetchProducts, debouncedSearch, categoryId, sortBy, currentPage]);
 
   const updateParam = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams);

@@ -1,22 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ShoppingCart, Minus, Plus, ArrowLeft, Check } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '../store';
-import {
-  clearCurrentProduct,
-  fetchProductBySlug,
-} from '../store/slices/productSlice';
-import { useCart } from '../hooks/useCart';
+import { useProducts, useCart } from '../hooks';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { StarRating } from '../components/common/StarRating';
 import { ProductReviews } from '../components/product/ProductReviews';
 
 export function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
-  const dispatch = useAppDispatch();
-  const { currentProduct: product, isLoading } = useAppSelector(
-    (state) => state.products,
-  );
+  const {
+    currentProduct: product,
+    isLoading,
+    fetchProductBySlug,
+    clearCurrentProduct,
+  } = useProducts();
   const { add } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -25,12 +22,12 @@ export function ProductDetailPage() {
   useEffect(() => {
     if (slug) {
       // We fetch by slug using the id field; the backend resolves by slug endpoint
-      dispatch(fetchProductBySlug(slug));
+      fetchProductBySlug(slug);
     }
     return () => {
-      dispatch(clearCurrentProduct());
+      clearCurrentProduct();
     };
-  }, [dispatch, slug]);
+  }, [fetchProductBySlug, clearCurrentProduct, slug]);
 
   const handleAddToCart = () => {
     if (product) {
