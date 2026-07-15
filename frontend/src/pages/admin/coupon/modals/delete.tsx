@@ -1,5 +1,5 @@
-import { AlertTriangle, Check } from "lucide-react";
-import type { CouponDeleteModalProps } from "../types";
+import { AlertTriangle, Check } from 'lucide-react';
+import type { CouponDeleteModalProps } from '../types';
 
 export function CouponDeleteModal({
   target,
@@ -35,7 +35,7 @@ export function CouponDeleteModal({
         )}
 
         <p className="text-sm text-gray-600 mb-6">
-          Are you sure you want to delete coupon{" "}
+          Are you sure you want to delete coupon{' '}
           <strong className="font-mono">{target.code}</strong>?
         </p>
 

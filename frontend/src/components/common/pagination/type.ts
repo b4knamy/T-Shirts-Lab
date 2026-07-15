@@ -21,12 +21,12 @@ export type PaginationHandlers = {
 export type PaginationMeta = PaginationHandlers & PaginationState;
 
 export type PaginationProps = {
-  mode: "minimalist";
+  mode: 'minimalist';
 } & PaginationMeta;
 
 export type MinimalistPaginationProps = Pick<
   PaginationMeta,
-  "page" | "total_pages" | "goToNextPage" | "goToPreviousPage"
+  'page' | 'total_pages' | 'goToNextPage' | 'goToPreviousPage'
 >;
 
-export type PaginateQuery = Pick<PaginationMeta, "page" | "limit">;
+export type PaginateQuery = Pick<PaginationMeta, 'page' | 'limit'>;

@@ -1,15 +1,15 @@
-import { AlertTriangle, Save, X } from "lucide-react";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import type { CategoryFormData, CategoryFormModalProps } from "../types";
-import { EMPTY_CATEGORY_FORM } from "../constants";
+import { AlertTriangle, Save, X } from 'lucide-react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import type { CategoryFormData, CategoryFormModalProps } from '../types';
+import { EMPTY_CATEGORY_FORM } from '../constants';
 
 const categorySchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
-  image_url: z.string().url().optional().or(z.literal("")),
+  image_url: z.string().url().optional().or(z.literal('')),
   is_active: z.boolean().optional(),
 });
 
@@ -39,8 +39,8 @@ export function CategoryFormModal({
     if (editingCategory) {
       reset({
         name: editingCategory.name,
-        description: editingCategory.description || "",
-        image_url: editingCategory.image_url || "",
+        description: editingCategory.description || '',
+        image_url: editingCategory.image_url || '',
         is_active: editingCategory.is_active,
       });
     } else {
@@ -61,7 +61,7 @@ export function CategoryFormModal({
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-bold">
-            {editingCategory ? "Edit Category" : "New Category"}
+            {editingCategory ? 'Edit Category' : 'New Category'}
           </h2>
           <button
             type="button"
@@ -85,7 +85,7 @@ export function CategoryFormModal({
               Name *
             </label>
             <input
-              {...register("name")}
+              {...register('name')}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent"
               placeholder="Category name"
             />
@@ -99,7 +99,7 @@ export function CategoryFormModal({
               Description
             </label>
             <textarea
-              {...register("description")}
+              {...register('description')}
               rows={2}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent resize-none"
             />
@@ -110,7 +110,7 @@ export function CategoryFormModal({
               Image URL
             </label>
             <input
-              {...register("image_url")}
+              {...register('image_url')}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent"
               placeholder="https://..."
             />
@@ -124,7 +124,7 @@ export function CategoryFormModal({
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              {...register("is_active")}
+              {...register('is_active')}
               className="w-4 h-4"
             />
             <span className="text-sm font-medium text-gray-700">Active</span>
@@ -149,7 +149,7 @@ export function CategoryFormModal({
             ) : (
               <Save className="w-4 h-4" />
             )}
-            {editingCategory ? "Update" : "Create"}
+            {editingCategory ? 'Update' : 'Create'}
           </button>
         </div>
       </form>

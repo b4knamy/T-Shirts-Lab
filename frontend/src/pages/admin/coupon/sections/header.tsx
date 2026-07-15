@@ -1,5 +1,5 @@
-import { Plus } from "lucide-react";
-import type { CouponHeaderProps } from "../types";
+import { Plus } from 'lucide-react';
+import type { CouponHeaderProps } from '../types';
 
 export function CouponHeader({ total, onCreate }: CouponHeaderProps) {
   return (

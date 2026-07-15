@@ -7,9 +7,9 @@ import {
   Percent,
   Ticket,
   Trash2,
-} from "lucide-react";
-import { couponValueLabel, formatCouponDate, getCouponStatus } from "../utils";
-import type { CouponTableProps } from "../types";
+} from 'lucide-react';
+import { couponValueLabel, formatCouponDate, getCouponStatus } from '../utils';
+import type { CouponTableProps } from '../types';
 
 export function CouponTable({
   coupons,
@@ -84,7 +84,7 @@ export function CouponTable({
 
                   <td className="px-5 py-3.5 hidden md:table-cell">
                     <span className="inline-flex items-center gap-1 font-semibold text-gray-900">
-                      {coupon.type === "PERCENTAGE" ? (
+                      {coupon.type === 'PERCENTAGE' ? (
                         <Percent className="w-3.5 h-3.5 text-gray-400" />
                       ) : (
                         <DollarSign className="w-3.5 h-3.5 text-gray-400" />

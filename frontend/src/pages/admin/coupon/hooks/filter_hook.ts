@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 export function useCouponFilters({
   onResetPagination,
 }: {
   onResetPagination: () => void;
 }) {
-  const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   const onSearchChange = (value: string) => {
     setSearch(value);
@@ -25,9 +25,9 @@ export function useCouponFilters({
   };
 
   const clearFilters = () => {
-    setSearch("");
-    setTypeFilter("");
-    setStatusFilter("");
+    setSearch('');
+    setTypeFilter('');
+    setStatusFilter('');
     onResetPagination();
   };
 

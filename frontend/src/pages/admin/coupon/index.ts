@@ -1,1 +1,1 @@
-export { AdminCoupons } from "./coupon";
+export { AdminCoupons } from './coupon';

@@ -1,8 +1,8 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { adminApi } from "../../../../services/api";
-import type { Category } from "../../../../types";
-import type { UseCategoryFetchingOptions } from "../types";
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { adminApi } from '../../../../services/api';
+import type { Category } from '../../../../types';
+import type { UseCategoryFetchingOptions } from '../types';
 
 export function useCategoryFetching({
   pagination,
@@ -11,7 +11,7 @@ export function useCategoryFetching({
 }: UseCategoryFetchingOptions) {
   const query = useQuery({
     queryKey: [
-      "admin-categories",
+      'admin-categories',
       pagination.page,
       pagination.limit,
       search,

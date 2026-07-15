@@ -1,8 +1,8 @@
-import type { CategoryFormData } from "./types";
+import type { CategoryFormData } from './types';
 
 export const EMPTY_CATEGORY_FORM: CategoryFormData = {
-  name: "",
-  description: "",
-  image_url: "",
+  name: '',
+  description: '',
+  image_url: '',
   is_active: true,
 };

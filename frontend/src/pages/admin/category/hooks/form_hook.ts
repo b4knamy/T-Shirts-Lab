@@ -1,16 +1,16 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { adminApi } from "../../../../services/api";
-import type { Category } from "../../../../types";
-import { EMPTY_CATEGORY_FORM } from "../constants";
-import type { CategoryApiError, CategoryFormData } from "../types";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { adminApi } from '../../../../services/api';
+import type { Category } from '../../../../types';
+import { EMPTY_CATEGORY_FORM } from '../constants';
+import type { CategoryApiError, CategoryFormData } from '../types';
 
 function resolveCategoryError(error: unknown, fallbackMessage: string): string {
   const apiError = error as CategoryApiError;
   const fieldErrors = apiError.response?.data?.errors;
 
   if (fieldErrors) {
-    return Object.values(fieldErrors).flat().join(". ");
+    return Object.values(fieldErrors).flat().join('. ');
   }
 
   return apiError.response?.data?.message || fallbackMessage;
@@ -51,8 +51,8 @@ export function useCategoryForm() {
     setEditingCategory(category);
     setForm({
       name: category.name,
-      description: category.description || "",
-      image_url: category.image_url || "",
+      description: category.description || '',
+      image_url: category.image_url || '',
       is_active: category.is_active,
     });
     setSaveError(null);
@@ -79,9 +79,9 @@ export function useCategoryForm() {
     try {
       await saveMutation.mutateAsync({ form, editingCategory });
       setIsModalOpen(false);
-      await queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
+      await queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
     } catch (error: unknown) {
-      setSaveError(resolveCategoryError(error, "Failed to save"));
+      setSaveError(resolveCategoryError(error, 'Failed to save'));
     }
   };
 

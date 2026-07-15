@@ -1,70 +1,70 @@
-import type { Coupon } from "../../../types";
-import type { CouponFormValues, CouponStatusTag } from "./types";
+import type { Coupon } from '../../../types';
+import type { CouponFormValues, CouponStatusTag } from './types';
 
 export function formatCouponDate(value?: string | null) {
   if (!value) {
-    return "-";
+    return '-';
   }
 
-  return new Date(value).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+  return new Date(value).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 }
 
 export function getCouponStatus(coupon: Coupon): CouponStatusTag {
   if (!coupon.is_active) {
     return {
-      label: "Inactive",
-      cls: "bg-gray-50 text-gray-500 border-gray-200",
+      label: 'Inactive',
+      cls: 'bg-gray-50 text-gray-500 border-gray-200',
     };
   }
 
   if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
     return {
-      label: "Expired",
-      cls: "bg-red-50 text-red-600 border-red-200",
+      label: 'Expired',
+      cls: 'bg-red-50 text-red-600 border-red-200',
     };
   }
 
   if (coupon.starts_at && new Date(coupon.starts_at) > new Date()) {
     return {
-      label: "Scheduled",
-      cls: "bg-blue-50 text-blue-600 border-blue-200",
+      label: 'Scheduled',
+      cls: 'bg-blue-50 text-blue-600 border-blue-200',
     };
   }
 
   return {
-    label: "Active",
-    cls: "bg-green-50 text-green-700 border-green-200",
+    label: 'Active',
+    cls: 'bg-green-50 text-green-700 border-green-200',
   };
 }
 
 export function toLocalInput(value?: string | null) {
   if (!value) {
-    return "";
+    return '';
   }
 
   const date = new Date(value);
 
   return (
     date.getFullYear() +
-    "-" +
-    String(date.getMonth() + 1).padStart(2, "0") +
-    "-" +
-    String(date.getDate()).padStart(2, "0") +
-    "T" +
-    String(date.getHours()).padStart(2, "0") +
-    ":" +
-    String(date.getMinutes()).padStart(2, "0")
+    '-' +
+    String(date.getMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(date.getDate()).padStart(2, '0') +
+    'T' +
+    String(date.getHours()).padStart(2, '0') +
+    ':' +
+    String(date.getMinutes()).padStart(2, '0')
   );
 }
 
 export function couponValueLabel(coupon: Coupon) {
-  if (coupon.type === "PERCENTAGE") {
+  if (coupon.type === 'PERCENTAGE') {
     return `${coupon.value}%`;
   }
 

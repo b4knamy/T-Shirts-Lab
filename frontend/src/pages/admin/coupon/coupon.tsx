@@ -1,16 +1,16 @@
-import { Pagination } from "../../../components/common/pagination/Pagination";
-import { usePagination } from "../../../hooks";
-import { useCouponDelete } from "./hooks/delete_hook";
-import { useCouponFetching } from "./hooks/fetch_hook";
-import { useCouponFilters } from "./hooks/filter_hook";
-import { useCouponForm } from "./hooks/form_hook";
-import { useCouponView } from "./hooks/view_hook";
-import { CouponDeleteModal } from "./modals/delete";
-import { CouponFormModal } from "./modals/form";
-import { CouponViewModal } from "./modals/view";
-import { CouponFilters } from "./sections/filters";
-import { CouponHeader } from "./sections/header";
-import { CouponTable } from "./sections/table";
+import { Pagination } from '../../../components/common/pagination/Pagination';
+import { usePagination } from '../../../hooks';
+import { useCouponDelete } from './hooks/delete_hook';
+import { useCouponFetching } from './hooks/fetch_hook';
+import { useCouponFilters } from './hooks/filter_hook';
+import { useCouponForm } from './hooks/form_hook';
+import { useCouponView } from './hooks/view_hook';
+import { CouponDeleteModal } from './modals/delete';
+import { CouponFormModal } from './modals/form';
+import { CouponViewModal } from './modals/view';
+import { CouponFilters } from './sections/filters';
+import { CouponHeader } from './sections/header';
+import { CouponTable } from './sections/table';
 
 export function AdminCoupons() {
   const form = useCouponForm();

@@ -1,25 +1,25 @@
-import { AlertTriangle, Save, X } from "lucide-react";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertTriangle, Save, X } from 'lucide-react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import type {
   CouponFormData,
   CouponFormModalProps,
   CouponFormValues,
-} from "../types";
-import { couponSchema } from "../schema";
+} from '../types';
+import { couponSchema } from '../schema';
 
 export const EMPTY_COUPON_FORM = {
-  code: "",
-  type: "PERCENTAGE",
-  value: "",
-  min_order_amount: "",
-  max_discount_amount: "",
-  usage_limit: "",
-  per_user_limit: "",
-  description: "",
-  starts_at: "",
-  expires_at: "",
+  code: '',
+  type: 'PERCENTAGE',
+  value: '',
+  min_order_amount: '',
+  max_discount_amount: '',
+  usage_limit: '',
+  per_user_limit: '',
+  description: '',
+  starts_at: '',
+  expires_at: '',
   is_active: true,
   is_public: false,
 } as CouponFormValues;
@@ -49,13 +49,13 @@ export function CouponFormModal({
       reset({
         ...editingCoupon,
         value: String(editingCoupon.value),
-        min_order_amount: String(editingCoupon.min_order_amount ?? ""),
-        max_discount_amount: String(editingCoupon.max_discount_amount ?? ""),
-        usage_limit: String(editingCoupon.usage_limit ?? ""),
-        per_user_limit: String(editingCoupon.per_user_limit ?? ""),
-        description: editingCoupon.description || "",
-        starts_at: editingCoupon.starts_at || "",
-        expires_at: editingCoupon.expires_at || "",
+        min_order_amount: String(editingCoupon.min_order_amount ?? ''),
+        max_discount_amount: String(editingCoupon.max_discount_amount ?? ''),
+        usage_limit: String(editingCoupon.usage_limit ?? ''),
+        per_user_limit: String(editingCoupon.per_user_limit ?? ''),
+        description: editingCoupon.description || '',
+        starts_at: editingCoupon.starts_at || '',
+        expires_at: editingCoupon.expires_at || '',
       });
     } else {
       reset(EMPTY_COUPON_FORM);
@@ -73,7 +73,7 @@ export function CouponFormModal({
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10 rounded-t-2xl">
           <h2 className="text-lg font-bold">
-            {editingCoupon ? "Edit Coupon" : "New Coupon"}
+            {editingCoupon ? 'Edit Coupon' : 'New Coupon'}
           </h2>
           <button
             type="button"
@@ -98,7 +98,7 @@ export function CouponFormModal({
                 Code *
               </label>
               <input
-                {...register("code")}
+                {...register('code')}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none focus:border-accent"
                 placeholder="SUMMER20"
               />
@@ -114,7 +114,7 @@ export function CouponFormModal({
                 Type *
               </label>
               <select
-                {...register("type")}
+                {...register('type')}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent bg-white"
               >
                 <option value="PERCENTAGE">Percentage (%)</option>
@@ -129,7 +129,7 @@ export function CouponFormModal({
               <input
                 type="number"
                 step="0.01"
-                {...register("value")}
+                {...register('value')}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent"
                 placeholder="10 or 25.00"
               />
@@ -147,7 +147,7 @@ export function CouponFormModal({
               <input
                 type="number"
                 step="0.01"
-                {...register("min_order_amount")}
+                {...register('min_order_amount')}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent"
                 placeholder="100.00"
               />
@@ -160,7 +160,7 @@ export function CouponFormModal({
               <input
                 type="number"
                 step="0.01"
-                {...register("max_discount_amount")}
+                {...register('max_discount_amount')}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent"
                 placeholder="50.00"
               />
@@ -172,7 +172,7 @@ export function CouponFormModal({
               </label>
               <input
                 type="number"
-                {...register("usage_limit")}
+                {...register('usage_limit')}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent"
                 placeholder="No limit"
               />
@@ -184,7 +184,7 @@ export function CouponFormModal({
               </label>
               <input
                 type="number"
-                {...register("per_user_limit")}
+                {...register('per_user_limit')}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent"
                 placeholder="1"
               />
@@ -195,7 +195,7 @@ export function CouponFormModal({
                 Description
               </label>
               <input
-                {...register("description")}
+                {...register('description')}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent"
                 placeholder="Short description for promos"
               />
@@ -207,7 +207,7 @@ export function CouponFormModal({
               </label>
               <input
                 type="datetime-local"
-                {...register("starts_at")}
+                {...register('starts_at')}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent"
               />
             </div>
@@ -218,7 +218,7 @@ export function CouponFormModal({
               </label>
               <input
                 type="datetime-local"
-                {...register("expires_at")}
+                {...register('expires_at')}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent"
               />
             </div>
@@ -228,7 +228,7 @@ export function CouponFormModal({
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                {...register("is_active")}
+                {...register('is_active')}
                 className="w-4 h-4"
               />
               <span className="text-sm font-medium text-gray-700">Active</span>
@@ -237,7 +237,7 @@ export function CouponFormModal({
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                {...register("is_public")}
+                {...register('is_public')}
                 className="w-4 h-4"
               />
               <span className="text-sm font-medium text-gray-700">
@@ -265,7 +265,7 @@ export function CouponFormModal({
             ) : (
               <Save className="w-4 h-4" />
             )}
-            {editingCoupon ? "Update" : "Create"}
+            {editingCoupon ? 'Update' : 'Create'}
           </button>
         </div>
       </form>

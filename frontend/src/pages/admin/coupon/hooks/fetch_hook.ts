@@ -1,8 +1,8 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { adminApi } from "../../../../services/api";
-import type { Coupon } from "../../../../types";
-import type { UseCouponFetchingOptions } from "../types";
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { adminApi } from '../../../../services/api';
+import type { Coupon } from '../../../../types';
+import type { UseCouponFetchingOptions } from '../types';
 
 export function useCouponFetching({
   pagination,
@@ -12,7 +12,7 @@ export function useCouponFetching({
 }: UseCouponFetchingOptions) {
   const query = useQuery({
     queryKey: [
-      "admin-coupons",
+      'admin-coupons',
       pagination.page,
       pagination.limit,
       search,

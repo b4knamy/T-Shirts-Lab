@@ -1,5 +1,5 @@
-import { Search, X } from "lucide-react";
-import type { CouponFiltersProps } from "../types";
+import { Search, X } from 'lucide-react';
+import type { CouponFiltersProps } from '../types';
 
 export function CouponFilters({
   search,
@@ -23,7 +23,7 @@ export function CouponFilters({
         />
         {search && (
           <button
-            onClick={() => onSearchChange("")}
+            onClick={() => onSearchChange('')}
             className="text-gray-400 hover:text-gray-600"
           >
             <X className="w-4 h-4" />

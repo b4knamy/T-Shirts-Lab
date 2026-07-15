@@ -1,9 +1,9 @@
-import z from "zod";
+import z from 'zod';
 
 export const couponSchema = z.object({
-  code: z.string().min(1, "Code is required"),
-  type: z.enum(["PERCENTAGE", "FIXED"]),
-  value: z.string().min(1, "Value is required"),
+  code: z.string().min(1, 'Code is required'),
+  type: z.enum(['PERCENTAGE', 'FIXED']),
+  value: z.string().min(1, 'Value is required'),
   min_order_amount: z.string().optional(),
   max_discount_amount: z.string().optional(),
   usage_limit: z.string().optional(),

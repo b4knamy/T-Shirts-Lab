@@ -1,9 +1,9 @@
-import type z from "zod";
-import type { PaginationMeta } from "../../../components/common/pagination/type";
-import type { Coupon } from "../../../types";
-import type { couponSchema } from "./schema";
+import type z from 'zod';
+import type { PaginationMeta } from '../../../components/common/pagination/type';
+import type { Coupon } from '../../../types';
+import type { couponSchema } from './schema';
 
-export type CouponType = "PERCENTAGE" | "FIXED";
+export type CouponType = 'PERCENTAGE' | 'FIXED';
 
 export interface CouponFormData {
   code: string;

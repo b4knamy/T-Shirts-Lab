@@ -1,5 +1,5 @@
-import type { PaginationMeta } from "../../../components/common/pagination/type";
-import type { Category } from "../../../types";
+import type { PaginationMeta } from '../../../components/common/pagination/type';
+import type { Category } from '../../../types';
 
 // Category Form
 export interface CategoryFormData {

@@ -1,10 +1,10 @@
-import { useEffect } from "react";
-import type { CartItem } from "../../../types";
+import { useEffect } from 'react';
+import type { CartItem } from '../../../types';
 import {
   useCheckoutDraftInitialState,
   useCheckoutDraftState,
-} from "../draft_state";
-import { buildSelectedCheckoutItems } from "../utils";
+} from '../draft_state';
+import { buildSelectedCheckoutItems } from '../utils';
 
 export function useCheckoutDraft(
   cartItems: CartItem[],
@@ -15,13 +15,13 @@ export function useCheckoutDraft(
 
   useEffect(() => {
     dispatch({
-      type: "sync-with-cart",
+      type: 'sync-with-cart',
       cartItems,
     });
 
     if (!isCancelledCheckoutStatus) {
       dispatch({
-        type: "initialize-from-cart",
+        type: 'initialize-from-cart',
         cartItems,
       });
     }
