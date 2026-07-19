@@ -1,0 +1,26 @@
+# Tarefas de Criação de Testes do Frontend
+
+- [x] **Etapa 1: Hooks Utilitários e Lógica Pura**
+  - [x] Criar testes para `useDebounce.ts` -> [useDebounce.test.ts](file:///home/baknamy/projects/tshirts/frontend/src/hooks/__test__/useDebounce.test.ts)
+  - [x] Criar testes para `usePagination.ts` -> [usePagination.test.ts](file:///home/baknamy/projects/tshirts/frontend/src/hooks/__test__/usePagination.test.ts)
+  - [x] Criar testes para `useFetch.ts` -> [useFetch.test.ts](file:///home/baknamy/projects/tshirts/frontend/src/hooks/__test__/useFetch.test.ts)
+- [x] **Etapa 2: Contextos Globais (State Providers)**
+  - [x] Criar testes para `cart_context.tsx`
+  - [x] Criar testes para `auth_context.tsx`
+  - [x] Criar testes para `product_context.tsx`
+- [x] **Etapa 3: Componentes Comuns e Reutilizáveis**
+  - [x] Criar testes para `ProductCard.tsx`
+  - [x] Criar testes para `CartSidebar.tsx`
+  - [x] Criar testes para `StarRating.tsx`
+  - [x] Criar testes para `ErrorBoundary.tsx`
+- [/] **Etapa 4: Layouts e Roteamento**
+  - [x] Criar testes para `ProtectedRoute.tsx`
+  - [/] Criar testes para `Header.tsx`
+- [ ] **Etapa 5: Páginas do Fluxo de Cliente**
+  - [ ] Criar testes para `LoginPage.tsx` / `RegisterPage.tsx`
+  - [ ] Criar testes para `ProductsPage.tsx`
+  - [ ] Criar testes para `ProductDetailPage.tsx`
+- [ ] **Etapa 6: Painel Administrativo**
+  - [ ] Criar testes para listagem e CRUD de Produtos admin
+  - [ ] Criar testes para cupons admin
+  - [ ] Criar testes para reviews admin
